@@ -258,8 +258,6 @@ function QuizInner() {
         const nameFromEmail = email.split('@')[0]
         const preferredName = combinedName || nameFromEmail
 
-        setCandidateStatus('creating')
-
         // Get token for server API
         const { data: sessionRes } = await supabase.auth.getSession()
         const token = sessionRes.session?.access_token
@@ -665,11 +663,13 @@ function QuizInner() {
     }
   }
 
-  if (checkingAuth) {
+  // Only show loading during initial auth and allowlist check
+  // Quiz will show immediately after, even if candidate is still being created
+  if (checkingAuth || (allowCheck === null && !noAccess)) {
     return (
       <div className="min-h-screen bg-gray-50 py-12 px-4">
         <div className="max-w-md mx-auto bg-white rounded-lg shadow p-8 text-center">
-          <h1 className="text-2xl font-bold mb-4">Bezig met laden…</h1>
+          <h1 className="text-2xl font-bold mb-4">Laden…</h1>
         </div>
       </div>
     )
@@ -681,17 +681,6 @@ function QuizInner() {
         <div className="max-w-md mx-auto bg-white rounded-lg shadow p-8 text-center">
           <h1 className="text-2xl font-bold mb-4 text-yellow-600">⚠️ Quiz in onderhoud</h1>
           <p className="text-gray-700">De quiz is momenteel in onderhoud. Probeer het later opnieuw.</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (candidateStatus === 'creating') {
-    return (
-      <div className="min-h-screen bg-gray-50 py-12 px-4">
-        <div className="max-w-md mx-auto bg-white rounded-lg shadow p-8 text-center">
-          <h1 className="text-2xl font-bold mb-4">Voorbereiden…</h1>
-          <p className="text-gray-700">We maken je quiz-gegevens klaar. Een moment geduld.</p>
         </div>
       </div>
     )
@@ -807,7 +796,7 @@ export default function QuizPage() {
         fallback={
           <div className="min-h-screen bg-gray-50 py-12 px-4">
             <div className="max-w-md mx-auto bg-white rounded-lg shadow p-8 text-center">
-              <h1 className="text-2xl font-bold mb-4">Bezig met laden…</h1>
+              <h1 className="text-2xl font-bold mb-4">Laden…</h1>
             </div>
           </div>
         }

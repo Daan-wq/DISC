@@ -17,7 +17,7 @@ A modern Next.js application for administering DISC personality assessments with
 1. **Clone and install:**
 ```bash
 git clone https://github.com/Daan-wq/DISC.git
-cd DISC/apps/quiz-interface
+cd DISC/quiz-interface
 npm install
 ```
 
@@ -37,7 +37,7 @@ Open [http://localhost:3000](http://localhost:3000) to see the application.
 ## Project Structure
 
 ```
-apps/quiz-interface/
+quiz-interface/
 ├── app/
 │   ├── admin/                          # Admin dashboard (protected routes)
 │   │   ├── (protected)/

@@ -49,7 +49,7 @@ async function main() {
   const { profile, out } = parseArgs()
 
   const projectRoot = path.join(process.cwd())
-  const templatesRoot = path.join(projectRoot, '..', '..', 'Profile rapport templates')
+  const templatesRoot = path.join(projectRoot, 'Profile rapport templates')
   const folderName = mapFolder(profile)
   const templateDir = path.join(templatesRoot, folderName)
   const htmlDir = path.join(templateDir, 'publication-web-resources', 'html')

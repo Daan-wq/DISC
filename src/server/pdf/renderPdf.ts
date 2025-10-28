@@ -41,14 +41,16 @@ export async function renderPdfFromHtml(
     
     const folderName = templateMap[profileCode.toUpperCase()]
     const basePath = `file:///${path.join(
-      'C:/Users/Daant/Documents/DISC/MyPlatform/Profile rapport templates',
+      process.cwd(),
+      'Profile rapport templates',
       folderName,
       'publication-web-resources/html'
     ).replace(/\\/g, '/')}/`
     
     // Build CSS content from the template and correct font URLs to absolute file URLs
     const templateDir = path.join(
-      'C:/Users/Daant/Documents/DISC/MyPlatform/Profile rapport templates',
+      process.cwd(),
+      'Profile rapport templates',
       folderName
     )
     const cssPath = path.join(templateDir, 'publication-web-resources', 'css', 'idGeneratedStyles.css')
@@ -288,7 +290,8 @@ export async function renderPdfFromTemplateFile(
     if (!folderName) throw new Error(`Unknown profileCode '${profileCode}'. Add it to templateMap.`)
 
     const templateDir = path.join(
-      'C:/Users/Daant/Documents/DISC/MyPlatform/Profile rapport templates',
+      process.cwd(),
+      'Profile rapport templates',
       folderName
     )
     const htmlDir = path.join(templateDir, 'publication-web-resources', 'html')

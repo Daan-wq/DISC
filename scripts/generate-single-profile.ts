@@ -71,7 +71,7 @@ async function generateSingleProfile() {
     }
     
     // 2. Template base path
-    const templateBasePath = path.join(process.cwd(), '..', '..', 'Profile rapport templates')
+    const templateBasePath = path.join(process.cwd(), 'Profile rapport templates')
     console.log(`📁 Template base path: ${templateBasePath}`)
     
     // 3. Generate test data

@@ -43,14 +43,14 @@ function copyDirectorySync(src: string, dest: string): void {
  * @returns Buffer containing the PDF data
  */
 export async function generatePDFFromTemplate(options: PDFGenerationOptions): Promise<Buffer> {
-  const { profileCode, templateBasePath = path.join(process.cwd(), '..', '..', 'Profile rapport templates'), discData, placeholderData } = options
+  const { profileCode, templateBasePath = path.join(process.cwd(), 'Profile rapport templates'), discData, placeholderData } = options
   // Force strict per-page rendering; the combined path was removed to avoid pagination and TS errors
   return await generatePDFFromTemplateStrict({ profileCode, templateBasePath, discData, placeholderData, strictLayout: true })
 }
 
 // Strict per-page rendering: render each original page HTML in isolation and merge into a single PDF
 async function generatePDFFromTemplateStrict(options: PDFGenerationOptions): Promise<Buffer> {
-  const { profileCode, templateBasePath = path.join(process.cwd(), '..', '..', 'Profile rapport templates'), discData, placeholderData } = options
+  const { profileCode, templateBasePath = path.join(process.cwd(), 'Profile rapport templates'), discData, placeholderData } = options
 
   // 1) Resolve the source template folder on disk (normalized first, then legacy fallback)
   let sourceTemplateDir = path.join(templateBasePath, `1 ${profileCode} Basis profiel plus The Lean Communication`)

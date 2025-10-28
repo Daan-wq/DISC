@@ -58,7 +58,7 @@ async function generateAllProfiles() {
   }
   
   // 2. Template base path (adjust if needed)
-  const templateBasePath = path.join(process.cwd(), '..', '..', 'Profile rapport templates')
+  const templateBasePath = path.join(process.cwd(), 'Profile rapport templates')
   
   // 3. Generate PDFs for each profile
   const results: { profile: string; success: boolean; error?: string }[] = []

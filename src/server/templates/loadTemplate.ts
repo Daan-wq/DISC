@@ -29,7 +29,8 @@ export async function loadRapportTemplate(profileCode: string): Promise<string> 
 
     // Construct path to the HTML template
     const templateBasePath = path.join(
-      'C:\\Users\\Daant\\Documents\\DISC\\MyPlatform\\Profile rapport templates',
+      process.cwd(),
+      'Profile rapport templates',
       folderName,
       'publication-web-resources',
       'html',
