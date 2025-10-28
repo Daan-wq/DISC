@@ -1,17 +1,35 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# DISC Quiz Platform
 
-## Getting Started
+A modern Next.js application for administering DISC personality assessments with PDF report generation, email delivery, and comprehensive admin dashboard.
 
-First, run the development server:
+**Built with:** Next.js 16, React 19, Supabase, Tailwind CSS, TypeScript
 
+## Quick Start
+
+### Prerequisites
+- Node.js 18+
+- npm or yarn
+- Supabase account (free tier)
+- Gmail account (for email delivery)
+
+### Setup
+
+1. **Clone and install:**
+```bash
+git clone https://github.com/Daan-wq/DISC.git
+cd DISC/apps/quiz-interface
+npm install
+```
+
+2. **Configure environment:**
+```bash
+cp env.example .env.local
+# Edit .env.local with your credentials
+```
+
+3. **Run development server:**
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) to see the application.
@@ -20,86 +38,85 @@ Open [http://localhost:3000](http://localhost:3000) to see the application.
 
 ```
 apps/quiz-interface/
-├── src/
-│   ├── app/
-│   │   └── page.tsx                    # Landing + form + results
-│   ├── components/
-│   │   ├── ui/                         # Button, Input, Card components
-│   │   ├── form/
-│   │   │   └── SubmissionForm.tsx      # Main form with validation
-│   │   └── chart/
-│   │       └── ResultChart.tsx         # DISC chart with 50% line
-│   ├── server/
-│   │   ├── actions/
-│   │   │   └── submit.ts               # Server action for submissions
-│   │   ├── db/
-│   │   │   └── prisma.ts              # Prisma client instance
-│   │   ├── csv/
-│   │   │   └── CsvWriter.ts           # Local/Supabase CSV adapters
-│   │   ├── email/
-│   │   │   ├── mailer.ts              # Nodemailer transport
-│   │   │   └── templates/
-│   │   │       └── submission.ts      # HTML/text email templates
-│   │   ├── charts/
-│   │   │   └── generateDiscChart.ts   # Chart generation with 50% line
-│   │   ├── pdf/
-│   │   │   └── renderPdf.ts          # Puppeteer PDF generation
-│   │   └── flows/
-│   │       └── buildAndSendRapport.ts # Main orchestration
-│   ├── lib/
-│   │   ├── utils.ts                   # Utility functions
-│   │   └── validations.ts             # Zod schemas
-│   └── middleware.ts                   # Security headers
-├── prisma/
-│   ├── schema.prisma                  # Database schema
-│   └── migrations/                    # SQLite migrations
-├── scripts/
-│   └── postgres-migration.sql         # PostgreSQL production schema
-├── storage/
-│   └── responses.csv                  # Local CSV file (auto-created)
-└── env.example                        # Environment variables template
+├── app/
+│   ├── admin/                          # Admin dashboard (protected routes)
+│   │   ├── (protected)/
+│   │   │   ├── candidates/             # Manage quiz participants
+│   │   │   ├── results/                # View quiz results & scores
+│   │   │   ├── allowlist/              # Manage access allowlist
+│   │   │   ├── export/                 # Export data (CSV, Excel)
+│   │   │   ├── settings/               # Admin settings
+│   │   │   └── activity/               # Activity logs
+│   │   ├── login/                      # Admin login page
+│   │   └── allowlist-import/           # Bulk import allowlist
+│   ├── api/                            # API routes
+│   │   ├── auth/                       # Authentication endpoints
+│   │   ├── admin/                      # Admin API endpoints
+│   │   ├── quiz/                       # Quiz submission & scoring
+│   │   └── ...
+│   ├── quiz/                           # Quiz pages
+│   ├── login/                          # User login
+│   └── result/                         # Results display
+├── lib/
+│   ├── supabase.ts                     # Supabase client
+│   ├── services/                       # PDF generation, etc.
+│   └── utils/                          # Utilities
+├── supabase/
+│   ├── sql/                            # Database schema files
+│   ├── functions/                      # Edge functions
+│   └── email-templates/                # Email templates
+├── scripts/                            # Utility scripts
+├── env.example                         # Environment variables template
+└── .env.local                          # Local secrets (not committed)
 ```
 
-## Code Map
+## Key Features
 
-### Core Files
+### 🎯 Quiz Administration
+- **Magic Link Authentication** - Secure email-based access
+- **Allowlist Management** - Control who can take the quiz
+- **Admin Dashboard** - View results, manage candidates, export data
+- **Activity Logging** - Track all admin actions
 
-| File | Purpose |
-|------|---------|
-| `src/app/page.tsx` | Main landing page with hero, form container |
-| `src/components/form/SubmissionForm.tsx` | React Hook Form + Zod validation |
-| `src/components/chart/ResultChart.tsx` | Recharts bar chart with 50% dotted line |
-| `src/server/actions/submit.ts` | Validate → Save DB → Append CSV → Send email |
-| `src/server/csv/CsvWriter.ts` | CSV adapter interface (Local/Supabase) |
-| `src/server/email/templates/submission.ts` | Responsive HTML email template |
-| `prisma/schema.prisma` | Database schema with indexes |
-| `scripts/postgres-migration.sql` | Production PostgreSQL migration |
+### 📊 DISC Assessment
+- **48-Question Assessment** - Standardized DISC questionnaire
+- **Dual Scoring** - Natural and Adapted behavior profiles
+- **Instant Results** - Real-time DISC profile calculation
+- **PDF Reports** - Auto-generated professional reports
+
+### 📧 Email & Delivery
+- **Gmail SMTP** - Configured for email delivery
+- **PDF Attachments** - Reports sent directly to users
+- **Trainer Notifications** - Optional trainer email delivery
+- **180-Day Retention** - Automatic PDF cleanup
+
+### 🔐 Security
+- **Role-Based Access Control** - Admin vs. User roles
+- **Row-Level Security (RLS)** - Database-level protection
+- **Input Validation** - Zod schemas for all inputs
+- **Rate Limiting** - Protection against abuse
+- **IP Whitelist** - Optional admin access restriction
 
 ## Database Schema
 
-```prisma
-model Submission {
-  id             String   @id @default(uuid())
-  createdAt      DateTime @default(now())
-  fullName       String
-  email          String
-  profileCode    String   // e.g., "DC", "IS"
-  
-  // Raw scores
-  naturalD       Int
-  naturalI       Int
-  naturalS       Int
-  naturalC       Int
-  
-  // Percentages
-  naturalDPct    Float
-  naturalIPct    Float
-  naturalSPct    Float
-  naturalCPct    Float
-  
-  // JSON snapshot
-  answersJson    Json
-}
+**Core Tables:**
+- `candidates` - Quiz participants
+- `quiz_attempts` - Quiz submissions with scores
+- `answers` - Individual answer responses
+- `allowlist` - Access control list
+- `admin_events` - Audit trail
+
+**Key Columns:**
+```sql
+quiz_attempts:
+  - id (UUID)
+  - user_id (UUID, FK to auth.users)
+  - quiz_id (UUID)
+  - score (numeric)
+  - pdf_path (text)
+  - pdf_expires_at (timestamptz)
+  - alert (boolean)
+  - finished_at (timestamptz)
 ```
 
 ## CSV Storage Adapters
@@ -133,163 +150,55 @@ SMTP_USER=your@gmail.com
 SMTP_PASS=your_app_password
 ```
 
-### Other SMTP Providers
+
+## Allowlist Management
+
+The system allows admins to control who can access the quiz through an allowlist. Users can only take the quiz if their email is on the allowlist.
+
+### Quick Start
+
+1. **Access Admin Dashboard:**
+   - Go to `/admin/login`
+   - Login with admin credentials
+
+2. **Add Users to Allowlist:**
+   - Navigate to `/admin/allowlist`
+   - Add emails individually or bulk import CSV
+   - Optional: Send invitation emails automatically
+
+3. **Bulk Import:**
+   - Go to `/admin/allowlist-import`
+   - Upload CSV with email addresses
+   - System validates and imports
+
+### Email Notifications
+
+When users are added to the allowlist, they receive an invitation email with:
+- Direct link to the quiz
+- Instructions for taking the assessment
+- Deadline information (if configured)
+
+**Configuration:**
 ```env
-# SendGrid
-SMTP_HOST=smtp.sendgrid.net
+SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
-SMTP_USER=apikey
-SMTP_PASS=your_sendgrid_api_key
-
-# Mailgun
-SMTP_HOST=smtp.mailgun.org
-SMTP_PORT=587
+SMTP_USER=your-email@gmail.com
+SMTP_PASS=your-app-password
+FROM_EMAIL="Your Company" <noreply@yourdomain.com>
 ```
-
-## Allowlist Email Automation
-
-The system automatically sends confirmation emails when email addresses are added to the allowlist. This provides immediate access notification with a direct link to the quiz.
-
-### Quick Start (Local Development)
-
-1. **Sign up for Resend** (free tier: 3000 emails/month):
-   - Go to https://resend.com and create an account
-   - Get your API key from https://resend.com/api-keys
-
-2. **Configure environment** in `.env.local`:
-```env
-RESEND_API_KEY=re_your_api_key_here
-EMAIL_FROM="DISC Team" <noreply@yourdomain.com>
-ALLOWLIST_WEBHOOK_SECRET=local-dev-secret-123
-```
-
-3. **Run migrations**:
-```bash
-# Apply the allowlist migrations to your Supabase database
-# Files: supabase/migrations/20251010_create_allowlist.sql
-#        supabase/migrations/20251010_trigger_allowlist_webhook.sql
-```
-
-4. **Test the flow**:
-```sql
--- Insert a test email in Supabase Studio
-INSERT INTO allowlist (email, invited_by) 
-VALUES ('test@example.com', 'admin@example.com');
-```
-
-5. **Check Resend Dashboard**: Open https://resend.com/emails to see the sent email
-
-### How It Works
-
-```
-INSERT into allowlist → PostgreSQL Trigger → Webhook to Next.js API → Send Email → Update emailed_at
-```
-
-**Key Features:**
-- ✅ Automatic email within seconds of INSERT
-- ✅ Idempotent (no duplicate emails)
-- ✅ Retry logic with exponential backoff (5s, 15s, 45s)
-- ✅ Rate limiting (10 req/min)
-- ✅ Uses Resend API (same as rest of project)
-- ✅ Responsive HTML email template
-- ✅ Comprehensive logging and error handling
-
-### Files Created
-
-| File | Purpose |
-|------|---------|
-| `supabase/migrations/20251010_create_allowlist.sql` | Allowlist table with email tracking |
-| `supabase/migrations/20251010_trigger_allowlist_webhook.sql` | Database trigger for webhook |
-| `app/api/hooks/allowlist-created/route.ts` | Webhook endpoint with validation |
-| `lib/email/allowlist-mailer.ts` | Email service with Resend & retry logic |
-| `docs/allowlist-email-flow.md` | Complete documentation |
-| `tests/email/allowlist-created.test.ts` | Unit tests |
-
-### Production Setup
-
-For production deployment, see the comprehensive guide:
-📖 **[docs/allowlist-email-flow.md](docs/allowlist-email-flow.md)**
-
-Covers:
-- Resend domain verification
-- Webhook security configuration
-- DNS setup (SPF, DKIM, DMARC)
-- Monitoring and troubleshooting
-- Rate limiting best practices
 
 ## API Endpoints
 
-### Submit Form
-```typescript
-POST /api/submit
-Body: {
-  fullName: string,
-  email: string,
-  company?: string,
-  answers: Array<{
-    questionId: string,
-    naturalAnswer: 'most' | 'least' | 'neutral',
-    responseAnswer: 'most' | 'least' | 'neutral'
-  }>
-}
-```
+Key endpoints for quiz administration:
 
-### Email Preview (Development)
-```
-GET /email/preview?id={submissionId}
-```
-
-### Download CSV (Admin)
-```
-GET /api/admin/export-csv
-```
-
-### Persist DISC Answers (A4 → letters)
-
-```
-POST /api/answers
-Body:
-{
-  "quiz_session_id": "uuid-optional-if-exists",
-  "answers": ["A","B","C","D", "... 48 total ..."]
-}
-```
-
-- Validates exactly 48 items.
-- Each item must be one of `A|B|C|D` or a number `1..4` (numbers are normalized to letters server-side: 1→A, 2→B, 3→C, 4→D).
-- Inserts into `public.answers(raw_answers)`; a DB trigger populates `answers_export_txt` for Excel.
-- If your schema enforces unique `quiz_session_id`, the API falls back to update on unique violation.
-
-Response 200:
-```json
-{
-  "id": "uuid-of-inserted-row",
-  "quiz_session_id": "uuid-or-null",
-  "count": 48
-}
-```
-
-Errors:
-- 400 Invalid payload (length ≠ 48, wrong symbols, invalid uuid)
-- 401/403 Unauthorized (if RLS blocks and no service role)
-- 500 DB failure
-
-Environment (server):
-```env
-NEXT_PUBLIC_SUPABASE_URL=...
-NEXT_PUBLIC_SUPABASE_ANON_KEY=...
-SUPABASE_SERVICE_ROLE_KEY=...  # server-only secret
-```
-
-curl example:
-```bash
-curl -X POST http://localhost:3000/api/answers \
-  -H "Content-Type: application/json" \
-  -d '{
-    "quiz_session_id":"11111111-1111-4111-8111-aaaaaaaaaaaa",
-    "answers":["A","B","C","D","A","B","C","D","A","B","C","D","A","B","C","D","A","B","C","D","A","B","C","D","A","B","C","D","A","B","C","D","A","B","C","D","A","B","C","D","A","B","C","D","A","B","C","D"]
-  }'
-```
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/api/auth/request-magic-link` | POST | Request magic link for quiz access |
+| `/api/quiz/finish` | POST | Submit completed quiz |
+| `/api/compute` | POST | Calculate DISC scores |
+| `/api/admin/results/list` | GET | Get all quiz results (admin) |
+| `/api/admin/candidates/list` | GET | Get all candidates (admin) |
+| `/api/admin/export/[type]` | GET | Export data as CSV/Excel (admin) |
 
 ## Security Features
 
@@ -332,56 +241,24 @@ vercel
 # Set environment variables in Vercel dashboard
 ```
 
-### Docker
-```dockerfile
-FROM node:18-alpine
-WORKDIR /app
-COPY . .
-RUN npm ci --only=production
-RUN npx prisma generate
-RUN npm run build
-EXPOSE 3000
-CMD ["npm", "start"]
-```
-
-## Performance Optimizations
-
-- Code splitting with dynamic imports
-- Image optimization with Next.js Image
-- Lazy loading below-the-fold content
-- Prisma query optimization with indexes
-- CSV writes are atomic and append-only
 
 ## Troubleshooting
 
-### Database Issues
-```bash
-# Reset database
-npx prisma migrate reset
-
-# View database
-npx prisma studio
-```
-
 ### Email Not Sending
-- Check SMTP credentials
-- Verify port (587 for TLS, 465 for SSL)
+- Verify Gmail app password is correct
+- Check SMTP credentials in `.env.local`
+- Verify port 587 is accessible
 - Check spam folder
-- Enable "Less secure apps" for Gmail (not recommended)
+- Review server logs: `npm run dev` console
 
-### CSV Not Creating
-```bash
-# Check permissions
-mkdir -p storage
-chmod 755 storage
-
-# Manual test
-node -e "require('fs').writeFileSync('./storage/test.csv', 'test')"
-```
+### Database Connection Issues
+- Verify `NEXT_PUBLIC_SUPABASE_URL` and keys are correct
+- Check Supabase project status at [supabase.com](https://supabase.com)
+- Ensure Row-Level Security (RLS) policies are configured
 
 ### Build Errors
 ```bash
-# Clear cache
+# Reinstall dependencies and rebuild
 rm -rf .next node_modules
 npm install
 npm run build
@@ -389,26 +266,50 @@ npm run build
 
 ## Environment Variables
 
+See `env.example` for the complete list. Key variables:
+
 ```env
-# Database
-DATABASE_URL="file:./dev.db"          # SQLite for dev
-POSTGRES_URL=""                        # PostgreSQL for production
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=your_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_key
+SUPABASE_SERVICE_ROLE_KEY=your_key
 
-# Supabase (for CSV storage in production)
-SUPABASE_URL=
-SUPABASE_SERVICE_ROLE_KEY=
-SUPABASE_BUCKET=exports
-
-# SMTP
+# Email (Gmail SMTP)
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
-SMTP_USER=
-SMTP_PASS=
-FROM_EMAIL=
+SMTP_USER=your-email@gmail.com
+SMTP_PASS=your-app-password
+FROM_EMAIL="Company Name" <noreply@domain.com>
+
+# Admin Authentication
+ADMIN_USERNAME=admin@example.com
+ADMIN_PASSWORD_BCRYPT=$2a$12$...
+ADMIN_SESSION_SECRET=your-64-char-hex
+ADMIN_IP_WHITELIST=optional-ip-list
+
+# Cloudflare Turnstile (Bot Protection)
+NEXT_PUBLIC_TURNSTILE_SITE_KEY=your_key
+TURNSTILE_SECRET_KEY=your_key
 
 # Application
 NEXT_PUBLIC_BASE_URL=http://localhost:3000
+COMPANY_NAME=Your Company
 ```
+
+### Getting Credentials
+
+**Gmail App Password:**
+1. Enable 2FA on your Google account
+2. Visit [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords)
+3. Generate app-specific password
+
+**Supabase Keys:**
+1. Create project at [supabase.com](https://supabase.com)
+2. Go to Settings → API → Copy keys
+
+**Cloudflare Turnstile:**
+1. Sign up at [dash.cloudflare.com](https://dash.cloudflare.com)
+2. Create Turnstile site
 
 ## License
 
