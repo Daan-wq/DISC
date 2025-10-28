@@ -1,0 +1,49 @@
+/* Print-only stylesheet to fill A4 exactly and avoid letterboxing */
+
+@page {
+  size: A4;
+  /* Adjust these margins to match the original template's live edges exactly */
+  margin: 0; /* e.g., 16mm 18mm 20mm 18mm */
+}
+
+@media print {
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 210mm;
+    min-height: 297mm;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  /* Wrapper that corresponds to one PDF page */
+  .report-page {
+    --page-w: 210mm;
+    --page-h: 297mm;
+    --m-top: 0mm;
+    --m-right: 0mm;
+    --m-bottom: 0mm;
+    --m-left: 0mm;
+
+    width: calc(var(--page-w) - var(--m-left) - var(--m-right));
+    min-height: calc(var(--page-h) - var(--m-top) - var(--m-bottom));
+    margin: var(--m-top) var(--m-right) var(--m-bottom) var(--m-left);
+    box-sizing: border-box;
+    position: relative;
+    overflow: hidden;
+    break-after: page;
+  }
+  .report-page:last-child { break-after: avoid; }
+
+  /* Remove width clamps that shrink content in print */
+  .report-page, #report, .page-inner { max-width: none !important; }
+
+  /* Scale InDesign's 595×842 px (72dpi) to CSS 96dpi A4 */
+  .page-inner {
+    width: 595px;
+    height: 842px;
+    transform-origin: top left;
+    transform: scale(1.3333333333);
+  }
+}
