@@ -4,14 +4,12 @@ import { supabase, supabaseAdmin } from '@/lib/supabase'
 import { generatePDFFromTemplate } from '@/lib/services/pdf-generator'
 import { sendRapportEmail, generateEmailHtml, generateEmailText } from '@/server/email/mailer'
 import { buildPdfStoragePath, buildPdfFilename, findUniqueStoragePath } from '@/lib/utils/slugify'
+import { QUIZ_ID } from '@/lib/constants'
 
 // Ensure Node.js runtime (Puppeteer not supported on Edge)
 export const runtime = 'nodejs'
 // Avoid ISR caching for API side-effects
 export const dynamic = 'force-dynamic'
-
-// Hardcoded quiz ID (single quiz, never changes)
-const QUIZ_ID = '00000000-0000-0000-0000-000000000001'
 
 const BodySchema = z.object({
   attempt_id: z.string().uuid(),
@@ -197,6 +195,9 @@ export async function POST(req: NextRequest) {
 
     // Email the PDF as attachment (no Supabase URL)
     const toEmail = user.email || ''
+    let emailSent = false
+    let emailError: string | null = null
+    
     try {
       const year = new Date().getFullYear()
       const company = process.env.COMPANY_NAME || 'The Lean Communication'
@@ -240,6 +241,9 @@ export async function POST(req: NextRequest) {
         } catch {}
       }
 
+      // Mark email as successfully sent
+      emailSent = true
+
       // Update allowlist status to "used" after successful email send
       await supabaseAdmin
         .from('allowlist')
@@ -247,16 +251,31 @@ export async function POST(req: NextRequest) {
         .eq('email_normalized', emailNormalized)
         .in('status', ['pending', 'claimed'])
     } catch (mailErr) {
-      // Continue even if email fails; log notification
+      // Email failed - record error details
+      emailSent = false
+      emailError = (mailErr as any)?.message || String(mailErr)
       console.error('Email send failed:', mailErr)
       try {
         await supabaseAdmin.from('notifications').insert({
           severity: 'error',
           source: 'mailer',
-          message: 'Failed to email PDF',
-          meta: { attempt_id, quiz_id, user_id: user.id, error: (mailErr as any)?.message || String(mailErr) }
+          message: 'Failed to email PDF to user',
+          meta: { attempt_id, quiz_id, user_id: user.id, error: emailError }
         })
       } catch {}
+    }
+
+    // Update attempt with email status
+    try {
+      await supabaseAdmin
+        .from('quiz_attempts')
+        .update({
+          email_status: emailSent ? 'sent' : 'failed',
+          email_error: emailError
+        })
+        .eq('id', attempt_id)
+    } catch (updateErr) {
+      console.error('Failed to update email status:', updateErr)
     }
 
     console.log('[finish] SUCCESS - PDF generated and emailed')

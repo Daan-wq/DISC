@@ -3,13 +3,17 @@ import { z } from 'zod'
 import { supabaseAdmin } from '@/lib/supabase'
 import { CANONICAL_STATEMENTS } from '@/lib/data/canonical-statements'
 
+// NOTE: This endpoint is for FINAL submission (all 48 answers)
+// For incremental answer saving during the quiz, use /api/quiz/answers/save instead
+
 const LetterSchema = z.enum(['A', 'B', 'C', 'D'])
 const RawAnswer = z.union([LetterSchema, z.number().int().min(1).max(4)])
 const QuizAnswerLike = z.object({ statementId: z.number(), selection: z.enum(['most','least']).optional() })
 const BodySchema = z.object({
   quiz_session_id: z.string().uuid().optional(),
   candidate_id: z.string().uuid(),
-  answers: z.array(z.union([RawAnswer, QuizAnswerLike])).length(48),
+  attempt_id: z.string().uuid().optional(),
+  answers: z.array(z.union([RawAnswer, QuizAnswerLike])).length(48), // MUST be exactly 48 for finish flow
   answer_texts: z.array(z.string().min(1)).length(48).optional()
 })
 
@@ -37,12 +41,13 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const { quiz_session_id, candidate_id, answers, answer_texts } = parsed.data
+    const { quiz_session_id, candidate_id, attempt_id, answers, answer_texts } = parsed.data
 
     // Debug sample of first few entries
     try {
       console.log('[answers] typeof answers:', typeof answers, 'isArray:', Array.isArray(answers), 'len:', answers?.length)
       console.log('[answers] samples:', answers?.slice(0, 3))
+      if (attempt_id) console.log('[answers] attempt_id:', attempt_id)
     } catch {}
 
     // Normalize to letters A..D (accept numbers 1..4 or objects with statementId)
@@ -145,6 +150,7 @@ export async function POST(req: NextRequest) {
       }
     }
     if (quiz_session_id) insertData.quiz_session_id = quiz_session_id
+    if (attempt_id) insertData.attempt_id = attempt_id
 
     // First try insert
     console.log('[answers] inserting row into public.answers (raw_answers length):', rawAnswersForStorage.length, 'candidate_id:', candidate_id)

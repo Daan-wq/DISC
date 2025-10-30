@@ -9,7 +9,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.warn('[supabase] Missing Supabase URL or anon key. Check env: NEXT_PUBLIC_SUPABASE_URL/NEXT_PUBLIC_SUPABASE_ANON_KEY or SUPABASE_URL/SUPABASE_ANON_KEY')
 }
 
-// Client for browser/client-side operations
+// Client-side Supabase client for browser/client-side operations
 export const supabase = createClient(supabaseUrl as string, supabaseAnonKey as string)
 
 // Admin client for server-side operations (only if service key is available)
@@ -50,7 +50,11 @@ export interface SubmissionData {
   user_agent?: string | null
 }
 
+// Server-side Supabase client helper
 export function createServerSupabaseClient() {
-  // Minimal server-safe wrapper returning the configured Supabase client
-  return supabase
+  return createClient(supabaseUrl as string, supabaseAnonKey as string, {
+    auth: {
+      persistSession: false,
+    },
+  })
 }

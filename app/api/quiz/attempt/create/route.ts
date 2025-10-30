@@ -48,19 +48,25 @@ export async function POST(req: NextRequest) {
       
       // If unique violation, fetch existing
       if ((error as any).code === '23505') {
-        console.log('[attempt/create] unique violation - fetching existing')
-        const { data: found } = await supabaseAdmin
+        console.log('[attempt/create] unique violation - fetching existing attempt')
+        const { data: found, error: fetchErr } = await supabaseAdmin
           .from('quiz_attempts')
           .select('id, quiz_id')
           .eq('user_id', user.id)
           .eq('quiz_id', QUIZ_ID)
-          .order('started_at', { ascending: false })
-          .limit(1)
           .maybeSingle()
+        
+        if (fetchErr) {
+          console.error('[attempt/create] failed to fetch existing:', fetchErr)
+          return NextResponse.json({ error: 'Failed to fetch existing attempt' }, { status: 500 })
+        }
         
         if (found) {
           console.log('[attempt/create] found existing:', found.id)
           return NextResponse.json({ id: found.id, quiz_id: found.quiz_id })
+        } else {
+          console.error('[attempt/create] unique violation but no existing attempt found')
+          return NextResponse.json({ error: 'Duplicate key but no existing attempt' }, { status: 500 })
         }
       }
 

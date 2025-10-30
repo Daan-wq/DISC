@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAdminSession } from '@/src/server/admin/session'
+import { getAdminSession } from '@/server/admin/session'
 import { supabaseAdmin } from '@/lib/supabase'
 
 const SETTINGS_KEY = 'maintenance_mode'

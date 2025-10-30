@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
-import { getAdminSession } from '@/src/server/admin/session'
+import { getAdminSession } from '@/server/admin/session'
 
 export async function GET(req: NextRequest, { params }: { params: { type: string } }) {
+  let session: any = null
   try {
-    const session = await getAdminSession()
+    session = await getAdminSession()
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -16,6 +17,12 @@ export async function GET(req: NextRequest, { params }: { params: { type: string
     const { searchParams } = new URL(req.url)
     const format = searchParams.get('format') || 'csv'
     const exportType = params.type
+    
+    // Validate export type
+    if (!['candidates', 'results', 'answers'].includes(exportType)) {
+      await logEvent('export_failed', session.u, { export_type: exportType, reason: 'invalid_type', format })
+      return NextResponse.json({ error: 'Invalid export type' }, { status: 400 })
+    }
 
     let data: any[] = []
 
@@ -78,8 +85,6 @@ export async function GET(req: NextRequest, { params }: { params: { type: string
         answers: (a.raw_answers || []).join(','),
         created_at: a.created_at,
       }))
-    } else {
-      return NextResponse.json({ error: 'Invalid export type' }, { status: 400 })
     }
 
     let content: string
@@ -121,6 +126,9 @@ export async function GET(req: NextRequest, { params }: { params: { type: string
       }
     }
 
+    // Log successful export
+    await logEvent('export_success', session.u, { export_type: exportType, format, record_count: data.length })
+
     return new NextResponse(content, {
       status: 200,
       headers: {
@@ -130,6 +138,16 @@ export async function GET(req: NextRequest, { params }: { params: { type: string
     })
   } catch (e: any) {
     console.error('Export error:', e)
+    await logEvent('export_error', session?.u || 'unknown', { error: e.message })
     return NextResponse.json({ error: 'Export failed' }, { status: 500 })
+  }
+}
+
+async function logEvent(type: string, actor: string, payload: Record<string, unknown>) {
+  try {
+    if (!supabaseAdmin) return
+    await supabaseAdmin.from('admin_events').insert({ type, actor, payload })
+  } catch (e) {
+    console.error('Failed to log export event:', e)
   }
 }

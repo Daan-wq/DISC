@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
-import { getAdminSession } from '@/src/server/admin/session'
+import { getAdminSession } from '@/server/admin/session'
 
 export async function DELETE(req: NextRequest) {
   try {

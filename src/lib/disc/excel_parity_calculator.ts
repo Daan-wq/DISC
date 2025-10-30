@@ -1,6 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import { type DiscResult, type DiscScores } from './types'
+import { getEmbeddedConfig } from './excel_config_embedded'
 
 export type AnswerSelection = 'most' | 'least'
 export interface AnswerInput { statementId: number; selection: AnswerSelection }
@@ -66,12 +67,20 @@ function resolveConfigPath(): string | null {
 
 function loadConfig(): ExcelConfig {
   const p = resolveConfigPath()
-  if (!p) {
-    const tried = configCandidates().join(' | ')
-    throw new Error(`[disc:excel] Missing excel_config.json. Tried: ${tried}. Run "npm run disc:parity" to generate it.`)
+  
+  // Try to load from disk first (for development)
+  if (p) {
+    try {
+      const raw = fs.readFileSync(p, 'utf-8')
+      return JSON.parse(raw) as ExcelConfig
+    } catch (err) {
+      console.warn(`[disc:excel] Failed to load config from ${p}, falling back to embedded config:`, err)
+    }
   }
-  const raw = fs.readFileSync(p, 'utf-8')
-  return JSON.parse(raw) as ExcelConfig
+  
+  // Fallback to embedded config (for production or when file not found)
+  console.log('[disc:excel] Using embedded config (no file I/O needed)')
+  return getEmbeddedConfig()
 }
 
 function roundWith(fn: StyleConfig['rounding']['fn'], v: number, decimals: number): number {

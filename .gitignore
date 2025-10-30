@@ -60,6 +60,10 @@ next-env.d.ts
 # Generated code
 /src/generated/prisma
 
+# Analysis folder - KEEP excel_config.json for production
+/analysis/**
+!/analysis/excel_parity/
+!/analysis/excel_parity/excel_config.json
 
 # Misc (project-specific)
 next.config.js

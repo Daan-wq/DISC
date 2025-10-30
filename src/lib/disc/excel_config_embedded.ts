@@ -1,0 +1,1421 @@
+/**
+ * Embedded Excel Config - Loaded at build time
+ * 
+ * This file is auto-generated from analysis/excel_parity/excel_config.json
+ * by the embed-excel-config script. Do not edit manually.
+ * 
+ * To update this file, run: npm run embed-excel-config
+ */
+
+import type { ExcelConfig } from './types'
+
+// Embedded config - no file I/O needed at runtime
+export const EMBEDDED_EXCEL_CONFIG: ExcelConfig = {
+  "version": 1,
+  "styles": {
+    "response": {
+      "axes": [
+        "D",
+        "I",
+        "S",
+        "C"
+      ],
+      "items": [
+        {
+          "q": 1,
+          "primary": "S",
+          "secondary": "I",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 2,
+          "primary": "I",
+          "secondary": "D",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 3,
+          "primary": "C",
+          "secondary": "D",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 4,
+          "primary": "D",
+          "secondary": "I",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 5,
+          "primary": "I",
+          "secondary": "S",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 6,
+          "primary": "C",
+          "secondary": "S",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 7,
+          "primary": "D",
+          "secondary": "C",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 8,
+          "primary": "S",
+          "secondary": "I",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 9,
+          "primary": "C",
+          "secondary": "D",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 10,
+          "primary": "D",
+          "secondary": "I",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 11,
+          "primary": "S",
+          "secondary": "I",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 12,
+          "primary": "I",
+          "secondary": "D",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 13,
+          "primary": "D",
+          "secondary": "I",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 14,
+          "primary": "I",
+          "secondary": "S",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 15,
+          "primary": "C",
+          "secondary": "D",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 16,
+          "primary": "S",
+          "secondary": "C",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 17,
+          "primary": "I",
+          "secondary": "D",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 18,
+          "primary": "C",
+          "secondary": "S",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 19,
+          "primary": "D",
+          "secondary": "I",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 20,
+          "primary": "S",
+          "secondary": "C",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 21,
+          "primary": "D",
+          "secondary": "C",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 22,
+          "primary": "S",
+          "secondary": "I",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 23,
+          "primary": "I",
+          "secondary": "D",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 24,
+          "primary": "C",
+          "secondary": "S",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 25,
+          "primary": "C",
+          "secondary": "S",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 26,
+          "primary": "S",
+          "secondary": "C",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 27,
+          "primary": "D",
+          "secondary": "C",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 28,
+          "primary": "I",
+          "secondary": "D",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 29,
+          "primary": "D",
+          "secondary": "C",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 30,
+          "primary": "I",
+          "secondary": "D",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 31,
+          "primary": "S",
+          "secondary": "I",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 32,
+          "primary": "C",
+          "secondary": "S",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 33,
+          "primary": "I",
+          "secondary": "D",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 34,
+          "primary": "S",
+          "secondary": "C",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 35,
+          "primary": "D",
+          "secondary": "C",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 36,
+          "primary": "C",
+          "secondary": "S",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 37,
+          "primary": "D",
+          "secondary": "C",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 38,
+          "primary": "C",
+          "secondary": "S",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 39,
+          "primary": "I",
+          "secondary": "S",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 40,
+          "primary": "S",
+          "secondary": "C",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 41,
+          "primary": "I",
+          "secondary": "D",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 42,
+          "primary": "S",
+          "secondary": "C",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 43,
+          "primary": "C",
+          "secondary": "D",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 44,
+          "primary": "D",
+          "secondary": "I",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 45,
+          "primary": "I",
+          "secondary": "D",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 46,
+          "primary": "D",
+          "secondary": "I",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 47,
+          "primary": "C",
+          "secondary": "S",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 48,
+          "primary": "S",
+          "secondary": "I",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 49,
+          "primary": "D",
+          "secondary": "I",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 50,
+          "primary": "I",
+          "secondary": "D",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 51,
+          "primary": "S",
+          "secondary": "I",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 52,
+          "primary": "C",
+          "secondary": "S",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 53,
+          "primary": "C",
+          "secondary": "S",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 54,
+          "primary": "D",
+          "secondary": "C",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 55,
+          "primary": "I",
+          "secondary": "S",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 56,
+          "primary": "S",
+          "secondary": "C",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 57,
+          "primary": "S",
+          "secondary": "I",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 58,
+          "primary": "D",
+          "secondary": "I",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 59,
+          "primary": "C",
+          "secondary": "S",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 60,
+          "primary": "I",
+          "secondary": "D",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 61,
+          "primary": "I",
+          "secondary": "S",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 62,
+          "primary": "S",
+          "secondary": "I",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 63,
+          "primary": "C",
+          "secondary": "D",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 64,
+          "primary": "D",
+          "secondary": "I",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 65,
+          "primary": "D",
+          "secondary": "C",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 66,
+          "primary": "C",
+          "secondary": "S",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 67,
+          "primary": "I",
+          "secondary": "D",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 68,
+          "primary": "S",
+          "secondary": "C",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 69,
+          "primary": "C",
+          "secondary": "D",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 70,
+          "primary": "S",
+          "secondary": "I",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 71,
+          "primary": "I",
+          "secondary": "D",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 72,
+          "primary": "D",
+          "secondary": "C",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 73,
+          "primary": "C",
+          "secondary": "D",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 74,
+          "primary": "D",
+          "secondary": "I",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 75,
+          "primary": "I",
+          "secondary": "D",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 76,
+          "primary": "S",
+          "secondary": "I",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 77,
+          "primary": "D",
+          "secondary": "C",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 78,
+          "primary": "S",
+          "secondary": "I",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 79,
+          "primary": "C",
+          "secondary": "S",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 80,
+          "primary": "I",
+          "secondary": "D",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 81,
+          "primary": "I",
+          "secondary": "D",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 82,
+          "primary": "S",
+          "secondary": "C",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 83,
+          "primary": "D",
+          "secondary": "I",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 84,
+          "primary": "C",
+          "secondary": "S",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 85,
+          "primary": "I",
+          "secondary": "S",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 86,
+          "primary": "C",
+          "secondary": "S",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 87,
+          "primary": "D",
+          "secondary": "I",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 88,
+          "primary": "S",
+          "secondary": "I",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 89,
+          "primary": "D",
+          "secondary": "I",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 90,
+          "primary": "C",
+          "secondary": "D",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 91,
+          "primary": "I",
+          "secondary": "S",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 92,
+          "primary": "S",
+          "secondary": "C",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 93,
+          "primary": "D",
+          "secondary": "C",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 94,
+          "primary": "S",
+          "secondary": "C",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 95,
+          "primary": "I",
+          "secondary": "S",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 96,
+          "primary": "C",
+          "secondary": "S",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        }
+      ],
+      "scaling": "per_axis_independent",
+      "rounding": {
+        "fn": "ROUND",
+        "decimals": 0,
+        "stage": "post_scale"
+      },
+      "clamp": {
+        "min": 0,
+        "max": 99
+      },
+      "denominators": {
+        "D": 8,
+        "I": 8,
+        "S": 8,
+        "C": 8
+      }
+    },
+    "natural": {
+      "axes": [
+        "D",
+        "I",
+        "S",
+        "C"
+      ],
+      "items": [
+        {
+          "q": 1,
+          "primary": "D",
+          "secondary": "C",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 2,
+          "primary": "C",
+          "secondary": "S",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 3,
+          "primary": "I",
+          "secondary": "S",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 4,
+          "primary": "S",
+          "secondary": "C",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 5,
+          "primary": "C",
+          "secondary": "D",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 6,
+          "primary": "I",
+          "secondary": "D",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 7,
+          "primary": "S",
+          "secondary": "I",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 8,
+          "primary": "D",
+          "secondary": "C",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 9,
+          "primary": "I",
+          "secondary": "S",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 10,
+          "primary": "S",
+          "secondary": "C",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 11,
+          "primary": "D",
+          "secondary": "C",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 12,
+          "primary": "C",
+          "secondary": "S",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 13,
+          "primary": "S",
+          "secondary": "C",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 14,
+          "primary": "C",
+          "secondary": "D",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 15,
+          "primary": "I",
+          "secondary": "S",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 16,
+          "primary": "D",
+          "secondary": "I",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 17,
+          "primary": "C",
+          "secondary": "S",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 18,
+          "primary": "I",
+          "secondary": "D",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 19,
+          "primary": "S",
+          "secondary": "C",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 20,
+          "primary": "D",
+          "secondary": "I",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 21,
+          "primary": "S",
+          "secondary": "I",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 22,
+          "primary": "D",
+          "secondary": "C",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 23,
+          "primary": "C",
+          "secondary": "S",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 24,
+          "primary": "I",
+          "secondary": "D",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 25,
+          "primary": "I",
+          "secondary": "D",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 26,
+          "primary": "D",
+          "secondary": "I",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 27,
+          "primary": "S",
+          "secondary": "I",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 28,
+          "primary": "C",
+          "secondary": "S",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 29,
+          "primary": "S",
+          "secondary": "I",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 30,
+          "primary": "C",
+          "secondary": "S",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 31,
+          "primary": "D",
+          "secondary": "C",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 32,
+          "primary": "I",
+          "secondary": "D",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 33,
+          "primary": "C",
+          "secondary": "S",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 34,
+          "primary": "D",
+          "secondary": "I",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 35,
+          "primary": "S",
+          "secondary": "I",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 36,
+          "primary": "I",
+          "secondary": "D",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 37,
+          "primary": "S",
+          "secondary": "I",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 38,
+          "primary": "I",
+          "secondary": "D",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 39,
+          "primary": "C",
+          "secondary": "D",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 40,
+          "primary": "D",
+          "secondary": "I",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 41,
+          "primary": "C",
+          "secondary": "S",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 42,
+          "primary": "D",
+          "secondary": "I",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 43,
+          "primary": "I",
+          "secondary": "S",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 44,
+          "primary": "S",
+          "secondary": "C",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 45,
+          "primary": "C",
+          "secondary": "S",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 46,
+          "primary": "S",
+          "secondary": "C",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 47,
+          "primary": "I",
+          "secondary": "D",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 48,
+          "primary": "D",
+          "secondary": "C",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 49,
+          "primary": "S",
+          "secondary": "C",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 50,
+          "primary": "C",
+          "secondary": "S",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 51,
+          "primary": "D",
+          "secondary": "C",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 52,
+          "primary": "I",
+          "secondary": "D",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 53,
+          "primary": "I",
+          "secondary": "D",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 54,
+          "primary": "S",
+          "secondary": "I",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 55,
+          "primary": "C",
+          "secondary": "D",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 56,
+          "primary": "D",
+          "secondary": "I",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 57,
+          "primary": "D",
+          "secondary": "C",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 58,
+          "primary": "S",
+          "secondary": "C",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 59,
+          "primary": "I",
+          "secondary": "D",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 60,
+          "primary": "C",
+          "secondary": "S",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 61,
+          "primary": "C",
+          "secondary": "D",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 62,
+          "primary": "D",
+          "secondary": "C",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 63,
+          "primary": "I",
+          "secondary": "S",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 64,
+          "primary": "S",
+          "secondary": "C",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 65,
+          "primary": "S",
+          "secondary": "I",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 66,
+          "primary": "I",
+          "secondary": "D",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 67,
+          "primary": "C",
+          "secondary": "S",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 68,
+          "primary": "D",
+          "secondary": "I",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 69,
+          "primary": "I",
+          "secondary": "S",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 70,
+          "primary": "D",
+          "secondary": "C",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 71,
+          "primary": "C",
+          "secondary": "S",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 72,
+          "primary": "S",
+          "secondary": "I",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 73,
+          "primary": "I",
+          "secondary": "S",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 74,
+          "primary": "S",
+          "secondary": "C",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 75,
+          "primary": "C",
+          "secondary": "S",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 76,
+          "primary": "D",
+          "secondary": "C",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 77,
+          "primary": "S",
+          "secondary": "I",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 78,
+          "primary": "D",
+          "secondary": "C",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 79,
+          "primary": "I",
+          "secondary": "D",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 80,
+          "primary": "C",
+          "secondary": "S",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 81,
+          "primary": "C",
+          "secondary": "S",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 82,
+          "primary": "D",
+          "secondary": "I",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 83,
+          "primary": "S",
+          "secondary": "C",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 84,
+          "primary": "I",
+          "secondary": "D",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 85,
+          "primary": "C",
+          "secondary": "D",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 86,
+          "primary": "I",
+          "secondary": "D",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 87,
+          "primary": "S",
+          "secondary": "C",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 88,
+          "primary": "D",
+          "secondary": "C",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 89,
+          "primary": "S",
+          "secondary": "C",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 90,
+          "primary": "I",
+          "secondary": "S",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 91,
+          "primary": "C",
+          "secondary": "D",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 92,
+          "primary": "D",
+          "secondary": "I",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 93,
+          "primary": "S",
+          "secondary": "I",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 94,
+          "primary": "D",
+          "secondary": "I",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 95,
+          "primary": "C",
+          "secondary": "D",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        },
+        {
+          "q": 96,
+          "primary": "I",
+          "secondary": "D",
+          "weightPrimary": 1,
+          "weightSecondary": 0.5
+        }
+      ],
+      "scaling": "per_axis_independent",
+      "rounding": {
+        "fn": "ROUND",
+        "decimals": 0,
+        "stage": "post_scale"
+      },
+      "clamp": {
+        "min": 0,
+        "max": 99
+      },
+      "denominators": {
+        "D": 8,
+        "I": 8,
+        "S": 8,
+        "C": 8
+      }
+    }
+  }
+}
+
+/**
+ * Get the embedded Excel config
+ * This is the preferred way to access the config - no file I/O needed
+ */
+export function getEmbeddedConfig(): ExcelConfig {
+  return EMBEDDED_EXCEL_CONFIG
+}

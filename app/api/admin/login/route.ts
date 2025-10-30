@@ -42,9 +42,6 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Rate limiting: TEMPORARILY DISABLED FOR TESTING
-    // TODO: Re-enable rate limiting after testing is complete
-    /*
     // Rate limiting: 5 attempts per IP per 15 minutes (skip if whitelisted)
     const ipLimitKey = `login:ip:${clientIp}`
     if (!isWhitelisted && !checkRateLimit(ipLimitKey, 5, 15 * 60 * 1000)) {
@@ -68,7 +65,6 @@ export async function POST(req: NextRequest) {
         { status: 429, headers: { 'Retry-After': resetTime.toString() } }
       )
     }
-    */
 
     // Verify Turnstile
     const secret = process.env.TURNSTILE_SECRET_KEY || ''

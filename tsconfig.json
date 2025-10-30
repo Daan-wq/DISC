@@ -25,24 +25,19 @@
     ],
     "paths": {
       "@/*": [
-        "./src/*",
-        "./*"
+        "./src/*"
       ],
       "@/components/*": [
-        "./src/components/*",
-        "./components/*"
+        "./src/components/*"
       ],
       "@/lib/*": [
-        "./src/lib/*",
-        "./lib/*"
+        "./src/lib/*"
       ],
       "@/server/*": [
-        "./src/server/*",
-        "./server/*"
+        "./src/server/*"
       ],
       "@/generated/*": [
-        "./src/generated/*",
-        "./generated/*"
+        "./src/generated/*"
       ]
     },
     "baseUrl": "."

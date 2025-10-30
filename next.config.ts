@@ -1,6 +1,32 @@
 import type { NextConfig } from "next";
 
+// Environment-specific CSP
+const isDev = process.env.NODE_ENV === 'development'
+
+// Development: Permissive CSP (allows unsafe-inline/eval for dev tools)
+const devCSP = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self';"
+
+// Production: Strict CSP (no unsafe-inline/eval)
+const prodCSP = "default-src 'self'; script-src 'self' https://challenges.cloudflare.com; style-src 'self' https:; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self';"
+
 const nextConfig: NextConfig = {
+  // PDF rendering support
+  serverExternalPackages: ['@react-pdf/renderer'],
+  
+  // Turbopack and Webpack configuration
+  turbopack: {},
+  webpack: (config, { isServer }) => {
+    config.resolve.alias.canvas = false
+    config.resolve.alias.encoding = false
+    
+    // Suppress webpack cache warning for big strings
+    config.infrastructureLogging = {
+      level: 'error',
+    }
+    
+    return config
+  },
+
   // Image optimization
   images: {
     formats: ['image/avif', 'image/webp'],
@@ -14,10 +40,10 @@ const nextConfig: NextConfig = {
       {
         source: '/:path*',
         headers: [
-          // CSP: Restrict where scripts/styles can come from
+          // CSP: Restrict where scripts/styles can come from (environment-specific)
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self';",
+            value: isDev ? devCSP : prodCSP,
           },
           // HSTS: Force HTTPS for 1 year
           {
