@@ -130,7 +130,10 @@ function QuizInner() {
   const [showThankYou, setShowThankYou] = useState(false)
   const [noAccess, setNoAccess] = useState(false)
   const [candidateStatus, setCandidateStatus] = useState<'idle' | 'creating' | 'ready' | 'fatalError'>('idle')
-  const [fatalDetails, setFatalDetails] = useState<{ code?: string; message?: string; hint?: string } | null>(null)
+  const [fatalDetails, setFatalDetails] = useState<{ code: string; message: string } | null>(null)
+  const [isOnline, setIsOnline] = useState(true)
+  const [sessionTimeoutWarning, setSessionTimeoutWarning] = useState(false)
+  const [sessionTimeoutSeconds, setSessionTimeoutSeconds] = useState(0)
   const [retryKey, setRetryKey] = useState(0)
   const [maintenanceMode, setMaintenanceMode] = useState(false)
 
@@ -694,6 +697,170 @@ function QuizInner() {
     return () => { stopped = true; if (timer) clearInterval(timer) }
   }, [])
 
+  // Warn user if they try to leave with unsaved answers
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      // Only warn if quiz is in progress and has unsaved answers
+      if (candidateStatus === 'ready' && answers.length > 0 && !showThankYou && !isSubmitting) {
+        e.preventDefault()
+        e.returnValue = 'Je hebt onopgeslagen antwoorden. Weet je zeker dat je wilt vertrekken?'
+        return e.returnValue
+      }
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [candidateStatus, answers.length, showThankYou, isSubmitting])
+
+  // Detect online/offline status
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true)
+    const handleOffline = () => setIsOnline(false)
+
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
+
+    // Set initial state
+    setIsOnline(navigator.onLine)
+
+    return () => {
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
+    }
+  }, [])
+
+  // Monitor session timeout (check every 30 seconds, warn at 5 minutes remaining)
+  useEffect(() => {
+    let timer: any
+    ;(async () => {
+      const checkSession = async () => {
+        try {
+          const { data: { session } } = await supabase.auth.getSession()
+          if (!session) {
+            setSessionTimeoutWarning(false)
+            return
+          }
+
+          // Check when session expires
+          const expiresAt = session.expires_at
+          if (!expiresAt) return
+
+          const now = Math.floor(Date.now() / 1000)
+          const secondsRemaining = expiresAt - now
+
+          // Warn if less than 5 minutes remaining
+          if (secondsRemaining > 0 && secondsRemaining <= 300) {
+            setSessionTimeoutWarning(true)
+            setSessionTimeoutSeconds(secondsRemaining)
+          } else if (secondsRemaining > 300) {
+            setSessionTimeoutWarning(false)
+          }
+        } catch (e) {
+          console.error('[session-check] Error checking session:', e)
+        }
+      }
+
+      await checkSession()
+      // Check every 30 seconds
+      timer = setInterval(checkSession, 30000)
+    })()
+
+    return () => {
+      if (timer) clearInterval(timer)
+    }
+  }, [])
+
+  // Countdown timer for session timeout warning
+  useEffect(() => {
+    if (!sessionTimeoutWarning || sessionTimeoutSeconds <= 0) return
+
+    const timer = setTimeout(() => {
+      setSessionTimeoutSeconds(sessionTimeoutSeconds - 1)
+    }, 1000)
+
+    return () => clearTimeout(timer)
+  }, [sessionTimeoutWarning, sessionTimeoutSeconds])
+
+  // Handle session refresh
+  const handleRefreshSession = async () => {
+    try {
+      const { data: { session }, error } = await supabase.auth.refreshSession()
+      if (error || !session) {
+        setError('Sessie verlenging mislukt. Probeer opnieuw in te loggen.')
+        return
+      }
+      setSessionTimeoutWarning(false)
+      setSessionTimeoutSeconds(0)
+    } catch (e) {
+      console.error('[session-refresh] Error refreshing session:', e)
+      setError('Sessie verlenging mislukt.')
+    }
+  }
+
+  // Keyboard navigation: numbers 1-4 to select answers, arrow keys to navigate
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't interfere if user is typing in an input field
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
+      
+      // Handle number keys 1-4 for answer selection
+      if (['1', '2', '3', '4'].includes(e.key)) {
+        e.preventDefault()
+        
+        // Get the selected statement index (1-4)
+        const selectedIndex = parseInt(e.key) - 1
+        
+        // Get available statements for current question
+        let availableStatements = statements.slice(currentQuestion * 4, currentQuestion * 4 + 4)
+        
+        // For LEAST questions, exclude the MOST answer
+        if (currentQuestion % 2 === 1) {
+          const mostAnswersInPair = answers.filter(a => 
+            a.selection === 'most' && 
+            a.statementId >= Math.floor(currentQuestion / 2) * 4 + 1 && 
+            a.statementId <= Math.floor(currentQuestion / 2) * 4 + 4
+          )
+          
+          if (mostAnswersInPair.length > 0) {
+            const mostAnswerId = mostAnswersInPair[mostAnswersInPair.length - 1].statementId
+            availableStatements = availableStatements.filter(stmt => stmt.id !== mostAnswerId)
+          }
+        }
+        
+        // Select the statement at the given index
+        if (selectedIndex < availableStatements.length) {
+          handleAnswer(availableStatements[selectedIndex])
+        }
+      }
+      
+      // Handle arrow keys for navigation
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault()
+        handleBack()
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault()
+        // Move to next question if current question is answered
+        const isMostQuestion = currentQuestion % 2 === 0
+        const questionPairIndex = Math.floor(currentQuestion / 2)
+        
+        const hasAnswer = answers.some(a => 
+          a.selection === (isMostQuestion ? 'most' : 'least') &&
+          a.statementId >= questionPairIndex * 4 + 1 &&
+          a.statementId <= questionPairIndex * 4 + 4
+        )
+        
+        if (hasAnswer && currentQuestion < 47) {
+          setCurrentQuestion(currentQuestion + 1)
+        }
+
+
+      }
+    }
+    
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [currentQuestion, answers])
+
   const handleAnswer = (statement: Statement) => {
     const isMostQuestion = currentQuestion % 2 === 0
     const questionPairIndex = Math.floor(currentQuestion / 2)
@@ -989,6 +1156,26 @@ function QuizInner() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
+      {/* Offline banner */}
+      {!isOnline && (
+        <div className="max-w-2xl mx-auto mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
+          Je bent offline. Antwoorden worden opgeslagen als je online bent.
+        </div>
+      )}
+
+      {/* Session timeout warning */}
+      {sessionTimeoutWarning && (
+        <div className="max-w-2xl mx-auto mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800 flex items-center justify-between">
+          <span>Je sessie verloopt over {sessionTimeoutSeconds} seconde{sessionTimeoutSeconds !== 1 ? 'n' : ''}. Klik hier om te verlengen.</span>
+          <button
+            onClick={handleRefreshSession}
+            className="ml-2 px-3 py-1 bg-red-600 text-white rounded text-xs font-semibold hover:bg-red-700 transition"
+          >
+            Verlengen
+          </button>
+        </div>
+      )}
+
       <div className="max-w-2xl mx-auto">
         <div className="bg-white rounded-lg shadow p-8">
           <Progress current={currentQuestion + 1} total={48} />
@@ -998,7 +1185,6 @@ function QuizInner() {
               ? 'Welke uitspraak past het MEEST bij jou?'
               : 'Welke uitspraak past het MINST bij jou?'}
           </h2>
-          
 
           <div className="space-y-3">
             {availableStatements.map((statement: Statement) => {
@@ -1027,12 +1213,7 @@ function QuizInner() {
                   }`}
                   disabled={isSubmitting || candidateStatus !== 'ready'}
                 >
-                  <div className="flex items-center justify-between">
-                    <span>{statement.text}</span>
-                    {isSelected && (
-                      <span className="ml-2 text-blue-600 font-bold">✓</span>
-                    )}
-                  </div>
+                  <span>{statement.text}</span>
                 </button>
               )
             })}
@@ -1044,7 +1225,7 @@ function QuizInner() {
               className="mt-6 px-6 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={isSubmitting || candidateStatus !== 'ready'}
             >
-              ← Terug
+              Terug
             </button>
           )}
 
