@@ -132,11 +132,13 @@ dist
 .yarn/cache
 .yarn/unplugged
 .yarn/build-state.yml
-.yarn/install-state.gz
-.pnp.*
 
 # Admin tools (niet nodig voor productie)
 /tools/
 
 # Admin tools inside quiz-interface (niet nodig voor productie)
 /quiz-interface/tools/
+
+# Package manager lockfiles (we use pnpm workspace)
+**/package-lock.json
+**/yarn.lock
