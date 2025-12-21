@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "tsx scripts/embed-excel-config.ts && next build",
+    "build": "pnpm --filter=quiz run build",
+    "build:admin": "pnpm --filter=admin run build",
     "start": "next start",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "typecheck": "tsc --noEmit",
