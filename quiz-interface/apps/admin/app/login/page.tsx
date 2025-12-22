@@ -40,8 +40,8 @@ export default function AdminLoginPage() {
     setError(null)
     setLoading(true)
     try {
-      // Require a fresh token produced by the widget (only if Turnstile is configured)
-      if (siteKey && !tfToken) {
+      // Require a fresh token produced by the widget (only if Turnstile is configured AND we're on credentials step)
+      if (step === 'credentials' && siteKey && !tfToken) {
         setError('Beveiligingscontrole bezig of verlopen. Wacht even en probeer opnieuw.')
         window.turnstile?.reset()
         setLoading(false)
@@ -53,7 +53,7 @@ export default function AdminLoginPage() {
         body: JSON.stringify({
           username,
           password,
-          turnstileToken: tfToken ?? undefined,
+          turnstileToken: step === 'credentials' ? (tfToken ?? undefined) : undefined,
           totpCode: step === '2fa' ? totpCode : undefined,
         })
       })

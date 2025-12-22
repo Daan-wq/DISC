@@ -83,13 +83,14 @@ export async function POST(req: NextRequest) {
       checkRateLimit(usernameLimitKey, 5, 15 * 60 * 1000)
     }
 
-    // Verify Turnstile
+    // Verify Turnstile (only on initial credentials step, not on 2FA step)
+    const is2FAStep = totpCode && totpCode.length > 0
     const secret = process.env.TURNSTILE_SECRET_KEY || ''
     const isLocalhost = clientIp === '::1' || clientIp === '127.0.0.1' || clientIp === 'localhost'
     const isDevelopment = process.env.NODE_ENV === 'development'
     
-    // Skip Turnstile verification on localhost in development
-    const skipTurnstile = isDevelopment && (isLocalhost || clientIp === 'unknown')
+    // Skip Turnstile verification on localhost in development OR during 2FA step
+    const skipTurnstile = is2FAStep || (isDevelopment && (isLocalhost || clientIp === 'unknown'))
     
     if (!skipTurnstile && !secret) {
       return NextResponse.json({ error: 'Turnstile not configured' }, { status: 500 })
@@ -121,7 +122,11 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Captcha verification failed', code: 'turnstile_failed', details: { codes, hostname: verify?.hostname || null } }, { status: 403 })
       }
     } else {
-      console.log('[turnstile] Skipped on localhost in development')
+      if (is2FAStep) {
+        console.log('[turnstile] Skipped during 2FA step')
+      } else {
+        console.log('[turnstile] Skipped on localhost in development')
+      }
     }
 
     // Fetch admin from database
