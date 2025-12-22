@@ -65,7 +65,7 @@ export default function AdminAllowlistPage() {
       if (theme) url.searchParams.set('theme', theme)
       const res = await fetch(url.toString())
       if (res.status === 401) {
-        window.location.href = '/login'
+        setMsg('Sessie verlopen. Ververs de pagina om opnieuw in te loggen.')
         return
       }
       const j = await res.json()
@@ -95,7 +95,7 @@ export default function AdminAllowlistPage() {
         })
       })
       if (res.status === 401) {
-        window.location.href = '/login'
+        setMsg('Sessie verlopen. Ververs de pagina om opnieuw in te loggen.')
         return
       }
       if (!res.ok) throw new Error('Upsert failed')
@@ -135,7 +135,7 @@ export default function AdminAllowlistPage() {
         body: JSON.stringify({ rows })
       })
       if (res.status === 401) {
-        window.location.href = '/login'
+        setMsg('Sessie verlopen. Ververs de pagina om opnieuw in te loggen.')
         return
       }
       const result = await res.json()
@@ -164,7 +164,7 @@ export default function AdminAllowlistPage() {
         body: JSON.stringify({ email })
       })
       if (res.status === 401) {
-        window.location.href = '/login'
+        setMsg('Sessie verlopen. Ververs de pagina om opnieuw in te loggen.')
         return
       }
       if (!res.ok) throw new Error('Actie mislukt')

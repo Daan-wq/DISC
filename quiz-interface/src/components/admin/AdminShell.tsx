@@ -206,8 +206,7 @@ export default function AdminShell({ children }: { children: ReactNode }) {
       if (res.status === 401) {
         setUnreadCount(0)
         setNotificationsUnauthorized(true)
-        // Session expired - redirect to login
-        window.location.href = '/login'
+        // Don't redirect - just stop polling. User can continue using dashboard.
         return
       }
       if (res.ok) {
