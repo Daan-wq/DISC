@@ -237,16 +237,9 @@ export default function AdminShell({ children }: { children: ReactNode }) {
   }, [pathname, markNotificationsRead])
 
   useEffect(() => {
-    // Fetch unread count on mount and when window regains focus.
-    // This avoids constant polling (less noise in logs and fewer requests).
+    // Fetch unread count only on mount (page refresh).
+    // No polling or focus events to reduce noise in logs.
     fetchUnreadCount()
-    const onFocus = () => {
-      fetchUnreadCount()
-    }
-    window.addEventListener('focus', onFocus)
-    return () => {
-      window.removeEventListener('focus', onFocus)
-    }
   }, [fetchUnreadCount])
 
   useEffect(() => {
