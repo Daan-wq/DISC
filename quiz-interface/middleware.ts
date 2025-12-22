@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 // Host isolation configuration
-const QUIZ_HOSTS = (process.env.QUIZ_HOSTS || 'quiz.tlcprofielen.nl,localhost').split(',').map(h => h.trim().toLowerCase())
-const ADMIN_HOSTS = (process.env.ADMIN_HOSTS || 'admin.tlcprofielen.nl').split(',').map(h => h.trim().toLowerCase())
+// Include Vercel domains for deployment
+const QUIZ_HOSTS = (process.env.QUIZ_HOSTS || 'quiz.tlcprofielen.nl,localhost,disc-quiz.vercel.app').split(',').map(h => h.trim().toLowerCase())
+const ADMIN_HOSTS = (process.env.ADMIN_HOSTS || 'admin.tlcprofielen.nl,disc-admin.vercel.app').split(',').map(h => h.trim().toLowerCase())
 
 // Paths that should only be accessible on specific hosts
 const ADMIN_PATHS = ['/admin', '/api/admin']

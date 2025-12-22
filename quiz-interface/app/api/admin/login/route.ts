@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import bcrypt from 'bcryptjs'
-import { setAdminSession } from '@/server/admin/session'
+import { createSessionCookie } from '@/server/admin/session'
 import { checkRateLimit, getClientIp, getResetTime } from '@/lib/rate-limiter'
 import { authenticator } from 'otplib'
 
@@ -177,12 +177,15 @@ export async function POST(req: NextRequest) {
       .eq('id', admin.id)
 
     const ttl = parseInt(process.env.ADMIN_SESSION_TTL_MINUTES || '480', 10)
-    console.log('[login] Setting session for user:', submittedUser)
-    await setAdminSession(submittedUser, ttl)
-    console.log('[login] Session set, returning success response')
+    console.log('[login] Creating session cookie for user:', submittedUser)
+    const sessionCookie = createSessionCookie(submittedUser, ttl)
+    console.log('[login] Session cookie created, returning success response with Set-Cookie header')
     await logEvent('admin_login_success', submittedUser, {})
 
-    return NextResponse.json({ ok: true })
+    // Return response with Set-Cookie header - this is more reliable than cookies().set() on Vercel
+    const response = NextResponse.json({ ok: true })
+    response.headers.set('Set-Cookie', sessionCookie)
+    return response
   } catch (e) {
     return NextResponse.json({ error: 'Unhandled' }, { status: 500 })
   }

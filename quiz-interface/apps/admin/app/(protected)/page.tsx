@@ -15,22 +15,22 @@ export default function AdminOverviewPage() {
   const [recent, setRecent] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
+  // Fetch data once on mount - no polling to reduce server load
   useEffect(() => {
-    let stop = false
-    async function tick() {
+    let cancelled = false
+    async function loadData() {
       try {
         const lc = await fetch('/api/admin/metrics/live-count', { credentials: 'include' }).then(r => r.json()).catch(() => ({ live_count: 0 }))
-        if (!stop) setLive(lc?.live_count || 0)
+        if (!cancelled) setLive(lc?.live_count || 0)
         const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
         const nf = await fetch(`/api/admin/notifications/list?limit=200&since=${encodeURIComponent(since)}`, { credentials: 'include' }).then(r => r.json()).catch(() => ({ items: [] }))
-        if (!stop) setRecent(nf?.items || [])
+        if (!cancelled) setRecent(nf?.items || [])
       } finally {
-        if (!stop) setLoading(false)
+        if (!cancelled) setLoading(false)
       }
     }
-    tick()
-    const h = setInterval(tick, 5000)
-    return () => { stop = true; clearInterval(h) }
+    loadData()
+    return () => { cancelled = true }
   }, [])
 
   const emails24h = useMemo(() => recent.filter(n => n.source === 'mailer' && n.severity === 'success').length, [recent])

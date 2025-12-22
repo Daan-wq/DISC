@@ -71,6 +71,26 @@ export function verify(token: string | undefined | null): AdminSessionPayload | 
   }
 }
 
+/**
+ * Creates the session token and cookie string for use in Response headers.
+ * Use this in API routes where cookies().set() doesn't work reliably on Vercel.
+ */
+export function createSessionCookie(username: string, ttlMinutes: number): string {
+  const payload: AdminSessionPayload = {
+    u: username,
+    exp: Date.now() + ttlMinutes * 60 * 1000,
+  }
+  const token = sign(payload)
+  const secure = process.env.NODE_ENV === 'production' ? '; Secure' : ''
+  const cookie = `${COOKIE_NAME}=${token}; Path=${ADMIN_COOKIE_PATH}; HttpOnly; SameSite=Lax; Max-Age=${ttlMinutes * 60}${secure}`
+  console.log('[session] Created cookie for user:', username, 'ttl:', ttlMinutes, 'minutes')
+  return cookie
+}
+
+/**
+ * @deprecated Use createSessionCookie() in API routes instead.
+ * This function uses cookies() which doesn't work reliably in API routes on Vercel.
+ */
 export async function setAdminSession(username: string, ttlMinutes: number) {
   const payload: AdminSessionPayload = {
     u: username,
@@ -87,7 +107,6 @@ export async function setAdminSession(username: string, ttlMinutes: number) {
     sameSite: 'lax',
     path: ADMIN_COOKIE_PATH,
     maxAge: ttlMinutes * 60,
-    // No domain set - cookie is automatically scoped to the current host
   })
   console.log('[session] Cookie set successfully')
 }

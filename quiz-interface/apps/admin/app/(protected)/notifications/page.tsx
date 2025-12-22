@@ -16,21 +16,21 @@ export default function AdminNotificationsPage() {
   const [severity, setSeverity] = useState('')
   const [source, setSource] = useState('')
 
+  // Fetch data once on mount - no polling to reduce server load
   useEffect(() => {
-    let stop = false
-    async function tick() {
+    let cancelled = false
+    async function loadData() {
       try {
         const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
         const res = await fetch(`/api/admin/notifications/list?limit=500&since=${encodeURIComponent(since)}`, { credentials: 'include' })
         const j = await res.json()
-        if (!stop) setItems(j.items || [])
+        if (!cancelled) setItems(j.items || [])
       } finally {
-        if (!stop) setLoading(false)
+        if (!cancelled) setLoading(false)
       }
     }
-    tick()
-    const h = setInterval(tick, 5000)
-    return () => { stop = true; clearInterval(h) }
+    loadData()
+    return () => { cancelled = true }
   }, [])
 
   const filtered = useMemo(() => items.filter(n =>
