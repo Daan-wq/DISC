@@ -53,7 +53,18 @@ export function middleware(req: NextRequest) {
   }
 
   if (isAdminHost(host) && pathStartsWith(pathname, QUIZ_PATHS)) {
-    // Admin host cannot access quiz routes - redirect to login (no /admin prefix on standalone admin app)
+    // Admin host cannot access quiz routes
+    // Exception: /login is allowed on admin hosts (it's the admin login page)
+    if (pathname === '/login' || pathname.startsWith('/login/')) {
+      // Allow /login on admin hosts
+      const requestHeaders = new Headers(req.headers)
+      requestHeaders.set('x-request-id', requestId)
+      requestHeaders.set('x-host-type', 'admin')
+      const response = NextResponse.next({ request: { headers: requestHeaders } })
+      response.headers.set('x-request-id', requestId)
+      return response
+    }
+    
     console.warn(`[middleware] Blocked quiz path on admin host: ${host}${pathname}`)
     const adminLoginUrl = new URL('/login', req.url)
     const response = NextResponse.redirect(adminLoginUrl)
