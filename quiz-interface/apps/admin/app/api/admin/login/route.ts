@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
 import { z } from 'zod'
 import bcrypt from 'bcryptjs'
-import { createSessionCookie } from '@/server/admin/session'
+import { createSessionCookie, setAdminSession } from '@/server/admin/session'
 import { checkRateLimit, getClientIp, getResetTime, getRemainingAttempts } from '@/lib/rate-limiter'
 import { authenticator } from 'otplib'
 
@@ -160,14 +161,34 @@ export async function POST(req: NextRequest) {
 
     const ttl = parseInt(process.env.ADMIN_SESSION_TTL_MINUTES || '480', 10)
     console.log('[login] Creating session cookie for user:', submittedUser)
+    
+    // Try BOTH methods to set the cookie for maximum compatibility
+    // Method 1: Use cookies() API (works in some Next.js versions)
+    try {
+      await setAdminSession(submittedUser, ttl)
+      console.log('[login] Cookie set via cookies() API')
+    } catch (e) {
+      console.log('[login] cookies() API failed, using Set-Cookie header only')
+    }
+    
+    // Method 2: Use Set-Cookie header (more reliable on Vercel)
     const sessionCookie = createSessionCookie(submittedUser, ttl)
     console.log('[login] Session cookie string:', sessionCookie.substring(0, 50) + '...')
     await logEvent('admin_login_success', submittedUser, {})
 
-    // Return response with Set-Cookie header
-    const response = NextResponse.json({ ok: true })
-    response.headers.set('Set-Cookie', sessionCookie)
-    console.log('[login] Response headers Set-Cookie:', response.headers.get('Set-Cookie')?.substring(0, 50) + '...')
+    // Create response with Set-Cookie header in constructor for maximum reliability
+    const response = new NextResponse(
+      JSON.stringify({ ok: true }),
+      {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'Set-Cookie': sessionCookie,
+        },
+      }
+    )
+    console.log('[login] Response created with Set-Cookie in constructor')
+    console.log('[login] Final Set-Cookie header:', response.headers.get('Set-Cookie')?.substring(0, 50) + '...')
     return response
   } catch (e) {
     console.error('[login] Unhandled error:', e)
