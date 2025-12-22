@@ -64,6 +64,10 @@ export default function AdminAllowlistPage() {
       if (status) url.searchParams.set('status', status)
       if (theme) url.searchParams.set('theme', theme)
       const res = await fetch(url.toString())
+      if (res.status === 401) {
+        window.location.href = '/login'
+        return
+      }
       const j = await res.json()
       setItems(j.items || [])
     } finally {
@@ -90,6 +94,10 @@ export default function AdminAllowlistPage() {
           theme: form.theme,
         })
       })
+      if (res.status === 401) {
+        window.location.href = '/login'
+        return
+      }
       if (!res.ok) throw new Error('Upsert failed')
       setMsg('Opgeslagen')
       setForm({ email: '', full_name: '', trainer_email: '', send_pdf_user: true, send_pdf_trainer: false, theme: 'tlc' })
@@ -126,6 +134,10 @@ export default function AdminAllowlistPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ rows })
       })
+      if (res.status === 401) {
+        window.location.href = '/login'
+        return
+      }
       const result = await res.json()
       if (!res.ok) {
         console.error('Bulk import failed:', result)
@@ -151,6 +163,10 @@ export default function AdminAllowlistPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email })
       })
+      if (res.status === 401) {
+        window.location.href = '/login'
+        return
+      }
       if (!res.ok) throw new Error('Actie mislukt')
       await load()
     } catch (e: any) {

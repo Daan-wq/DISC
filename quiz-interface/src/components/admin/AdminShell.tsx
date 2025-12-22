@@ -206,6 +206,8 @@ export default function AdminShell({ children }: { children: ReactNode }) {
       if (res.status === 401) {
         setUnreadCount(0)
         setNotificationsUnauthorized(true)
+        // Session expired - redirect to login
+        window.location.href = '/login'
         return
       }
       if (res.ok) {
