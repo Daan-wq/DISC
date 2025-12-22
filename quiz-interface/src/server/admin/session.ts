@@ -28,19 +28,44 @@ export function sign(payload: AdminSessionPayload): string {
 }
 
 export function verify(token: string | undefined | null): AdminSessionPayload | null {
-  if (!token) return null
-  const secret = getSecret()
-  const parts = token.split('.')
-  if (parts.length !== 2) return null
-  const [data, sig] = parts
-  const expected = crypto.createHmac('sha256', secret).update(data).digest('base64url')
-  if (!crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return null
+  if (!token) {
+    console.log('[session] No token provided')
+    return null
+  }
   try {
+    const secret = getSecret()
+    const parts = token.split('.')
+    if (parts.length !== 2) {
+      console.log('[session] Invalid token format')
+      return null
+    }
+    const [data, sig] = parts
+    const expected = crypto.createHmac('sha256', secret).update(data).digest('base64url')
+    
+    // timingSafeEqual requires same length buffers
+    const sigBuffer = Buffer.from(sig)
+    const expectedBuffer = Buffer.from(expected)
+    if (sigBuffer.length !== expectedBuffer.length) {
+      console.log('[session] Signature length mismatch')
+      return null
+    }
+    if (!crypto.timingSafeEqual(sigBuffer, expectedBuffer)) {
+      console.log('[session] Signature verification failed')
+      return null
+    }
+    
     const json = JSON.parse(Buffer.from(data, 'base64url').toString('utf8')) as AdminSessionPayload
-    if (typeof json.exp !== 'number' || Date.now() > json.exp) return null
-    if (typeof json.u !== 'string' || !json.u) return null
+    if (typeof json.exp !== 'number' || Date.now() > json.exp) {
+      console.log('[session] Token expired')
+      return null
+    }
+    if (typeof json.u !== 'string' || !json.u) {
+      console.log('[session] Invalid username in token')
+      return null
+    }
     return json
-  } catch {
+  } catch (e) {
+    console.log('[session] Verification error:', e)
     return null
   }
 }
@@ -72,7 +97,10 @@ export async function clearAdminSession() {
 export async function getAdminSession(): Promise<AdminSessionPayload | null> {
   const store = await cookies()
   const token = store.get(COOKIE_NAME)?.value
-  return verify(token)
+  console.log('[session] Getting session, cookie present:', !!token)
+  const result = verify(token)
+  console.log('[session] Session valid:', !!result)
+  return result
 }
 
 export { COOKIE_NAME }
