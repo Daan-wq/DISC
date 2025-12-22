@@ -57,7 +57,7 @@ export async function setAdminSession(username: string, ttlMinutes: number) {
     value: token,
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    sameSite: 'lax',
     path: ADMIN_COOKIE_PATH,
     maxAge: ttlMinutes * 60,
     ...(ADMIN_COOKIE_DOMAIN && { domain: ADMIN_COOKIE_DOMAIN }),
