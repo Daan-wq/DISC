@@ -177,7 +177,9 @@ export async function POST(req: NextRequest) {
       .eq('id', admin.id)
 
     const ttl = parseInt(process.env.ADMIN_SESSION_TTL_MINUTES || '480', 10)
+    console.log('[login] Setting session for user:', submittedUser)
     await setAdminSession(submittedUser, ttl)
+    console.log('[login] Session set, returning success response')
     await logEvent('admin_login_success', submittedUser, {})
 
     return NextResponse.json({ ok: true })

@@ -77,6 +77,7 @@ export async function setAdminSession(username: string, ttlMinutes: number) {
     exp: Date.now() + ttlMinutes * 60 * 1000,
   }
   const token = sign(payload)
+  console.log('[session] Setting session for user:', username, 'ttl:', ttlMinutes, 'minutes')
   const store = await cookies()
   store.set({
     name: COOKIE_NAME,
@@ -88,6 +89,7 @@ export async function setAdminSession(username: string, ttlMinutes: number) {
     maxAge: ttlMinutes * 60,
     // No domain set - cookie is automatically scoped to the current host
   })
+  console.log('[session] Cookie set successfully')
 }
 
 export async function clearAdminSession() {
