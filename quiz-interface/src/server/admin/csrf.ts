@@ -1,11 +1,12 @@
 import { NextRequest } from 'next/server'
 
 // Allowed origins for admin state-changing requests
-const ALLOWED_ORIGINS = (process.env.ADMIN_ALLOWED_ORIGINS || 'https://admin.tlcprofielen.nl').split(',').map(o => o.trim().toLowerCase())
+// Include both custom domain and Vercel preview/production URLs
+const ALLOWED_ORIGINS = (process.env.ADMIN_ALLOWED_ORIGINS || 'https://admin.tlcprofielen.nl,https://disc-admin.vercel.app').split(',').map(o => o.trim().toLowerCase())
 
 // In development, also allow localhost
 if (process.env.NODE_ENV === 'development') {
-  ALLOWED_ORIGINS.push('http://localhost:3000', 'http://127.0.0.1:3000')
+  ALLOWED_ORIGINS.push('http://localhost:3000', 'http://localhost:3001', 'http://127.0.0.1:3000', 'http://127.0.0.1:3001')
 }
 
 /**
