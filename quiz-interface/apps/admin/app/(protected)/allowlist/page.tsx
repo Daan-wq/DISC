@@ -63,7 +63,7 @@ export default function AdminAllowlistPage() {
       if (q) url.searchParams.set('q', q)
       if (status) url.searchParams.set('status', status)
       if (theme) url.searchParams.set('theme', theme)
-      const res = await fetch(url.toString())
+      const res = await fetch(url.toString(), { credentials: 'include' })
       if (res.status === 401) {
         setMsg('Sessie verlopen. Ververs de pagina om opnieuw in te loggen.')
         return
@@ -84,6 +84,7 @@ export default function AdminAllowlistPage() {
     try {
       const res = await fetch('/api/admin/allowlist/upsert', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: form.email.trim(),
@@ -131,6 +132,7 @@ export default function AdminAllowlistPage() {
     try {
       const res = await fetch('/api/admin/allowlist/bulk-import', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ rows })
       })
@@ -160,6 +162,7 @@ export default function AdminAllowlistPage() {
     try {
       const res = await fetch(`/api/admin/allowlist/${kind}`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email })
       })

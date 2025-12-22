@@ -36,7 +36,7 @@ function PDFDownloadLink({ attemptId, filename, expiresAt }: PDFDownloadLinkProp
       setLoading(true)
       setError(null)
 
-      const res = await fetch(`/api/admin/pdf-download?attempt_id=${attemptId}`)
+      const res = await fetch(`/api/admin/pdf-download?attempt_id=${attemptId}`, { credentials: 'include' })
       if (!res.ok) {
         const data = await res.json()
         setError(data.error || 'Download failed')
@@ -115,7 +115,7 @@ export default function ResultsPage() {
   async function loadResults() {
     try {
       setLoading(true)
-      const res = await fetch("/api/admin/results/list")
+      const res = await fetch("/api/admin/results/list", { credentials: 'include' })
       const data = await res.json()
       setAttempts(data.attempts || [])
     } catch (e) {

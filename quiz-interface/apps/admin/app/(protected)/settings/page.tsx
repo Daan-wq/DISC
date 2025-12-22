@@ -52,6 +52,7 @@ export default function AdminSettingsPage() {
 
       const res = await fetch('/api/admin/settings/maintenance', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ enabled }),
       })
@@ -80,7 +81,7 @@ export default function AdminSettingsPage() {
     try {
       setTwoFALoading(true)
       setTwoFAMessage(null)
-      const res = await fetch('/api/admin/2fa/generate', { method: 'POST' })
+      const res = await fetch('/api/admin/2fa/generate', { method: 'POST', credentials: 'include' })
       if (!res.ok) {
         const data = await res.json()
         setTwoFAMessage({ type: 'error', text: data.error || 'QR code generatie mislukt' })
@@ -110,6 +111,7 @@ export default function AdminSettingsPage() {
 
       const res = await fetch('/api/admin/2fa/verify', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ totpCode: verificationCode, secret: totpSecret })
       })
@@ -135,7 +137,7 @@ export default function AdminSettingsPage() {
   async function handleDisable2FA() {
     try {
       setTwoFALoading(true)
-      const res = await fetch('/api/admin/2fa/disable', { method: 'POST' })
+      const res = await fetch('/api/admin/2fa/disable', { method: 'POST', credentials: 'include' })
       if (!res.ok) {
         const data = await res.json()
         setTwoFAMessage({ type: 'error', text: data.error || '2FA uitschakelen mislukt' })

@@ -19,10 +19,10 @@ export default function AdminOverviewPage() {
     let stop = false
     async function tick() {
       try {
-        const lc = await fetch('/api/admin/metrics/live-count').then(r => r.json()).catch(() => ({ live_count: 0 }))
+        const lc = await fetch('/api/admin/metrics/live-count', { credentials: 'include' }).then(r => r.json()).catch(() => ({ live_count: 0 }))
         if (!stop) setLive(lc?.live_count || 0)
         const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
-        const nf = await fetch(`/api/admin/notifications/list?limit=200&since=${encodeURIComponent(since)}`).then(r => r.json()).catch(() => ({ items: [] }))
+        const nf = await fetch(`/api/admin/notifications/list?limit=200&since=${encodeURIComponent(since)}`, { credentials: 'include' }).then(r => r.json()).catch(() => ({ items: [] }))
         if (!stop) setRecent(nf?.items || [])
       } finally {
         if (!stop) setLoading(false)

@@ -37,7 +37,7 @@ export default function AnswersViewerPage() {
       setLoading(true)
       setError(null)
 
-      const res = await fetch(`/api/admin/answers/${candidateId}`)
+      const res = await fetch(`/api/admin/answers/${candidateId}`, { credentials: 'include' })
       const data = await res.json()
 
       if (!res.ok || !data.answer) {

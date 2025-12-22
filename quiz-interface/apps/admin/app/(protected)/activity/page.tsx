@@ -34,7 +34,7 @@ export default function LiveActivityPage() {
 
   async function loadActivity() {
     try {
-      const res = await fetch("/api/admin/activity/live")
+      const res = await fetch("/api/admin/activity/live", { credentials: 'include' })
       if (res.status === 401) {
         setUnauthorized(true)
         setLoading(false)

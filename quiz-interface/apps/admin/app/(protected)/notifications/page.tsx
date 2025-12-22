@@ -21,7 +21,7 @@ export default function AdminNotificationsPage() {
     async function tick() {
       try {
         const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
-        const res = await fetch(`/api/admin/notifications/list?limit=500&since=${encodeURIComponent(since)}`)
+        const res = await fetch(`/api/admin/notifications/list?limit=500&since=${encodeURIComponent(since)}`, { credentials: 'include' })
         const j = await res.json()
         if (!stop) setItems(j.items || [])
       } finally {

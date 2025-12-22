@@ -41,7 +41,7 @@ export default function AdminEventsPage() {
   async function loadEvents() {
     try {
       setLoading(true)
-      const res = await fetch("/api/admin/events/list")
+      const res = await fetch("/api/admin/events/list", { credentials: 'include' })
       const data = await res.json()
       setEvents(data.events || [])
 

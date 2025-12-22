@@ -202,7 +202,7 @@ export default function AdminShell({ children }: { children: ReactNode }) {
   const fetchUnreadCount = useCallback(async () => {
     try {
       if (notificationsUnauthorized) return
-      const res = await fetch('/api/admin/notifications/unread-count')
+      const res = await fetch('/api/admin/notifications/unread-count', { credentials: 'include' })
       if (res.status === 401) {
         setUnreadCount(0)
         setNotificationsUnauthorized(true)
@@ -222,7 +222,7 @@ export default function AdminShell({ children }: { children: ReactNode }) {
         setUnreadCount(0)
         return
       }
-      await fetch('/api/admin/notifications/mark-read', { method: 'POST' })
+      await fetch('/api/admin/notifications/mark-read', { method: 'POST', credentials: 'include' })
       setUnreadCount(0)
     } catch {}
   }, [notificationsUnauthorized])

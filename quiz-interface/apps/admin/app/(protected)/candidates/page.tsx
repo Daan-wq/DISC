@@ -50,6 +50,7 @@ function DeleteCandidateButton({ candidateId, candidateName, onDeleted }: Delete
 
       const res = await fetch(`/api/admin/candidates/delete?id=${candidateId}`, {
         method: 'DELETE',
+        credentials: 'include',
       })
 
       if (!res.ok) {
@@ -97,7 +98,7 @@ export default function CandidatesPage() {
   async function loadCandidates() {
     try {
       setLoading(true)
-      const res = await fetch("/api/admin/candidates/list")
+      const res = await fetch("/api/admin/candidates/list", { credentials: 'include' })
       const data = await res.json()
       setCandidates(data.candidates || [])
     } catch (e) {
