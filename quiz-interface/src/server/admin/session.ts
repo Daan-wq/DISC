@@ -2,10 +2,11 @@ import { cookies } from 'next/headers'
 import crypto from 'crypto'
 
 const COOKIE_NAME = 'admin_session'
-// Domain for admin cookie - only set in production to restrict to admin subdomain
-const ADMIN_COOKIE_DOMAIN = process.env.ADMIN_COOKIE_DOMAIN || undefined
 // Cookie path - default '/' for standalone admin app, '/admin' for main app
 const ADMIN_COOKIE_PATH = process.env.ADMIN_COOKIE_PATH || '/'
+// NOTE: We intentionally do NOT set a cookie domain.
+// This makes the cookie automatically scoped to the exact host (e.g., disc-admin.vercel.app)
+// Setting a domain like 'tlcprofielen.nl' would break cookies on vercel.app domains.
 
 export interface AdminSessionPayload {
   u: string // username
@@ -85,7 +86,7 @@ export async function setAdminSession(username: string, ttlMinutes: number) {
     sameSite: 'lax',
     path: ADMIN_COOKIE_PATH,
     maxAge: ttlMinutes * 60,
-    ...(ADMIN_COOKIE_DOMAIN && { domain: ADMIN_COOKIE_DOMAIN }),
+    // No domain set - cookie is automatically scoped to the current host
   })
 }
 
