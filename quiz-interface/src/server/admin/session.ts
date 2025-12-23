@@ -4,9 +4,9 @@ import crypto from 'crypto'
 const COOKIE_NAME = 'admin_session'
 // Cookie path - default '/' for standalone admin app, '/admin' for main app
 const ADMIN_COOKIE_PATH = process.env.ADMIN_COOKIE_PATH || '/'
-// NOTE: We intentionally do NOT set a cookie domain.
-// This makes the cookie automatically scoped to the exact host (e.g., disc-admin.vercel.app)
-// Setting a domain like 'tlcprofielen.nl' would break cookies on vercel.app domains.
+// Cookie domain - optional, only set if ADMIN_COOKIE_DOMAIN is explicitly configured
+// Leave empty for automatic host scoping (e.g., disc-admin.vercel.app)
+const ADMIN_COOKIE_DOMAIN = process.env.ADMIN_COOKIE_DOMAIN || ''
 
 export interface AdminSessionPayload {
   u: string // username
@@ -82,8 +82,9 @@ export function createSessionCookie(username: string, ttlMinutes: number): strin
   }
   const token = sign(payload)
   const secure = process.env.NODE_ENV === 'production' ? '; Secure' : ''
-  const cookie = `${COOKIE_NAME}=${token}; Path=${ADMIN_COOKIE_PATH}; HttpOnly; SameSite=Lax; Max-Age=${ttlMinutes * 60}${secure}`
-  console.log('[session] Created cookie for user:', username, 'ttl:', ttlMinutes, 'minutes')
+  const domain = ADMIN_COOKIE_DOMAIN ? `; Domain=${ADMIN_COOKIE_DOMAIN}` : ''
+  const cookie = `${COOKIE_NAME}=${token}; Path=${ADMIN_COOKIE_PATH}; HttpOnly; SameSite=Lax; Max-Age=${ttlMinutes * 60}${secure}${domain}`
+  console.log('[session] Created cookie for user:', username, 'ttl:', ttlMinutes, 'minutes', 'domain:', ADMIN_COOKIE_DOMAIN || '(auto)', 'secure:', !!secure, 'path:', ADMIN_COOKIE_PATH)
   return cookie
 }
 

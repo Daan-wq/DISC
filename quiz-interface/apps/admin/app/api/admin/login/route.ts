@@ -160,11 +160,16 @@ export async function POST(req: NextRequest) {
 
     const ttl = parseInt(process.env.ADMIN_SESSION_TTL_MINUTES || '480', 10)
     console.log('[login] Creating session cookie for user:', submittedUser, 'TTL:', ttl, 'minutes')
+    console.log('[login] Environment:', {
+      NODE_ENV: process.env.NODE_ENV,
+      VERCEL: process.env.VERCEL,
+      VERCEL_ENV: process.env.VERCEL_ENV,
+    })
     
     // Use Set-Cookie header only - more reliable than cookies() API
     // Note: Do NOT use both methods as they create different tokens (different timestamps)
     const sessionCookie = createSessionCookie(submittedUser, ttl)
-    console.log('[login] Session cookie created, Max-Age:', ttl * 60, 'seconds')
+    console.log('[login] Full Set-Cookie header:', sessionCookie)
     await logEvent('admin_login_success', submittedUser, {})
 
     // Create response with Set-Cookie header
@@ -178,7 +183,7 @@ export async function POST(req: NextRequest) {
         },
       }
     )
-    console.log('[login] Response created with Set-Cookie header')
+    console.log('[login] Response created, Set-Cookie header in response:', response.headers.get('Set-Cookie'))
     return response
   } catch (e) {
     console.error('[login] Unhandled error:', e)
