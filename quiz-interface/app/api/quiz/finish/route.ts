@@ -15,7 +15,17 @@ export const dynamic = 'force-dynamic'
 export const maxDuration = 60
 
 // Processing lock TTL in minutes (stale locks older than this can be reclaimed)
-const PROCESSING_TTL_MINUTES = 3
+const PROCESSING_TTL_MINUTES = 5
+
+// Timing helper
+interface Timings {
+  t_start: number
+  t_claim?: number
+  t_render?: number
+  t_upload?: number
+  t_email?: number
+  t_total?: number
+}
 
 const BodySchema = z.object({
   attempt_id: z.string().uuid(),
@@ -40,8 +50,27 @@ const BodySchema = z.object({
 })
 
 export async function POST(req: NextRequest) {
+  const timings: Timings = { t_start: Date.now() }
+  const requestId = req.headers.get('x-request-id') || randomUUID().slice(0, 8)
+  
+  // Helper to reset processing state on error
+  const resetProcessingState = async (attemptId: string, error: string, errorCode: string) => {
+    try {
+      await supabaseAdmin?.from('quiz_attempts').update({
+        pdf_status: 'failed',
+        pdf_error: `${errorCode}: ${error.slice(0, 500)}`,
+        processing_token: null,
+      }).eq('id', attemptId)
+      console.log(`[finish][${requestId}] Reset processing state to failed`)
+    } catch (resetErr) {
+      console.error(`[finish][${requestId}] Failed to reset processing state:`, resetErr)
+    }
+  }
+  
+  let attempt_id: string | undefined
+  
   try {
-    console.log('=== /api/quiz/finish START ===')
+    console.log(`=== /api/quiz/finish START [${requestId}] ===${process.env.VERCEL_REGION ? ` region=${process.env.VERCEL_REGION}` : ''}`)
     
     if (!supabaseAdmin) {
       console.error('[finish] supabaseAdmin is null')
@@ -316,7 +345,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Could not start processing' }, { status: 500 })
     }
     
-    console.log('[finish] Successfully claimed processing lock')
+    timings.t_claim = Date.now()
+    console.log(`[finish][${requestId}] Successfully claimed processing lock in ${timings.t_claim - timings.t_start}ms`)
 
     // Build placeholder data from provided data only (results table removed)
     let profileCode = 'D'
@@ -342,24 +372,33 @@ export async function POST(req: NextRequest) {
       // Trigger alert bij beide patronen
       hasAlert = allBelow50 || allAboveOrEqual50
     }
-    const pdfBuffer = await generatePDFFromTemplate({
-      profileCode,
-      placeholderData: finalPD as any,
-      discData: finalPD ? {
-        natural: {
-          D: Math.round(finalPD.results.natural_d),
-          I: Math.round(finalPD.results.natural_i),
-          S: Math.round(finalPD.results.natural_s),
-          C: Math.round(finalPD.results.natural_c),
-        },
-        response: {
-          D: Math.round(finalPD.results.response_d),
-          I: Math.round(finalPD.results.response_i),
-          S: Math.round(finalPD.results.response_s),
-          C: Math.round(finalPD.results.response_c),
-        },
-      } : undefined,
-    })
+    let pdfBuffer: Buffer
+    try {
+      pdfBuffer = await generatePDFFromTemplate({
+        profileCode,
+        placeholderData: finalPD as any,
+        discData: finalPD ? {
+          natural: {
+            D: Math.round(finalPD.results.natural_d),
+            I: Math.round(finalPD.results.natural_i),
+            S: Math.round(finalPD.results.natural_s),
+            C: Math.round(finalPD.results.natural_c),
+          },
+          response: {
+            D: Math.round(finalPD.results.response_d),
+            I: Math.round(finalPD.results.response_i),
+            S: Math.round(finalPD.results.response_s),
+            C: Math.round(finalPD.results.response_c),
+          },
+        } : undefined,
+      })
+      timings.t_render = Date.now()
+      console.log(`[finish][${requestId}] PDF rendered in ${timings.t_render - (timings.t_claim || timings.t_start)}ms, size: ${pdfBuffer.length} bytes`)
+    } catch (renderErr: any) {
+      console.error(`[finish][${requestId}] PDF render failed:`, renderErr?.message)
+      await resetProcessingState(attempt_id, renderErr?.message || 'Unknown render error', 'PDF_RENDER_FAILED')
+      return NextResponse.json({ error: 'PDF_RENDER_FAILED', details: renderErr?.message }, { status: 500 })
+    }
 
     // Build readable storage path with user name
     const displayName = finalPD?.candidate?.full_name || (user.email?.split('@')[0] || 'user')
@@ -381,8 +420,12 @@ export async function POST(req: NextRequest) {
       upsert: false, // Never upsert since we found unique path
     })
     if (upErr) {
-      return NextResponse.json({ error: 'Upload failed', details: upErr.message }, { status: 500 })
+      console.error(`[finish][${requestId}] Upload failed:`, upErr.message)
+      await resetProcessingState(attempt_id, upErr.message, 'UPLOAD_FAILED')
+      return NextResponse.json({ error: 'UPLOAD_FAILED', details: upErr.message }, { status: 500 })
     }
+    timings.t_upload = Date.now()
+    console.log(`[finish][${requestId}] PDF uploaded in ${timings.t_upload - (timings.t_render || timings.t_start)}ms to ${storagePath}`)
 
     // Consolidated schema: store PDF metadata, alert flag, and profile code on the attempt
     // Set expiry to 180 days from now
@@ -536,32 +579,23 @@ export async function POST(req: NextRequest) {
       })
       .eq('id', attempt_id)
 
-    console.log('[finish] SUCCESS - PDF generated and emailed, email_sent:', emailSent)
-    console.log('=== /api/quiz/finish END (SUCCESS) ===')
-    return NextResponse.json({ ok: true, storage_path: storagePath, pdf_filename: pdfFilename })
+    timings.t_email = Date.now()
+    timings.t_total = timings.t_email - timings.t_start
+    
+    console.log(`[finish][${requestId}] SUCCESS - email_sent: ${emailSent}, timings: claim=${timings.t_claim! - timings.t_start}ms render=${timings.t_render! - timings.t_claim!}ms upload=${timings.t_upload! - timings.t_render!}ms email=${timings.t_email - timings.t_upload!}ms total=${timings.t_total}ms`)
+    console.log(`=== /api/quiz/finish END (SUCCESS) [${requestId}] ===`)
+    return NextResponse.json({ ok: true, storage_path: storagePath, pdf_filename: pdfFilename, timings })
   } catch (e: any) {
-    console.error('[finish] EXCEPTION:', e?.message || String(e))
-    console.error('[finish] Stack:', e?.stack)
+    const elapsed = Date.now() - timings.t_start
+    console.error(`[finish][${requestId}] EXCEPTION after ${elapsed}ms:`, e?.message || String(e))
+    console.error(`[finish][${requestId}] Stack:`, e?.stack)
     
     // On error: reset processing state so it can be retried
-    try {
-      const { attempt_id } = BodySchema.parse(await (e as any)?.request?.json?.() || {})
-      if (attempt_id && supabaseAdmin) {
-        await supabaseAdmin
-          .from('quiz_attempts')
-          .update({
-            pdf_status: 'failed',
-            pdf_error: e?.message || String(e),
-            processing_token: null
-          })
-          .eq('id', attempt_id)
-        console.log('[finish] Reset processing state to failed for retry')
-      }
-    } catch {
-      // Can't reset - attempt_id not available in this context
+    if (attempt_id) {
+      await resetProcessingState(attempt_id, e?.message || String(e), 'UNHANDLED_ERROR')
     }
     
-    console.log('=== /api/quiz/finish END (ERROR) ===')
-    return NextResponse.json({ error: 'Unhandled', details: e?.message || String(e) }, { status: 500 })
+    console.log(`=== /api/quiz/finish END (ERROR) [${requestId}] after ${elapsed}ms ===`)
+    return NextResponse.json({ error: 'UNHANDLED_ERROR', details: e?.message || String(e), elapsed_ms: elapsed }, { status: 500 })
   }
 }

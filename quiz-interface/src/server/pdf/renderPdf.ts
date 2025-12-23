@@ -1,6 +1,72 @@
-import puppeteer from 'puppeteer'
+import puppeteer, { Browser } from 'puppeteer-core'
+import chromium from '@sparticuz/chromium'
 import path from 'path'
 import fs from 'fs'
+
+export interface BrowserLaunchResult {
+  browser: Browser
+  strategy: 'local' | 'browserless'
+  launchMs: number
+}
+
+/**
+ * Launch browser with local chromium first, browserless fallback if configured
+ * NEVER uses full puppeteer - only puppeteer-core + @sparticuz/chromium
+ */
+export async function launchBrowser(): Promise<BrowserLaunchResult> {
+  const startTime = Date.now()
+  const browserlessUrl = process.env.BROWSERLESS_WS_URL
+  
+  console.log('[pdf] launchBrowser - platform:', process.platform, 'browserless configured:', !!browserlessUrl)
+  
+  // Try local chromium first (preferred for speed and cost)
+  try {
+    const executablePath = await chromium.executablePath()
+    console.log('[pdf] Chromium executable path:', executablePath)
+    
+    if (!fs.existsSync(executablePath)) {
+      throw new Error(`Chromium executable not found at ${executablePath}`)
+    }
+    
+    const browser = await puppeteer.launch({
+      args: [
+        ...chromium.args,
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+        '--single-process',
+        '--font-render-hinting=medium',
+      ],
+      defaultViewport: chromium.defaultViewport,
+      executablePath,
+      headless: chromium.headless,
+    })
+    
+    const launchMs = Date.now() - startTime
+    console.log(`[pdf] Local chromium launched in ${launchMs}ms`)
+    return { browser, strategy: 'local', launchMs }
+  } catch (localError: any) {
+    console.error('[pdf] Local chromium failed:', localError?.message)
+    
+    // Fallback to browserless if configured
+    if (browserlessUrl) {
+      console.log('[pdf] Attempting browserless fallback...')
+      try {
+        const browser = await puppeteer.connect({
+          browserWSEndpoint: browserlessUrl,
+        })
+        const launchMs = Date.now() - startTime
+        console.log(`[pdf] Browserless connected in ${launchMs}ms`)
+        return { browser, strategy: 'browserless', launchMs }
+      } catch (browserlessError: any) {
+        throw new Error(`PDF_LAUNCH_FAILED: Both local (${localError?.message}) and browserless (${browserlessError?.message}) failed`)
+      }
+    }
+    
+    throw new Error(`PDF_LAUNCH_FAILED: Local chromium failed: ${localError?.message}. Set BROWSERLESS_WS_URL for fallback.`)
+  }
+}
 
 /**
  * Render HTML to PDF using Puppeteer
@@ -10,10 +76,8 @@ export async function renderPdfFromHtml(
   html: string, 
   profileCode: string
 ): Promise<Buffer> {
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
-  })
+  const { browser, strategy, launchMs } = await launchBrowser()
+  console.log(`[pdf] renderPdfFromHtml - strategy: ${strategy}, launchMs: ${launchMs}`)
 
   try {
     const page = await browser.newPage()
@@ -179,17 +243,15 @@ export async function renderPdfFromHtml(
  * Render PDF from complete HTML document (with embedded styles)
  */
 export async function renderPdfFromCompleteHtml(html: string): Promise<Buffer> {
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
-  })
+  const { browser, strategy, launchMs } = await launchBrowser()
+  console.log(`[pdf] renderPdfFromCompleteHtml - strategy: ${strategy}, launchMs: ${launchMs}`)
 
   try {
     const page = await browser.newPage()
     
-    // Set content directly
+    // Set content directly - use 'load' instead of 'networkidle0' for speed
     await page.setContent(html, { 
-      waitUntil: 'networkidle0'
+      waitUntil: 'load'
     })
     
     // Wait for fonts to load
@@ -263,7 +325,8 @@ export async function renderPdfFromTemplateFile(
   replacements?: Record<string, string>,
   graph?: GraphOptions
 ): Promise<Buffer> {
-  const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] })
+  const { browser, strategy, launchMs } = await launchBrowser()
+  console.log(`[pdf] renderPdfFromTemplateFile - strategy: ${strategy}, launchMs: ${launchMs}`)
   try {
     const page = await browser.newPage()
 
