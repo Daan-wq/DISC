@@ -9,6 +9,9 @@ const ADMIN_HOSTS = (process.env.ADMIN_HOSTS || 'admin.tlcprofielen.nl,disc-admi
 const ADMIN_PATHS = ['/admin', '/api/admin']
 const QUIZ_PATHS = ['/quiz', '/api/quiz', '/api/answers', '/api/candidates', '/api/auth', '/api/documents', '/login', '/auth', '/result', '/no-access']
 
+// Paths that are allowed on ALL hosts (debug, health checks, etc.)
+const PUBLIC_API_PATHS = ['/api/debug', '/api/public', '/api/compute']
+
 function getHostWithoutPort(host: string | null): string {
   if (!host) return ''
   return host.split(':')[0].toLowerCase()
@@ -30,6 +33,16 @@ export function middleware(req: NextRequest) {
   const requestId = req.headers.get('x-request-id') || crypto.randomUUID()
   const host = getHostWithoutPort(req.headers.get('host'))
   const pathname = req.nextUrl.pathname
+
+  // Public API paths are allowed on ALL hosts (debug endpoints, health checks, etc.)
+  if (pathStartsWith(pathname, PUBLIC_API_PATHS)) {
+    const requestHeaders = new Headers(req.headers)
+    requestHeaders.set('x-request-id', requestId)
+    requestHeaders.set('x-host-type', 'public')
+    const response = NextResponse.next({ request: { headers: requestHeaders } })
+    response.headers.set('x-request-id', requestId)
+    return response
+  }
 
   // Local development: allow using both quiz + admin routes on localhost.
   // Host isolation is meant for production subdomains.
