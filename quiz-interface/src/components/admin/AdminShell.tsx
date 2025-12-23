@@ -60,6 +60,42 @@ const BOTTOM_NAV: NavItem[] = [
   { href: '/settings', label: 'Instellingen', Icon: Settings },
 ]
 
+const LogoutButton = ({ collapsed }: { collapsed: boolean }) => {
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
+
+  const handleLogout = async () => {
+    if (isLoggingOut) return
+    setIsLoggingOut(true)
+    try {
+      await fetch('/api/admin/logout', {
+        method: 'POST',
+        credentials: 'include',
+      })
+      window.location.href = '/login'
+    } catch (error) {
+      console.error('Logout failed:', error)
+      setIsLoggingOut(false)
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleLogout}
+      disabled={isLoggingOut}
+      className={cn(
+        'group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+        'text-slate-600 hover:bg-red-50 hover:text-red-700',
+        'disabled:opacity-50 disabled:cursor-not-allowed'
+      )}
+      title={collapsed ? 'Uitloggen' : undefined}
+    >
+      <LogOut className="h-5 w-5 shrink-0 text-slate-400 group-hover:text-red-600" />
+      {!collapsed && <span>{isLoggingOut ? 'Uitloggen...' : 'Uitloggen'}</span>}
+    </button>
+  )
+}
+
 const SidebarItem = ({
   item,
   collapsed,
@@ -176,17 +212,7 @@ const SidebarContent = ({
       </div>
 
       <div className="mt-4 pt-4 border-t border-slate-200">
-        <Link
-          href="/api/admin/logout"
-          className={cn(
-            'group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
-            'text-slate-600 hover:bg-red-50 hover:text-red-700'
-          )}
-          title={collapsed ? 'Uitloggen' : undefined}
-        >
-          <LogOut className="h-5 w-5 shrink-0 text-slate-400 group-hover:text-red-600" />
-          {!collapsed && <span>Uitloggen</span>}
-        </Link>
+        <LogoutButton collapsed={collapsed} />
       </div>
     </div>
   </div>
