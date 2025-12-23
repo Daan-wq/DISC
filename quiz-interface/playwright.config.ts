@@ -8,15 +8,38 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
   use: {
-    baseURL: 'http://localhost:3000',
     trace: 'on-first-retry'
   },
   projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    { 
+      name: 'quiz-app', 
+      use: { 
+        ...devices['Desktop Chrome'],
+        baseURL: 'http://localhost:3000',
+      },
+      testMatch: /quiz.*\.spec\.ts/,
+    },
+    { 
+      name: 'admin-app', 
+      use: { 
+        ...devices['Desktop Chrome'],
+        baseURL: 'http://localhost:3001',
+      },
+      testMatch: /admin.*\.spec\.ts/,
+    },
   ],
-  webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:3000',
-    reuseExistingServer: !process.env.CI,
-  }
+  webServer: [
+    {
+      command: 'pnpm dev',
+      url: 'http://localhost:3000',
+      reuseExistingServer: !process.env.CI,
+      cwd: '.',
+    },
+    {
+      command: 'pnpm dev',
+      url: 'http://localhost:3001',
+      reuseExistingServer: !process.env.CI,
+      cwd: './apps/admin',
+    },
+  ],
 })
