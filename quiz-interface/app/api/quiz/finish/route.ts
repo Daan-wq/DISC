@@ -96,14 +96,145 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    // Idempotency guard: if PDF already exists, return cached result
+    // Idempotency: if PDF already exists, check if email was sent
+    // If email wasn't sent yet, we need to send it now (don't skip!)
     if (attempt.pdf_path) {
-      console.log('[finish] PDF already exists, returning cached result')
+      console.log('[finish] PDF already exists, checking email status')
+      
+      // Check if email was already sent for this attempt
+      const { data: attemptWithEmail } = await supabaseAdmin
+        .from('quiz_attempts')
+        .select('email_status, email_sent_at')
+        .eq('id', attempt_id)
+        .single()
+      
+      const emailAlreadySent = attemptWithEmail?.email_status === 'sent' || attemptWithEmail?.email_sent_at
+      
+      if (emailAlreadySent) {
+        console.log('[finish] PDF exists AND email already sent - returning cached result')
+        return NextResponse.json({
+          ok: true,
+          storage_path: attempt.pdf_path,
+          pdf_filename: attempt.pdf_filename || 'DISC-rapport.pdf',
+          cached: true,
+          email_status: 'already_sent'
+        })
+      }
+      
+      // PDF exists but email NOT sent - need to send email now
+      console.log('[finish] PDF exists but email NOT sent - sending email now')
+      
+      // Download PDF from storage to attach to email
+      const bucket = supabaseAdmin.storage.from('quiz-docs')
+      const { data: pdfData, error: downloadErr } = await bucket.download(attempt.pdf_path)
+      
+      if (downloadErr || !pdfData) {
+        console.error('[finish] Failed to download cached PDF for email:', downloadErr)
+        return NextResponse.json({
+          ok: true,
+          storage_path: attempt.pdf_path,
+          pdf_filename: attempt.pdf_filename || 'DISC-rapport.pdf',
+          cached: true,
+          email_status: 'failed',
+          email_error: 'Could not retrieve PDF for email'
+        })
+      }
+      
+      // Convert Blob to Buffer
+      const pdfBuffer = Buffer.from(await pdfData.arrayBuffer())
+      const pdfFilename = attempt.pdf_filename || 'DISC-rapport.pdf'
+      const displayName = user.email?.split('@')[0] || 'user'
+      
+      // Send email for cached PDF
+      const toEmail = user.email || ''
+      let emailSent = false
+      let emailError: string | null = null
+      
+      try {
+        const year = new Date().getFullYear()
+        const company = process.env.COMPANY_NAME || 'The Lean Communication'
+        
+        // Check allowlist delivery toggles
+        const emailNormalized = toEmail.toLowerCase().trim()
+        const { data: allow } = await supabaseAdmin
+          .from('allowlist')
+          .select('trainer_email, send_pdf_user, send_pdf_trainer, status')
+          .eq('email_normalized', emailNormalized)
+          .maybeSingle()
+        
+        const sendUser = allow?.send_pdf_user !== false
+        const sendTrainer = !!(allow?.send_pdf_trainer && allow?.trainer_email)
+        const trainerEmail = (allow?.trainer_email || '').trim()
+        
+        const recipients: string[] = []
+        if (sendUser) recipients.push(toEmail)
+        if (sendTrainer) recipients.push(trainerEmail)
+        if (recipients.length === 0) recipients.push(toEmail)
+        
+        console.log('[finish] Sending cached PDF email to:', recipients)
+        
+        for (const rcpt of recipients) {
+          await sendRapportEmail({
+            to: rcpt,
+            subject: 'Uw DISC rapport is gereed',
+            html: generateEmailHtml({ name: displayName, year, company }),
+            text: generateEmailText({ name: displayName, year, company }),
+            attachments: [{ filename: pdfFilename, content: pdfBuffer }]
+          })
+          try {
+            await supabaseAdmin.from('notifications').insert({
+              severity: 'success',
+              source: 'mailer',
+              message: `PDF emailed to ${rcpt} (cached)`,
+              meta: { attempt_id, quiz_id, user_id: user.id }
+            })
+          } catch {}
+        }
+        
+        emailSent = true
+        console.log('[finish] Cached PDF email sent successfully')
+        
+        // Update allowlist status
+        await supabaseAdmin
+          .from('allowlist')
+          .update({ status: 'used' })
+          .eq('email_normalized', emailNormalized)
+          .in('status', ['pending', 'claimed'])
+      } catch (mailErr) {
+        emailSent = false
+        emailError = (mailErr as any)?.message || String(mailErr)
+        console.error('[finish] Cached PDF email send failed:', mailErr)
+        try {
+          await supabaseAdmin.from('notifications').insert({
+            severity: 'error',
+            source: 'mailer',
+            message: 'Failed to email cached PDF to user',
+            meta: { attempt_id, quiz_id, user_id: user.id, error: emailError }
+          })
+        } catch {}
+      }
+      
+      // Update attempt with email status
+      try {
+        await supabaseAdmin
+          .from('quiz_attempts')
+          .update({
+            email_status: emailSent ? 'sent' : 'failed',
+            email_error: emailError,
+            email_sent_at: emailSent ? new Date().toISOString() : null
+          })
+          .eq('id', attempt_id)
+      } catch (updateErr) {
+        console.error('[finish] Failed to update email status:', updateErr)
+      }
+      
       return NextResponse.json({
         ok: true,
         storage_path: attempt.pdf_path,
-        pdf_filename: attempt.pdf_filename || 'DISC-rapport.pdf',
-        cached: true
+        pdf_filename: pdfFilename,
+        cached: true,
+        email_status: emailSent ? 'sent' : 'failed',
+        email_error: emailError
       })
     }
 
@@ -337,14 +468,15 @@ export async function POST(req: NextRequest) {
         .from('quiz_attempts')
         .update({
           email_status: emailSent ? 'sent' : 'failed',
-          email_error: emailError
+          email_error: emailError,
+          email_sent_at: emailSent ? new Date().toISOString() : null
         })
         .eq('id', attempt_id)
     } catch (updateErr) {
       console.error('Failed to update email status:', updateErr)
     }
 
-    console.log('[finish] SUCCESS - PDF generated and emailed')
+    console.log('[finish] SUCCESS - PDF generated and emailed, email_sent:', emailSent)
     console.log('=== /api/quiz/finish END (SUCCESS) ===')
     return NextResponse.json({ ok: true, storage_path: storagePath, pdf_filename: pdfFilename })
   } catch (e: any) {

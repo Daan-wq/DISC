@@ -61,7 +61,11 @@ export async function POST(req: NextRequest) {
     await audit('allowlist_bulk_import', { count: rows.length })
 
     // Send invitation emails to all imported users
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+    // Use env var with proper production fallback - never localhost in production
+    const envSiteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_BASE_URL
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production'
+    const quizSiteUrl = process.env.QUIZ_SITE_URL || envSiteUrl || (isProduction ? 'https://disc-quiz-interface.vercel.app' : 'http://localhost:3000')
+    
     let emailsSent = 0
     let emailsFailed = 0
     
@@ -70,7 +74,7 @@ export async function POST(req: NextRequest) {
         await sendAllowlistEmail({
           to: row.email,
           fullName: row.full_name,
-          quizUrl: `${siteUrl}/login`
+          quizUrl: `${quizSiteUrl}/login`
         })
         emailsSent++
         console.log(`✅ Invitation email sent to ${row.email}`)
