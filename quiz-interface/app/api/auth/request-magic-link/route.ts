@@ -45,6 +45,27 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ sent: false, reason: 'INVALID_PAYLOAD' }, { status: 200 })
     }
 
+    // Determine base URL from request origin (most reliable on Vercel)
+    // Fall back to env vars, but NEVER to localhost in production
+    const requestOrigin = req.headers.get('origin') || req.headers.get('referer')?.split('/').slice(0, 3).join('/')
+    const envBaseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production'
+    
+    // In production, prefer request origin, then env. Never fall back to localhost.
+    // In development, allow localhost fallback.
+    let baseUrl: string
+    if (isProduction) {
+      baseUrl = requestOrigin || envBaseUrl || ''
+      if (!baseUrl || baseUrl.includes('localhost')) {
+        console.error('[magic-link] No valid production base URL. Origin:', requestOrigin, 'Env:', envBaseUrl)
+        return NextResponse.json({ sent: false, reason: 'SERVER_NOT_CONFIGURED' }, { status: 200 })
+      }
+    } else {
+      baseUrl = requestOrigin || envBaseUrl || 'http://localhost:3000'
+    }
+    
+    console.log('[magic-link] Using baseUrl:', baseUrl, 'Origin:', requestOrigin, 'Env:', envBaseUrl)
+
     const email = parsed.data.email.trim().toLowerCase()
     let redirectTo = parsed.data.redirectTo
     const firstName = toProperCase((parsed.data.first_name || '').trim())
@@ -90,7 +111,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Allowed → send magic link using anon client
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+    // baseUrl is already determined above from request origin or env vars
     // If redirectTo not provided, build default and carry names
     if (!redirectTo) {
       const finalTarget = new URL('/quiz', baseUrl)
