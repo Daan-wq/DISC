@@ -56,15 +56,10 @@ export async function POST(req: NextRequest) {
 
     // Send invitation email automatically
     try {
-      // Use request origin or env var - never localhost in production
-      const requestOrigin = req.headers.get('origin') || req.headers.get('referer')?.split('/').slice(0, 3).join('/')
-      const envSiteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_BASE_URL
+      // IMPORTANT: Always use QUIZ_SITE_URL env var for quiz invitations
+      // Never use request origin (that's the admin URL, not quiz URL)
       const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production'
-      
-      // For quiz URL, we need the quiz app URL, not admin app URL
-      // The admin app is on admin.tlcprofielen.nl or disc-admin.vercel.app
-      // The quiz app is on quiz.tlcprofielen.nl or disc-quiz-interface.vercel.app
-      const quizSiteUrl = process.env.QUIZ_SITE_URL || envSiteUrl || (isProduction ? 'https://disc-quiz-interface.vercel.app' : 'http://localhost:3000')
+      const quizSiteUrl = process.env.QUIZ_SITE_URL || (isProduction ? 'https://disc-quiz-interface.vercel.app' : 'http://localhost:3000')
       
       await sendAllowlistEmail({
         to: data.email,
