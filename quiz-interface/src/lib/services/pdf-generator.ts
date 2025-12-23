@@ -206,7 +206,11 @@ async function generatePDFFromTemplateStrict(options: PDFGenerationOptions): Pro
 
   // 4) Render each HTML file by opening the actual file:// URL so ALL relative CSS/images/fonts work as-is
   // Use launchBrowser helper with Browserless fallback
+  const t_start = Date.now()
   const browser = await launchBrowser()
+  const t_launch = Date.now()
+  console.log(`[pdf] Browser launched in ${t_launch - t_start}ms`)
+  
   const page = await browser.newPage()
   
   // SECURITY: Block all external network requests - only allow file:// and data: URLs
@@ -231,7 +235,8 @@ async function generatePDFFromTemplateStrict(options: PDFGenerationOptions): Pro
       await page.setViewport({ width: 595, height: 842, deviceScaleFactor: 1 })
 
       if (fs.existsSync(filePath)) {
-        await page.goto(fileUrl, { waitUntil: 'networkidle0' })
+        // Use 'load' instead of 'networkidle0' for faster rendering (all assets are local)
+        await page.goto(fileUrl, { waitUntil: 'load', timeout: 30000 })
       } else {
         // Fallback: render a blank white page for missing templates
         const blank = `<!doctype html><html><head><meta charset="utf-8" /></head><body style="margin:0;background:white;"></body></html>`
@@ -554,6 +559,9 @@ async function generatePDFFromTemplateStrict(options: PDFGenerationOptions): Pro
     // Clean up the temp directory tree
     try { fs.rmSync(tempDir, { recursive: true, force: true }) } catch {}
   }
+  
+  const t_render = Date.now()
+  console.log(`[pdf] All pages rendered in ${t_render - t_launch}ms (${pageBuffers.length} pages)`)
 
   // 5) Merge single-page PDFs
   const merged = await PDFDocument.create()
@@ -563,5 +571,9 @@ async function generatePDFFromTemplateStrict(options: PDFGenerationOptions): Pro
     copied.forEach((p: PDFPage) => merged.addPage(p))
   }
   const mergedBytes = await merged.save()
+  
+  const t_merge = Date.now()
+  console.log(`[pdf] PDF merged in ${t_merge - t_render}ms, total: ${t_merge - t_start}ms, size: ${mergedBytes.byteLength} bytes`)
+  
   return Buffer.from(mergedBytes)
  }

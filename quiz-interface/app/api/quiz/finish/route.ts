@@ -5,13 +5,17 @@ import { generatePDFFromTemplate } from '@/lib/services/pdf-generator'
 import { sendRapportEmail, generateEmailHtml, generateEmailText } from '@/server/email/mailer'
 import { buildPdfStoragePath, buildPdfFilename, findUniqueStoragePath } from '@/lib/utils/slugify'
 import { QUIZ_ID } from '@/lib/constants'
+import { randomUUID } from 'crypto'
 
 // Ensure Node.js runtime (Puppeteer not supported on Edge)
 export const runtime = 'nodejs'
 // Avoid ISR caching for API side-effects
 export const dynamic = 'force-dynamic'
-// PDF generation with Puppeteer can take up to 60 seconds
+// PDF generation with Puppeteer can take up to 60 seconds (requires Vercel Pro)
 export const maxDuration = 60
+
+// Processing lock TTL in minutes (stale locks older than this can be reclaimed)
+const PROCESSING_TTL_MINUTES = 3
 
 const BodySchema = z.object({
   attempt_id: z.string().uuid(),
@@ -81,14 +85,14 @@ export async function POST(req: NextRequest) {
     const quiz_id = QUIZ_ID
     console.log('[finish] attempt_id:', attempt_id, 'quiz_id:', quiz_id)
 
-    // Verify ownership of attempt
+    // Verify ownership of attempt and get current state
     const { data: attempt, error: attemptErr } = await supabaseAdmin
       .from('quiz_attempts')
-      .select('id, user_id, quiz_id, finished_at, pdf_path, pdf_filename')
+      .select('id, user_id, quiz_id, finished_at, pdf_path, pdf_filename, pdf_status, processing_started_at, email_status, email_sent_at')
       .eq('id', attempt_id)
       .maybeSingle()
     
-    console.log('[finish] attempt lookup - error:', attemptErr?.message, 'found:', !!attempt)
+    console.log('[finish] attempt lookup - error:', attemptErr?.message, 'found:', !!attempt, 'pdf_status:', attempt?.pdf_status)
     
     if (attemptErr || !attempt) {
       console.error('[finish] Attempt not found:', { attemptErr: attemptErr?.message, attempt_id })
@@ -98,9 +102,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    // Idempotency: if PDF already exists, check if email was sent
-    // If email wasn't sent yet, we need to send it now (don't skip!)
-    if (attempt.pdf_path) {
+    // IDEMPOTENCY: If PDF already exists (pdf_status = 'done'), handle email if needed
+    if (attempt.pdf_status === 'done' && attempt.pdf_path) {
       console.log('[finish] PDF already exists, checking email status')
       
       // Check if email was already sent for this attempt
@@ -240,35 +243,80 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    // Optimistic lock: only proceed if we can claim finished_at
-    const { data: claimed } = await supabaseAdmin
-      .from('quiz_attempts')
-      .update({ finished_at: new Date().toISOString() })
-      .eq('id', attempt_id)
-      .is('finished_at', null)
-      .select('id')
-      .maybeSingle()
+    // CLAIM PROCESSING LOCK with TTL-based stale lock recovery
+    // Claim conditions:
+    // 1. pdf_status is NULL or 'pending' or 'failed' (never started, or failed before)
+    // 2. OR pdf_status is 'processing' but started > TTL minutes ago (stale lock)
+    const processingToken = randomUUID()
+    const now = new Date()
+    const staleCutoff = new Date(now.getTime() - PROCESSING_TTL_MINUTES * 60 * 1000).toISOString()
+    
+    console.log('[finish] Attempting to claim processing lock, token:', processingToken.slice(0, 8))
+    
+    // Use raw SQL for complex OR condition with TTL check
+    const { data: claimResult, error: claimError } = await supabaseAdmin.rpc('claim_pdf_processing', {
+      p_attempt_id: attempt_id,
+      p_processing_token: processingToken,
+      p_stale_cutoff: staleCutoff
+    }).maybeSingle()
+    
+    // Fallback if RPC doesn't exist: try simple update
+    let claimed = claimResult?.claimed === true
+    if (claimError?.message?.includes('function') || claimError?.code === '42883') {
+      console.log('[finish] RPC not found, using fallback claim logic')
+      // Fallback: simple claim for pending/failed/null status
+      const { data: fallbackClaim } = await supabaseAdmin
+        .from('quiz_attempts')
+        .update({
+          pdf_status: 'processing',
+          processing_started_at: now.toISOString(),
+          processing_token: processingToken
+        })
+        .eq('id', attempt_id)
+        .or(`pdf_status.is.null,pdf_status.eq.pending,pdf_status.eq.failed,and(pdf_status.eq.processing,processing_started_at.lt.${staleCutoff})`)
+        .select('id')
+        .maybeSingle()
+      claimed = !!fallbackClaim
+    }
 
     if (!claimed) {
-      // Race condition: another request may be processing, wait and check
-      console.log('[finish] Race condition detected, waiting for other request')
-      await new Promise(r => setTimeout(r, 2000))
-      const { data: existing } = await supabaseAdmin
+      // Could not claim - either done or another request is processing
+      console.log('[finish] Could not claim lock, checking current state')
+      
+      // Re-fetch to see current state
+      const { data: current } = await supabaseAdmin
         .from('quiz_attempts')
-        .select('pdf_path, pdf_filename')
+        .select('pdf_path, pdf_filename, pdf_status, processing_started_at')
         .eq('id', attempt_id)
         .single()
       
-      if (existing?.pdf_path) {
+      if (current?.pdf_status === 'done' && current?.pdf_path) {
+        // Already done by another request
         return NextResponse.json({
           ok: true,
-          storage_path: existing.pdf_path,
-          pdf_filename: existing.pdf_filename,
+          storage_path: current.pdf_path,
+          pdf_filename: current.pdf_filename,
           cached: true
         })
       }
-      return NextResponse.json({ error: 'Processing in progress, please retry' }, { status: 409 })
+      
+      if (current?.pdf_status === 'processing') {
+        // Another request is actively processing
+        const startedAt = current.processing_started_at ? new Date(current.processing_started_at) : now
+        const elapsedSec = Math.round((now.getTime() - startedAt.getTime()) / 1000)
+        console.log('[finish] Another request is processing, elapsed:', elapsedSec, 's')
+        
+        return NextResponse.json(
+          { error: 'Processing in progress', retry_after: Math.max(30, PROCESSING_TTL_MINUTES * 60 - elapsedSec) },
+          { status: 202, headers: { 'Retry-After': '30' } }
+        )
+      }
+      
+      // Unknown state - return error
+      return NextResponse.json({ error: 'Could not start processing' }, { status: 500 })
     }
+    
+    console.log('[finish] Successfully claimed processing lock')
 
     // Build placeholder data from provided data only (results table removed)
     let profileCode = 'D'
@@ -478,12 +526,42 @@ export async function POST(req: NextRequest) {
       console.error('Failed to update email status:', updateErr)
     }
 
+    // Mark as done with finished_at timestamp
+    await supabaseAdmin
+      .from('quiz_attempts')
+      .update({
+        pdf_status: 'done',
+        finished_at: new Date().toISOString(),
+        processing_token: null,
+        pdf_error: null
+      })
+      .eq('id', attempt_id)
+
     console.log('[finish] SUCCESS - PDF generated and emailed, email_sent:', emailSent)
     console.log('=== /api/quiz/finish END (SUCCESS) ===')
     return NextResponse.json({ ok: true, storage_path: storagePath, pdf_filename: pdfFilename })
   } catch (e: any) {
     console.error('[finish] EXCEPTION:', e?.message || String(e))
     console.error('[finish] Stack:', e?.stack)
+    
+    // On error: reset processing state so it can be retried
+    try {
+      const { attempt_id } = BodySchema.parse(await (e as any)?.request?.json?.() || {})
+      if (attempt_id && supabaseAdmin) {
+        await supabaseAdmin
+          .from('quiz_attempts')
+          .update({
+            pdf_status: 'failed',
+            pdf_error: e?.message || String(e),
+            processing_token: null
+          })
+          .eq('id', attempt_id)
+        console.log('[finish] Reset processing state to failed for retry')
+      }
+    } catch {
+      // Can't reset - attempt_id not available in this context
+    }
+    
     console.log('=== /api/quiz/finish END (ERROR) ===')
     return NextResponse.json({ error: 'Unhandled', details: e?.message || String(e) }, { status: 500 })
   }

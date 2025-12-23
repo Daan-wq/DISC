@@ -607,11 +607,20 @@ function QuizInner() {
         return
       }
 
+      // Get auth token for API call
+      const { data: sessionRes } = await supabase.auth.getSession()
+      const token = sessionRes.session?.access_token
+      if (!token) {
+        console.warn('[answers-save] No auth token available, skipping save')
+        return
+      }
+
       try {
         const res = await fetch('/api/quiz/answers/save', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
           },
           body: JSON.stringify({
             attempt_id: attemptId,
