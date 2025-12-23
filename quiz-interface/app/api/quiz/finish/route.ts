@@ -261,7 +261,7 @@ export async function POST(req: NextRequest) {
     }).maybeSingle()
     
     // Fallback if RPC doesn't exist: try simple update
-    let claimed = claimResult?.claimed === true
+    let claimed = (claimResult as { claimed?: boolean })?.claimed === true
     if (claimError?.message?.includes('function') || claimError?.code === '42883') {
       console.log('[finish] RPC not found, using fallback claim logic')
       // Fallback: simple claim for pending/failed/null status
@@ -386,7 +386,6 @@ export async function POST(req: NextRequest) {
 
     // Consolidated schema: store PDF metadata, alert flag, and profile code on the attempt
     // Set expiry to 180 days from now
-    const now = new Date()
     const expiresAt = new Date(now.getTime() + 180 * 24 * 60 * 60 * 1000).toISOString()
     
     const { error: updateErr } = await supabaseAdmin
