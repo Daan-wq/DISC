@@ -127,7 +127,7 @@ function LoginInner() {
       <div className="min-h-screen bg-gray-50 py-12 px-4">
         <div className="max-w-md mx-auto bg-white rounded-lg shadow p-8 text-center">
           <h1 className="text-2xl font-bold mb-4">Controleer je e-mail</h1>
-          <p className="text-gray-600 mb-2">U ontvangt een email van Supabase Auth met een inloglink:</p>
+          <p className="text-gray-600 mb-2">U ontvangt een email van TLC Profielen met een inloglink:</p>
           <p className="text-lg font-semibold text-gray-900">{sentEmail}</p>
         </div>
       </div>
