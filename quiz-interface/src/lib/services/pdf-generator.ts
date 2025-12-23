@@ -1,4 +1,4 @@
-import puppeteer from 'puppeteer-core'
+import puppeteer, { Browser } from 'puppeteer-core'
 import chromium from '@sparticuz/chromium'
 import fs from 'fs'
 import path from 'path'
@@ -10,6 +10,62 @@ import { PDFDocument, PDFPage } from 'pdf-lib'
 // Configure chromium for serverless environment
 chromium.setHeadlessMode = 'shell'
 chromium.setGraphicsMode = false
+
+/**
+ * Launch browser with fallback to remote Browserless if local fails
+ * Priority: 1) @sparticuz/chromium (Vercel) 2) Browserless (if BROWSERLESS_WS_URL set) 3) Error
+ */
+async function launchBrowser(): Promise<Browser> {
+  const isVercel = !!process.env.VERCEL
+  const browserlessUrl = process.env.BROWSERLESS_WS_URL
+  
+  console.log('[pdf] Environment:', {
+    isVercel,
+    nodeVersion: process.version,
+    platform: process.platform,
+    hasBrowserlessUrl: !!browserlessUrl
+  })
+  
+  // Try local chromium first
+  try {
+    console.log('[pdf] Attempting to launch @sparticuz/chromium...')
+    const executablePath = await chromium.executablePath()
+    console.log('[pdf] Chromium executable path:', executablePath)
+    
+    const browser = await puppeteer.launch({
+      args: [
+        ...chromium.args,
+        '--allow-file-access-from-files',
+        '--enable-local-file-accesses',
+        '--font-render-hinting=medium'
+      ],
+      defaultViewport: chromium.defaultViewport,
+      executablePath,
+      headless: chromium.headless,
+    })
+    console.log('[pdf] Browser launched successfully via @sparticuz/chromium')
+    return browser
+  } catch (localError: any) {
+    console.error('[pdf] Local chromium launch failed:', localError?.message)
+    
+    // Fallback to Browserless if configured
+    if (browserlessUrl) {
+      console.log('[pdf] Attempting Browserless fallback...')
+      try {
+        const browser = await puppeteer.connect({
+          browserWSEndpoint: browserlessUrl,
+        })
+        console.log('[pdf] Connected to Browserless successfully')
+        return browser
+      } catch (browserlessError: any) {
+        console.error('[pdf] Browserless connection failed:', browserlessError?.message)
+        throw new Error(`PDF_RENDER_FAILED: Both local and remote browser failed. Local: ${localError?.message}. Browserless: ${browserlessError?.message}`)
+      }
+    }
+    
+    throw new Error(`PDF_RENDER_FAILED: Could not launch browser. ${localError?.message}. Set BROWSERLESS_WS_URL for remote fallback.`)
+  }
+}
 
 export interface PDFGenerationOptions {
   profileCode: string
@@ -149,37 +205,8 @@ async function generatePDFFromTemplateStrict(options: PDFGenerationOptions): Pro
   }
 
   // 4) Render each HTML file by opening the actual file:// URL so ALL relative CSS/images/fonts work as-is
-  // Use @sparticuz/chromium for Vercel serverless compatibility
-  console.log('[pdf] Launching browser...')
-  
-  let executablePath: string
-  try {
-    executablePath = await chromium.executablePath()
-    console.log('[pdf] Chromium executable path:', executablePath)
-  } catch (pathError: any) {
-    console.error('[pdf] Failed to get Chromium executable path:', pathError?.message)
-    throw new Error(`PDF_RENDER_FAILED: Could not locate Chromium binary: ${pathError?.message}`)
-  }
-  
-  let browser
-  try {
-    browser = await puppeteer.launch({
-      args: [
-        ...chromium.args,
-        '--allow-file-access-from-files',
-        '--enable-local-file-accesses',
-        '--font-render-hinting=medium'
-      ],
-      defaultViewport: chromium.defaultViewport,
-      executablePath,
-      headless: chromium.headless,
-    })
-    console.log('[pdf] Browser launched successfully')
-  } catch (launchError: any) {
-    console.error('[pdf] Failed to launch browser:', launchError?.message)
-    console.error('[pdf] Stack:', launchError?.stack)
-    throw new Error(`PDF_RENDER_FAILED: Could not launch Chromium browser: ${launchError?.message}`)
-  }
+  // Use launchBrowser helper with Browserless fallback
+  const browser = await launchBrowser()
   const page = await browser.newPage()
   
   // SECURITY: Block all external network requests - only allow file:// and data: URLs

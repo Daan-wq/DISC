@@ -28,15 +28,25 @@ export async function POST(req: NextRequest) {
       ? authHeader.slice(7).trim()
       : null
 
+    console.log('[answers] Auth check - hasAuthHeader:', !!authHeader, 'hasToken:', !!token)
+
     if (!token) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      console.warn('[answers] 401: No bearer token provided')
+      return NextResponse.json({ 
+        error: 'Unauthorized', 
+        reason: authHeader ? 'INVALID_AUTH_FORMAT' : 'NO_AUTH_HEADER' 
+      }, { status: 401 })
     }
 
-    const { data: userRes } = await supabase.auth.getUser(token)
+    const { data: userRes, error: authError } = await supabase.auth.getUser(token)
     const user = userRes?.user
 
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      console.warn('[answers] 401: Token validation failed -', authError?.message || 'no user')
+      return NextResponse.json({ 
+        error: 'Unauthorized', 
+        reason: authError?.message?.includes('expired') ? 'TOKEN_EXPIRED' : 'INVALID_TOKEN' 
+      }, { status: 401 })
     }
 
     const json = await req.json()

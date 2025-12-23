@@ -991,6 +991,8 @@ function QuizInner() {
       // Persist the 48 A–D answers to public.answers via /api/answers
       // Send ALL 48 entries (both MOST and LEAST) to satisfy API schema
       try {
+        const { data: sessionRes } = await supabase.auth.getSession()
+        const answersToken = sessionRes.session?.access_token
         const letters = finalAnswers.map(a => (['A','B','C','D'] as const)[((a.statementId - 1) % 4)])
         const answerTexts = finalAnswers.map(a => {
           const s = statements.find(st => st.id === a.statementId)
@@ -1001,7 +1003,7 @@ function QuizInner() {
         }
         // Use candidateId as quiz_session_id to enable idempotent updates if needed
         const attemptId = typeof window !== 'undefined' ? localStorage.getItem('quizAttemptId') : null
-        await submitAnswers(letters as ('A'|'B'|'C'|'D')[], candidateId, candidateId, answerTexts, attemptId || undefined)
+        await submitAnswers(letters as ('A'|'B'|'C'|'D')[], candidateId, candidateId, answerTexts, attemptId || undefined, answersToken || undefined)
       } catch (persistErr) {
         console.error('Persisting answers failed (continuing flow):', persistErr)
       }
