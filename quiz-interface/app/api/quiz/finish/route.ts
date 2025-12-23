@@ -10,6 +10,8 @@ import { QUIZ_ID } from '@/lib/constants'
 export const runtime = 'nodejs'
 // Avoid ISR caching for API side-effects
 export const dynamic = 'force-dynamic'
+// PDF generation with Puppeteer can take up to 60 seconds
+export const maxDuration = 60
 
 const BodySchema = z.object({
   attempt_id: z.string().uuid(),

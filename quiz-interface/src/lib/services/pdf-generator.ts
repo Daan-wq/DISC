@@ -1,10 +1,15 @@
-import puppeteer from 'puppeteer'
+import puppeteer from 'puppeteer-core'
+import chromium from '@sparticuz/chromium'
 import fs from 'fs'
 import path from 'path'
 import os from 'os'
 import { replacePlaceholders, type PlaceholderData } from '../utils/placeholder-replacer'
 import { generateChartSVG, type DISCData } from '../utils/chart-generator'
 import { PDFDocument, PDFPage } from 'pdf-lib'
+
+// Configure chromium for serverless environment
+chromium.setHeadlessMode = 'shell'
+chromium.setGraphicsMode = false
 
 export interface PDFGenerationOptions {
   profileCode: string
@@ -144,17 +149,37 @@ async function generatePDFFromTemplateStrict(options: PDFGenerationOptions): Pro
   }
 
   // 4) Render each HTML file by opening the actual file:// URL so ALL relative CSS/images/fonts work as-is
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--allow-file-access-from-files',
-      '--enable-local-file-accesses',
-      '--disable-web-security',
-      '--font-render-hinting=medium'
-    ]
-  })
+  // Use @sparticuz/chromium for Vercel serverless compatibility
+  console.log('[pdf] Launching browser...')
+  
+  let executablePath: string
+  try {
+    executablePath = await chromium.executablePath()
+    console.log('[pdf] Chromium executable path:', executablePath)
+  } catch (pathError: any) {
+    console.error('[pdf] Failed to get Chromium executable path:', pathError?.message)
+    throw new Error(`PDF_RENDER_FAILED: Could not locate Chromium binary: ${pathError?.message}`)
+  }
+  
+  let browser
+  try {
+    browser = await puppeteer.launch({
+      args: [
+        ...chromium.args,
+        '--allow-file-access-from-files',
+        '--enable-local-file-accesses',
+        '--font-render-hinting=medium'
+      ],
+      defaultViewport: chromium.defaultViewport,
+      executablePath,
+      headless: chromium.headless,
+    })
+    console.log('[pdf] Browser launched successfully')
+  } catch (launchError: any) {
+    console.error('[pdf] Failed to launch browser:', launchError?.message)
+    console.error('[pdf] Stack:', launchError?.stack)
+    throw new Error(`PDF_RENDER_FAILED: Could not launch Chromium browser: ${launchError?.message}`)
+  }
   const page = await browser.newPage()
   
   // SECURITY: Block all external network requests - only allow file:// and data: URLs
