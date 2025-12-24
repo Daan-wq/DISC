@@ -1,18 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { supabase, supabaseAdmin } from '@/lib/supabase'
-import { generatePDFFromTemplate } from '@/lib/services/pdf-generator'
+import { generateReportPdf } from '@/lib/report'
 import { sendRapportEmail, generateEmailHtml, generateEmailText } from '@/server/email/mailer'
 import { buildPdfStoragePath, buildPdfFilename, findUniqueStoragePath } from '@/lib/utils/slugify'
 import { QUIZ_ID } from '@/lib/constants'
 import { randomUUID } from 'crypto'
 
-// Ensure Node.js runtime (Puppeteer not supported on Edge)
+// Ensure Node.js runtime
 export const runtime = 'nodejs'
 // Avoid ISR caching for API side-effects
 export const dynamic = 'force-dynamic'
-// PDF generation with Puppeteer can take up to 60 seconds (requires Vercel Pro)
-export const maxDuration = 60
+// PDF generation is now much faster without Chromium (typically <5 seconds)
+export const maxDuration = 30
 
 // Processing lock TTL in minutes (stale locks older than this can be reclaimed)
 const PROCESSING_TTL_MINUTES = 5
@@ -374,23 +374,30 @@ export async function POST(req: NextRequest) {
     }
     let pdfBuffer: Buffer
     try {
-      pdfBuffer = await generatePDFFromTemplate({
+      // Use Node-only PDF generator (no Chromium required)
+      const fullName = finalPD?.candidate?.full_name || 'Gebruiker'
+      const dateText = finalPD?.meta?.dateISO || finalPD?.results?.created_at || new Date().toISOString()
+      const styleLabel = finalPD?.meta?.stijlLabel || profileCode
+      
+      pdfBuffer = await generateReportPdf({
         profileCode,
-        placeholderData: finalPD as any,
-        discData: finalPD ? {
+        fullName,
+        date: dateText,
+        styleLabel,
+        discData: {
           natural: {
-            D: Math.round(finalPD.results.natural_d),
-            I: Math.round(finalPD.results.natural_i),
-            S: Math.round(finalPD.results.natural_s),
-            C: Math.round(finalPD.results.natural_c),
+            D: Math.round(finalPD?.results?.natural_d || 0),
+            I: Math.round(finalPD?.results?.natural_i || 0),
+            S: Math.round(finalPD?.results?.natural_s || 0),
+            C: Math.round(finalPD?.results?.natural_c || 0),
           },
           response: {
-            D: Math.round(finalPD.results.response_d),
-            I: Math.round(finalPD.results.response_i),
-            S: Math.round(finalPD.results.response_s),
-            C: Math.round(finalPD.results.response_c),
+            D: Math.round(finalPD?.results?.response_d || 0),
+            I: Math.round(finalPD?.results?.response_i || 0),
+            S: Math.round(finalPD?.results?.response_s || 0),
+            C: Math.round(finalPD?.results?.response_c || 0),
           },
-        } : undefined,
+        },
       })
       timings.t_render = Date.now()
       console.log(`[finish][${requestId}] PDF rendered in ${timings.t_render - (timings.t_claim || timings.t_start)}ms, size: ${pdfBuffer.length} bytes`)

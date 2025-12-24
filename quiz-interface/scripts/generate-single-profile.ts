@@ -1,4 +1,4 @@
-import { generatePDFFromTemplate } from '../src/lib/services/pdf-generator'
+import { generateReportPdf } from '../src/lib/report'
 import fs from 'fs'
 import path from 'path'
 
@@ -118,12 +118,13 @@ async function generateSingleProfile() {
     
     console.log('\n📝 Generating PDF...')
     
-    // 4. Generate the PDF
-    const pdfBuffer = await generatePDFFromTemplate({
+    // 4. Generate the PDF using Node-only generator
+    const pdfBuffer = await generateReportPdf({
       profileCode,
-      placeholderData: placeholderData as any,
+      fullName: placeholderData.candidate.full_name,
+      date: placeholderData.results.created_at,
+      styleLabel: profileCode,
       discData,
-      templateBasePath,
     })
     
     // 5. Save to file

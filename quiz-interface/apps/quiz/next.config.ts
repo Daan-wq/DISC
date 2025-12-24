@@ -14,7 +14,10 @@ const nextConfig: NextConfig = {
   experimental: {
     externalDir: true,
   },
-  serverExternalPackages: ['@react-pdf/renderer'],
+  serverExternalPackages: ['@react-pdf/renderer', '@resvg/resvg-js'],
+  outputFileTracingIncludes: {
+    '/api/quiz/finish': ['./assets/report/**'],
+  },
   allowedDevOrigins: ['localhost', '127.0.0.1'],
   turbopack: {},
   webpack: (config) => {

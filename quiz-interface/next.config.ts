@@ -11,7 +11,7 @@ const prodCSP = "default-src 'self'; script-src 'self' 'unsafe-inline' https://c
 
 const nextConfig: NextConfig = {
   // PDF rendering support
-  serverExternalPackages: ['@react-pdf/renderer'],
+  serverExternalPackages: ['@react-pdf/renderer', '@resvg/resvg-js'],
   
   // Turbopack and Webpack configuration
   turbopack: {},

@@ -1,0 +1,301 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2025-12-24T19:51:25.247Z",
+  "templateVersion": "2025-12-24",
+  "profiles": [
+    {
+      "profileCode": "C",
+      "basePdf": {
+        "path": "base-pdf/C.pdf",
+        "size": 1090660,
+        "hash": "02f26003e7baf9e3af8d47e7bb188103",
+        "pages": 9
+      },
+      "positions": {
+        "path": "positions/C.json",
+        "size": 947,
+        "hash": "e103b856ac7a8240c7295352a3fb0d1a"
+      },
+      "debugOverlay": {
+        "path": "debug/C.overlay.pdf",
+        "size": 1091867
+      }
+    },
+    {
+      "profileCode": "CD",
+      "basePdf": {
+        "path": "base-pdf/CD.pdf",
+        "size": 1087513,
+        "hash": "350865e1b0c23263b24847b0badca034",
+        "pages": 9
+      },
+      "positions": {
+        "path": "positions/CD.json",
+        "size": 948,
+        "hash": "a5bb9d579bdfae3350be7a6cc99abca5"
+      },
+      "debugOverlay": {
+        "path": "debug/CD.overlay.pdf",
+        "size": 1088710
+      }
+    },
+    {
+      "profileCode": "CI",
+      "basePdf": {
+        "path": "base-pdf/CI.pdf",
+        "size": 1086927,
+        "hash": "5a9edfacee4d63cf68afb2490bbfb88c",
+        "pages": 9
+      },
+      "positions": {
+        "path": "positions/CI.json",
+        "size": 948,
+        "hash": "d7100d5dbaba6ebe714d3f8b8665f99f"
+      },
+      "debugOverlay": {
+        "path": "debug/CI.overlay.pdf",
+        "size": 1088122
+      }
+    },
+    {
+      "profileCode": "CS",
+      "basePdf": {
+        "path": "base-pdf/CS.pdf",
+        "size": 1086203,
+        "hash": "6795cacf4b0f4925e3f160e981d0c2ba",
+        "pages": 9
+      },
+      "positions": {
+        "path": "positions/CS.json",
+        "size": 948,
+        "hash": "ffa6eb04289824931078a27d2e955de3"
+      },
+      "debugOverlay": {
+        "path": "debug/CS.overlay.pdf",
+        "size": 1087400
+      }
+    },
+    {
+      "profileCode": "D",
+      "basePdf": {
+        "path": "base-pdf/D.pdf",
+        "size": 1080536,
+        "hash": "b7100a857a32a41285e73dbd9c63d28e",
+        "pages": 9
+      },
+      "positions": {
+        "path": "positions/D.json",
+        "size": 947,
+        "hash": "2481379f116679f5105924b41a2f7d80"
+      },
+      "debugOverlay": {
+        "path": "debug/D.overlay.pdf",
+        "size": 1081736
+      }
+    },
+    {
+      "profileCode": "DC",
+      "basePdf": {
+        "path": "base-pdf/DC.pdf",
+        "size": 1084317,
+        "hash": "3d6a5cb40c970942de3fc63ac8cabe24",
+        "pages": 9
+      },
+      "positions": {
+        "path": "positions/DC.json",
+        "size": 948,
+        "hash": "0870b1e94f57729223ea525d88b19802"
+      },
+      "debugOverlay": {
+        "path": "debug/DC.overlay.pdf",
+        "size": 1085512
+      }
+    },
+    {
+      "profileCode": "DI",
+      "basePdf": {
+        "path": "base-pdf/DI.pdf",
+        "size": 1081428,
+        "hash": "90595968053ac4447b03499daf385492",
+        "pages": 9
+      },
+      "positions": {
+        "path": "positions/DI.json",
+        "size": 948,
+        "hash": "15c46e980bb3b970ae35dfc6d2aff737"
+      },
+      "debugOverlay": {
+        "path": "debug/DI.overlay.pdf",
+        "size": 1082630
+      }
+    },
+    {
+      "profileCode": "DS",
+      "basePdf": {
+        "path": "base-pdf/DS.pdf",
+        "size": 1085329,
+        "hash": "52f77440a9e0027d6d6e09569c827fb3",
+        "pages": 9
+      },
+      "positions": {
+        "path": "positions/DS.json",
+        "size": 948,
+        "hash": "bf11ae962a71d0a9b8527aa1a5713a6a"
+      },
+      "debugOverlay": {
+        "path": "debug/DS.overlay.pdf",
+        "size": 1086531
+      }
+    },
+    {
+      "profileCode": "I",
+      "basePdf": {
+        "path": "base-pdf/I.pdf",
+        "size": 1082760,
+        "hash": "ca4791239ff42984018c56755923a51f",
+        "pages": 9
+      },
+      "positions": {
+        "path": "positions/I.json",
+        "size": 947,
+        "hash": "1298ca0e8f797675294255e64668ee41"
+      },
+      "debugOverlay": {
+        "path": "debug/I.overlay.pdf",
+        "size": 1083960
+      }
+    },
+    {
+      "profileCode": "IC",
+      "basePdf": {
+        "path": "base-pdf/IC.pdf",
+        "size": 1084019,
+        "hash": "ebd91032cb8f08b7666021840a50fd03",
+        "pages": 9
+      },
+      "positions": {
+        "path": "positions/IC.json",
+        "size": 948,
+        "hash": "c6764eb975df464c31caf4482cc55092"
+      },
+      "debugOverlay": {
+        "path": "debug/IC.overlay.pdf",
+        "size": 1085214
+      }
+    },
+    {
+      "profileCode": "ID",
+      "basePdf": {
+        "path": "base-pdf/ID.pdf",
+        "size": 1081428,
+        "hash": "a5eae25975f4c4c1b2abe9a9fb620c34",
+        "pages": 9
+      },
+      "positions": {
+        "path": "positions/ID.json",
+        "size": 948,
+        "hash": "3712e40c9c1a31ac4b8a3910c9545393"
+      },
+      "debugOverlay": {
+        "path": "debug/ID.overlay.pdf",
+        "size": 1082625
+      }
+    },
+    {
+      "profileCode": "IS",
+      "basePdf": {
+        "path": "base-pdf/IS.pdf",
+        "size": 1089347,
+        "hash": "c3ccf6f64cbe919e281dfe9cd70fef1e",
+        "pages": 9
+      },
+      "positions": {
+        "path": "positions/IS.json",
+        "size": 948,
+        "hash": "6106008dd41af9e4472da323ec47e828"
+      },
+      "debugOverlay": {
+        "path": "debug/IS.overlay.pdf",
+        "size": 1090543
+      }
+    },
+    {
+      "profileCode": "S",
+      "basePdf": {
+        "path": "base-pdf/S.pdf",
+        "size": 1079201,
+        "hash": "16c0092458fbaaaaa154610cab078b52",
+        "pages": 9
+      },
+      "positions": {
+        "path": "positions/S.json",
+        "size": 947,
+        "hash": "62187d0202f713cdf738e61c452148a9"
+      },
+      "debugOverlay": {
+        "path": "debug/S.overlay.pdf",
+        "size": 1080401
+      }
+    },
+    {
+      "profileCode": "SC",
+      "basePdf": {
+        "path": "base-pdf/SC.pdf",
+        "size": 1081567,
+        "hash": "8f3b055b8deeae816c2bd04688bf287a",
+        "pages": 9
+      },
+      "positions": {
+        "path": "positions/SC.json",
+        "size": 948,
+        "hash": "5e58ed2b049352c3af1f24ee90046f45"
+      },
+      "debugOverlay": {
+        "path": "debug/SC.overlay.pdf",
+        "size": 1082761
+      }
+    },
+    {
+      "profileCode": "SD",
+      "basePdf": {
+        "path": "base-pdf/SD.pdf",
+        "size": 1084865,
+        "hash": "86525c62bac3edf2309b88306d2278eb",
+        "pages": 9
+      },
+      "positions": {
+        "path": "positions/SD.json",
+        "size": 948,
+        "hash": "ab082e4f97b46658fde004ef862ff00d"
+      },
+      "debugOverlay": {
+        "path": "debug/SD.overlay.pdf",
+        "size": 1086066
+      }
+    },
+    {
+      "profileCode": "SI",
+      "basePdf": {
+        "path": "base-pdf/SI.pdf",
+        "size": 1081771,
+        "hash": "433da09522acca91c6eb16c15d2cc84d",
+        "pages": 9
+      },
+      "positions": {
+        "path": "positions/SI.json",
+        "size": 948,
+        "hash": "1f4e797f88be57a2d4225af847c8de33"
+      },
+      "debugOverlay": {
+        "path": "debug/SI.overlay.pdf",
+        "size": 1082968
+      }
+    }
+  ],
+  "summary": {
+    "totalProfiles": 16,
+    "basePdfsGenerated": 16,
+    "positionsExtracted": 16,
+    "debugOverlaysCreated": 16
+  }
+}
