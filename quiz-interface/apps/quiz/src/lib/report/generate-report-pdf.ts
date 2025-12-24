@@ -12,6 +12,7 @@
 
 import fs from 'fs'
 import path from 'path'
+import { createRequire } from 'module'
 import { PDFDocument, StandardFonts, rgb, PDFFont, PDFPage } from 'pdf-lib'
 
 // Types
@@ -227,25 +228,22 @@ function generateChartSVG(data: DISCData): string {
  */
 async function svgToPng(svgString: string, width: number, height: number): Promise<Buffer> {
   try {
-    // Try resvg-js first (pure JS/WASM, works on Vercel)
-    const { Resvg } = await import('@resvg/resvg-js')
+    // Load resvg via Node require() to keep it out of the bundler graph.
+    // Turbopack can struggle bundling resvg's internal JS/WASM bindings.
+    const require = createRequire(__filename)
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { Resvg } = require('@resvg/resvg-js') as typeof import('@resvg/resvg-js')
     const resvg = new Resvg(svgString, {
       fitTo: { mode: 'width', value: width },
     })
     const pngData = resvg.render()
     return Buffer.from(pngData.asPng())
   } catch (err) {
-    // Fallback: try sharp (may work in some environments)
-    try {
-      const sharp = await import('sharp')
-      const pngBuffer = await sharp.default(Buffer.from(svgString))
-        .resize(width, height)
-        .png()
-        .toBuffer()
-      return pngBuffer
-    } catch {
-      throw new Error(`[report-pdf] SVG to PNG conversion failed. Install @resvg/resvg-js: ${err}`)
-    }
+    throw new Error(
+      `[report-pdf] SVG to PNG conversion failed via @resvg/resvg-js. ` +
+        `This dependency must be installed and supported by your deployment runtime. ` +
+        `Original error: ${err}`
+    )
   }
 }
 
