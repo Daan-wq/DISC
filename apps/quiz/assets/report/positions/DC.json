@@ -1,0 +1,57 @@
+{
+  "templateVersion": "2025-12-24",
+  "profileCode": "DC",
+  "pages": 9,
+  "fields": {
+    "name": {
+      "pageIndex": 0,
+      "rect": {
+        "x": 172.64,
+        "y": 701.91,
+        "w": 101.19,
+        "h": 22.5
+      },
+      "source": "DBF"
+    },
+    "date": {
+      "pageIndex": 1,
+      "rect": {
+        "x": 317.48,
+        "y": 276.96,
+        "w": 44.5,
+        "h": 9
+      },
+      "source": "DBF"
+    },
+    "style": {
+      "pageIndex": 1,
+      "rect": {
+        "x": 364.25,
+        "y": 276.96,
+        "w": 34.37,
+        "h": 9
+      },
+      "source": "DBF"
+    },
+    "firstName": {
+      "pageIndex": 1,
+      "rect": {
+        "x": 244.44,
+        "y": 776.61,
+        "w": 112.2,
+        "h": 18
+      },
+      "source": "DBF"
+    },
+    "chart": {
+      "pageIndex": 2,
+      "rect": {
+        "x": 47.83,
+        "y": 284.89,
+        "w": 208.16,
+        "h": 162.16
+      },
+      "source": "SELECTOR"
+    }
+  }
+}

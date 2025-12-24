@@ -1,0 +1,64 @@
+{
+  "app/login/page.tsx": {
+    "reason": "Login entrypoint for magic link flow",
+    "depends_on": [
+      "app/api/auth/request-magic-link/route.ts"
+    ]
+  },
+  "app/api/auth/request-magic-link/route.ts": {
+    "reason": "Sends Supabase magic link; allowlist gate; rate limiting; improved retry messaging",
+    "depends_on": [
+      "src/lib/supabase.ts",
+      "src/server/email/mailer.ts"
+    ]
+  },
+  "app/auth/callback/page.tsx": {
+    "reason": "Handles Supabase auth callback and redirects to quiz",
+    "depends_on": ["src/lib/supabase.ts"]
+  },
+  "app/api/auth/allowlist-check/route.ts": {
+    "reason": "Pre-check allowlist before showing quiz; now returns reason=ALREADY_USED",
+    "depends_on": ["src/lib/supabase.ts"]
+  },
+  "app/quiz/page.tsx": {
+    "reason": "Main quiz UI for the tested flow (with back button and new statements)",
+    "depends_on": [
+      "app/api/compute/route.ts",
+      "app/api/quiz/finish/route.ts"
+    ]
+  },
+  "app/api/compute/route.ts": {
+    "reason": "Computes DISC results, inserts into results table",
+    "depends_on": ["src/lib/disc/index.ts", "src/lib/supabase.ts"]
+  },
+  "app/api/quiz/finish/route.ts": {
+    "reason": "Generates PDF and emails it as attachment; updates allowlist to used",
+    "depends_on": [
+      "lib/services/pdf-generator.ts",
+      "src/server/email/mailer.ts",
+      "src/lib/supabase.ts"
+    ]
+  },
+  "src/server/email/mailer.ts": {
+    "reason": "Unified email sender + professional HTML/text templates used by finish route",
+    "depends_on": ["nodemailer"]
+  },
+  "lib/services/pdf-generator.ts": {
+    "reason": "Current PDF generator used by finish route",
+    "depends_on": [
+      "src/server/pdf/renderPdf.ts",
+      "src/lib/supabase.ts",
+      "pdf-lib"
+    ]
+  },
+  "src/server/pdf/renderPdf.ts": {
+    "reason": "HTML→PDF rendering used by pdf-generator",
+    "depends_on": ["puppeteer or compatible render pipeline"]
+  },
+  "app/no-access/page.tsx": {
+    "reason": "Displays reason-specific messages (used vs not-listed)"
+  },
+  "middleware.ts": {
+    "reason": "Auth/route protections relevant to quiz flow (keep)"
+  }
+}
