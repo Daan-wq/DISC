@@ -14,6 +14,8 @@ import fs from 'fs'
 import path from 'path'
 import { PDFDocument, StandardFonts, rgb, PDFFont, PDFPage } from 'pdf-lib'
 import { svgToPng, getWasmPath } from './svg-to-png'
+import { fileURLToPath } from 'url'
+import { dirname } from 'path'
 
 // Types
 export interface DISCData {
@@ -39,6 +41,8 @@ interface FieldPosition {
     fontWeight?: string
     color?: string  // rgb(r,g,b) format
     textAlign?: string
+    letterSpacing?: number  // in pt
+    backgroundColor?: string  // rgb(r,g,b) format - for cover rectangles
   }
 }
 
@@ -69,6 +73,110 @@ const DEBUG_PDF = process.env.DEBUG_PDF === 'true' || process.env.DEBUG_PDF === 
 
 // Cache for loaded assets
 const assetCache = new Map<string, { pdf: PDFDocument; positions: PositionsData; version: string }>()
+
+// Cache for embedded fonts
+const fontCache = new Map<string, PDFFont>()
+
+// Font mapping: fontFamily + weight + style -> filename
+interface FontKey {
+  family: string
+  weight: string
+  style: string
+}
+
+function getFontFilename(fontFamily: string, fontWeight: string, fontStyle: string): string | null {
+  // Normalize font family
+  const family = fontFamily.toLowerCase().replace(/['"]/g, '').split(',')[0].trim()
+  
+  // Normalize weight and style
+  const isBold = fontWeight === 'bold' || fontWeight === '700' || parseInt(fontWeight) >= 700
+  const isItalic = fontStyle === 'italic' || fontStyle === 'oblique'
+  
+  // PT Sans mapping
+  if (family === 'pt sans') {
+    if (isBold && isItalic) return 'PTSans-BoldItalic.ttf'
+    if (isBold) return 'PTSans-Bold.ttf'
+    if (isItalic) return 'PTSans-Italic.ttf'
+    return 'PTSans-Regular.ttf'
+  }
+  
+  // Minion Pro mapping (using Source Serif Pro as alternative)
+  if (family === 'minion pro') {
+    if (isBold && isItalic) return 'MinionPro-BoldItalic.otf'
+    if (isBold) return 'MinionPro-Bold.otf'
+    if (isItalic) return 'MinionPro-Italic.otf'
+    return 'MinionPro-Regular.otf'
+  }
+  
+  // Fallback to standard fonts
+  return null
+}
+
+/**
+ * Embeds a custom font in the PDF document.
+ * Uses cache to avoid re-embedding the same font.
+ */
+async function embedCustomFont(
+  pdf: PDFDocument,
+  fontFamily: string,
+  fontWeight: string = 'normal',
+  fontStyle: string = 'normal'
+): Promise<PDFFont> {
+  // Create cache key
+  const cacheKey = `${fontFamily}|${fontWeight}|${fontStyle}`
+  
+  // Check cache first
+  if (fontCache.has(cacheKey)) {
+    return fontCache.get(cacheKey)!
+  }
+  
+  // Get font filename
+  const filename = getFontFilename(fontFamily, fontWeight, fontStyle)
+  
+  if (!filename) {
+    // Fallback to standard fonts
+    const isBold = fontWeight === 'bold' || fontWeight === '700' || parseInt(fontWeight) >= 700
+    const fallbackFont = isBold ? StandardFonts.HelveticaBold : StandardFonts.Helvetica
+    const font = await pdf.embedFont(fallbackFont)
+    fontCache.set(cacheKey, font)
+    
+    if (DEBUG_PDF) {
+      console.log(`  [font] Using fallback ${fallbackFont} for ${fontFamily}`)
+    }
+    
+    return font
+  }
+  
+  // Load and embed custom font
+  try {
+    const assetsDir = getAssetsDir()
+    const fontPath = path.join(assetsDir, 'fonts', filename)
+    
+    if (!fs.existsSync(fontPath)) {
+      throw new Error(`Font file not found: ${fontPath}`)
+    }
+    
+    const fontBytes = fs.readFileSync(fontPath)
+    const font = await pdf.embedFont(fontBytes)
+    fontCache.set(cacheKey, font)
+    
+    if (DEBUG_PDF) {
+      console.log(`  [font] Embedded custom font: ${filename} (${fontFamily}, ${fontWeight}, ${fontStyle})`)
+    }
+    
+    return font
+  } catch (error) {
+    console.error(`[font] Failed to embed ${filename}:`, error)
+    
+    // Fallback to standard fonts
+    const isBold = fontWeight === 'bold' || fontWeight === '700' || parseInt(fontWeight) >= 700
+    const fallbackFont = isBold ? StandardFonts.HelveticaBold : StandardFonts.Helvetica
+    const font = await pdf.embedFont(fallbackFont)
+    fontCache.set(cacheKey, font)
+    
+    return font
+  }
+}
 
 /**
  * Resolves the assets directory path.
@@ -243,21 +351,52 @@ function generateChartSVG(data: DISCData): string {
 
 
 /**
+ * Parse rgb(r,g,b) color string to pdf-lib rgb() color.
+ */
+function parseRgbColor(colorStr: string | undefined, fallback: ReturnType<typeof rgb> = rgb(0, 0, 0)): ReturnType<typeof rgb> {
+  if (!colorStr) return fallback
+  const match = colorStr.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/)
+  if (match) {
+    return rgb(
+      parseInt(match[1]) / 255,
+      parseInt(match[2]) / 255,
+      parseInt(match[3]) / 255
+    )
+  }
+  return fallback
+}
+
+/**
  * Draws text at a position with auto-fit sizing.
+ * Uses extracted styles from positions JSON when available.
  */
 function drawTextAutoFit(
   page: PDFPage,
   text: string,
   font: PDFFont,
   rect: { x: number; y: number; w: number; h: number },
-  options: { minSize?: number; maxSize?: number; padding?: number; color?: ReturnType<typeof rgb> } = {}
+  options: { 
+    minSize?: number
+    maxSize?: number
+    padding?: number
+    color?: ReturnType<typeof rgb>
+    textAlign?: string
+    styles?: FieldPosition['styles']
+  } = {}
 ): void {
-  const { minSize = 8, maxSize = 14, padding = 2, color = rgb(0, 0, 0) } = options
+  // Use styles from extraction if available, otherwise use provided options
+  const extractedFontSize = options.styles?.fontSize
+  const extractedColor = options.styles?.color ? parseRgbColor(options.styles.color) : undefined
+  const textAlign = options.styles?.textAlign || options.textAlign || 'left'
+  
+  const { minSize = 8, padding = 2 } = options
+  const maxSize = extractedFontSize || options.maxSize || 14
+  const color = extractedColor || options.color || rgb(0, 0, 0)
   
   const availableWidth = rect.w - padding * 2
   let fontSize = maxSize
   
-  // Find fitting font size
+  // Find fitting font size (only shrink if needed)
   while (fontSize >= minSize) {
     const textWidth = font.widthOfTextAtSize(text, fontSize)
     if (textWidth <= availableWidth) {
@@ -275,12 +414,23 @@ function drawTextAutoFit(
     displayText += '...'
   }
   
+  // Calculate text width for alignment
+  const textWidth = font.widthOfTextAtSize(displayText, fontSize)
+  
+  // Calculate x position based on text alignment
+  let xPos = rect.x + padding
+  if (textAlign === 'center') {
+    xPos = rect.x + (rect.w - textWidth) / 2
+  } else if (textAlign === 'right') {
+    xPos = rect.x + rect.w - textWidth - padding
+  }
+  
   // Calculate vertical position (baseline offset)
   const textHeight = font.heightAtSize(fontSize)
   const baselineOffset = (rect.h - textHeight) / 2 + textHeight * 0.8
   
   page.drawText(displayText, {
-    x: rect.x + padding,
+    x: xPos,
     y: rect.y + baselineOffset - textHeight,
     size: fontSize,
     font,
@@ -304,47 +454,84 @@ export async function generateReportPdf(options: GenerateReportOptions): Promise
   const { pdf, positions } = await loadAssets(profileCode)
   const loadTime = Date.now() - startTime
 
-  // Embed font
-  const font = await pdf.embedFont(StandardFonts.Helvetica)
-  const fontBold = await pdf.embedFont(StandardFonts.HelveticaBold)
-
   // Format data
   const dateText = formatDate(date)
   const firstName = getFirstName(fullName)
 
-  // Overlay text fields
-  const textColor = rgb(0, 0, 0)
+  // Overlay text fields - use extracted styles when available
+  const defaultTextColor = rgb(0, 0, 0)
 
-  // Name on cover (page 0)
+  // Name on cover (page 0) - use extracted styles and custom fonts
   if (positions.fields.name) {
     const pos = positions.fields.name
     const page = pdf.getPage(pos.pageIndex)
-    drawTextAutoFit(page, fullName, fontBold, pos.rect, { maxSize: 18, color: textColor })
-    console.log(`  [page ${pos.pageIndex}] Drew name: "${fullName}"`)
+    
+    // Embed custom font based on extracted styles
+    const fontFamily = pos.styles?.fontFamily || 'PT Sans'
+    const fontWeight = pos.styles?.fontWeight || 'bold'
+    const fontStyle = 'normal'
+    const useFont = await embedCustomFont(pdf, fontFamily, fontWeight, fontStyle)
+    
+    drawTextAutoFit(page, fullName, useFont, pos.rect, { 
+      maxSize: 18, 
+      color: defaultTextColor,
+      styles: pos.styles 
+    })
+    console.log(`  [page ${pos.pageIndex}] Drew name: "${fullName}" (font: ${fontFamily}, ${fontWeight})`)
   }
 
-  // Date (usually page 1)
+  // Date (usually page 1) - use extracted styles and custom fonts
   if (positions.fields.date) {
     const pos = positions.fields.date
     const page = pdf.getPage(pos.pageIndex)
-    drawTextAutoFit(page, dateText, font, pos.rect, { maxSize: 10, color: textColor })
-    console.log(`  [page ${pos.pageIndex}] Drew date: "${dateText}"`)
+    
+    const fontFamily = pos.styles?.fontFamily || 'PT Sans'
+    const fontWeight = pos.styles?.fontWeight || 'normal'
+    const fontStyle = 'normal'
+    const useFont = await embedCustomFont(pdf, fontFamily, fontWeight, fontStyle)
+    
+    drawTextAutoFit(page, dateText, useFont, pos.rect, { 
+      maxSize: 10, 
+      color: defaultTextColor,
+      styles: pos.styles 
+    })
+    console.log(`  [page ${pos.pageIndex}] Drew date: "${dateText}" (font: ${fontFamily}, ${fontWeight})`)
   }
 
-  // Style label (usually page 1)
+  // Style label (usually page 1) - use extracted styles and custom fonts
   if (positions.fields.style) {
     const pos = positions.fields.style
     const page = pdf.getPage(pos.pageIndex)
-    drawTextAutoFit(page, styleLabel, font, pos.rect, { maxSize: 10, color: textColor })
-    console.log(`  [page ${pos.pageIndex}] Drew style: "${styleLabel}"`)
+    
+    const fontFamily = pos.styles?.fontFamily || 'PT Sans'
+    const fontWeight = pos.styles?.fontWeight || 'normal'
+    const fontStyle = 'normal'
+    const useFont = await embedCustomFont(pdf, fontFamily, fontWeight, fontStyle)
+    
+    drawTextAutoFit(page, styleLabel, useFont, pos.rect, { 
+      maxSize: 10, 
+      color: defaultTextColor,
+      styles: pos.styles 
+    })
+    console.log(`  [page ${pos.pageIndex}] Drew style: "${styleLabel}" (font: ${fontFamily}, ${fontWeight})`)
   }
 
-  // First name (if present)
+  // First name (if present) - use extracted styles and custom fonts
   if (positions.fields.firstName) {
     const pos = positions.fields.firstName
     const page = pdf.getPage(pos.pageIndex)
-    drawTextAutoFit(page, firstName, font, pos.rect, { maxSize: 12, color: textColor })
-    console.log(`  [page ${pos.pageIndex}] Drew firstName: "${firstName}"`)
+    
+    const fontFamily = pos.styles?.fontFamily || 'PT Sans'
+    const fontWeight = pos.styles?.fontWeight || 'normal'
+    const fontStyle = 'normal'
+    const useFont = await embedCustomFont(pdf, fontFamily, fontWeight, fontStyle)
+    
+    drawTextAutoFit(page, firstName, useFont, pos.rect, { 
+      maxSize: 12, 
+      color: defaultTextColor,
+      styles: pos.styles 
+    })
+    console.log(`  [page ${pos.pageIndex}] Drew firstName: "${firstName}" (font: ${fontFamily}, ${fontWeight})`)
   }
 
   // Chart (page 2)
@@ -352,18 +539,23 @@ export async function generateReportPdf(options: GenerateReportOptions): Promise
     const pos = positions.fields.chart
     const page = pdf.getPage(pos.pageIndex)
 
-    // Generate chart SVG and convert to PNG at 2x resolution for sharpness
+    // Generate chart SVG - fixed size 400x320 with legend included
     const chartSvg = generateChartSVG(discData)
+    
+    // Convert to PNG at 2x resolution for sharpness
+    // Use fixed SVG dimensions (400x320) to ensure legend is included
+    const svgWidth = 400
+    const svgHeight = 320
     const chartPng = await svgToPng(chartSvg, { 
-      width: Math.round(pos.rect.w * 2), 
-      height: Math.round(pos.rect.h * 2) 
+      width: svgWidth * 2,  // 800px for sharpness
+      height: svgHeight * 2  // 640px for sharpness
     })
     
     // Embed PNG in PDF
     const chartImage = await pdf.embedPng(chartPng)
     
-    // Draw with contain scaling (preserve aspect ratio)
-    const imgAspect = chartImage.width / chartImage.height
+    // Calculate scaling to fit in bbox while preserving aspect ratio
+    const svgAspect = svgWidth / svgHeight  // 400/320 = 1.25
     const rectAspect = pos.rect.w / pos.rect.h
     
     let drawWidth = pos.rect.w
@@ -371,13 +563,13 @@ export async function generateReportPdf(options: GenerateReportOptions): Promise
     let drawX = pos.rect.x
     let drawY = pos.rect.y
     
-    if (imgAspect > rectAspect) {
-      // Image is wider - fit to width
-      drawHeight = pos.rect.w / imgAspect
+    if (svgAspect > rectAspect) {
+      // SVG is wider than bbox - fit to width, center vertically
+      drawHeight = pos.rect.w / svgAspect
       drawY = pos.rect.y + (pos.rect.h - drawHeight) / 2
     } else {
-      // Image is taller - fit to height
-      drawWidth = pos.rect.h * imgAspect
+      // SVG is taller than bbox - fit to height, center horizontally
+      drawWidth = pos.rect.h * svgAspect
       drawX = pos.rect.x + (pos.rect.w - drawWidth) / 2
     }
     
@@ -388,7 +580,7 @@ export async function generateReportPdf(options: GenerateReportOptions): Promise
       height: drawHeight,
     })
     
-    console.log(`  [page ${pos.pageIndex}] Drew chart at (${drawX.toFixed(1)}, ${drawY.toFixed(1)}) ${drawWidth.toFixed(1)}x${drawHeight.toFixed(1)}pt`)
+    console.log(`  [page ${pos.pageIndex}] Drew chart at (${drawX.toFixed(1)}, ${drawY.toFixed(1)}) ${drawWidth.toFixed(1)}x${drawHeight.toFixed(1)}pt (SVG: ${svgWidth}x${svgHeight}, bbox: ${pos.rect.w.toFixed(1)}x${pos.rect.h.toFixed(1)})`)
   }
 
   // Overlay percentage values on page 2
@@ -411,22 +603,33 @@ export async function generateReportPdf(options: GenerateReportOptions): Promise
       
       // Use styles from extraction if available, otherwise defaults
       const fontSize = pos.styles?.fontSize || 8
-      const useFont = pos.styles?.fontWeight === 'bold' ? fontBold : font
+      const fontFamily = pos.styles?.fontFamily || 'PT Sans'
+      const fontWeight = pos.styles?.fontWeight || 'normal'
+      const fontStyle = 'normal'
+      const useFont = await embedCustomFont(pdf, fontFamily, fontWeight, fontStyle)
       
-      // Parse color from rgb(r,g,b) format if available
-      let color = textColor
-      if (pos.styles?.color) {
-        const match = pos.styles.color.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/)
-        if (match) {
-          color = rgb(
-            parseInt(match[1]) / 255,
-            parseInt(match[2]) / 255,
-            parseInt(match[3]) / 255
-          )
-        }
-      }
+      // Parse text color from rgb(r,g,b) format if available
+      const color = pos.styles?.color 
+        ? parseRgbColor(pos.styles.color, defaultTextColor) 
+        : defaultTextColor
       
-      // Draw percentage text centered in the rect
+      // STEP 1: Cover old "0%" text with background rectangle
+      // This ensures the old placeholder text is not visible
+      const bgColor = pos.styles?.backgroundColor 
+        ? parseRgbColor(pos.styles.backgroundColor, rgb(1, 1, 1)) 
+        : rgb(1, 1, 1) // White fallback
+      
+      // Draw cover rectangle with 2pt padding to fully cover old text
+      const padding = 2
+      page.drawRectangle({
+        x: pos.rect.x - padding,
+        y: pos.rect.y - padding,
+        width: pos.rect.w + padding * 2,
+        height: pos.rect.h + padding * 2,
+        color: bgColor,
+      })
+      
+      // STEP 2: Draw new percentage text centered in the rect
       const textWidth = useFont.widthOfTextAtSize(percentText, fontSize)
       const textX = pos.rect.x + (pos.rect.w - textWidth) / 2
       const textY = pos.rect.y + (pos.rect.h / 2) - (fontSize * 0.3)
@@ -440,7 +643,7 @@ export async function generateReportPdf(options: GenerateReportOptions): Promise
       })
       
       if (DEBUG_PDF) {
-        console.log(`  [page ${pos.pageIndex}] Drew ${key}: "${percentText}" at (${textX.toFixed(1)}, ${textY.toFixed(1)})`)
+        console.log(`  [page ${pos.pageIndex}] Drew ${key}: "${percentText}" at (${textX.toFixed(1)}, ${textY.toFixed(1)}) with bg cover`)
       }
     }
   }

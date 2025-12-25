@@ -43,6 +43,8 @@ export interface FieldPosition {
     fontWeight?: string
     color?: string  // rgb(r,g,b) format
     textAlign?: string
+    letterSpacing?: number  // in pt
+    backgroundColor?: string  // rgb(r,g,b) format - for cover rectangles
   }
 }
 
@@ -132,23 +134,48 @@ async function extractPositionsForProfile(
     const fileUrl = `file:///${htmlPath.replace(/\\/g, '/')}`
     await page.goto(fileUrl, { waitUntil: 'load', timeout: 30000 })
 
-    // Try DBF selector first
-    const nameRect = await page.evaluate(() => {
+    // Wait for fonts to be loaded before measuring
+    await page.evaluate(() => document.fonts.ready)
+
+    // Try DBF selector first - extract both rect AND styles
+    const nameData = await page.evaluate(() => {
       const el = document.querySelector('a[href="http://DBF_Naam"] span') as HTMLElement
       if (el) {
         const rect = el.getBoundingClientRect()
-        return { top: rect.top, left: rect.left, width: rect.width, height: rect.height }
+        const styles = window.getComputedStyle(el)
+        const parentStyles = el.parentElement ? window.getComputedStyle(el.parentElement) : null
+        return {
+          rect: { top: rect.top, left: rect.left, width: rect.width, height: rect.height },
+          styles: {
+            fontFamily: styles.fontFamily,
+            fontSize: parseFloat(styles.fontSize),
+            fontWeight: styles.fontWeight,
+            color: styles.color,
+            textAlign: styles.textAlign,
+            letterSpacing: parseFloat(styles.letterSpacing) || 0,
+          },
+          backgroundColor: parentStyles?.backgroundColor || 'rgb(255, 255, 255)',
+        }
       }
       return null
     })
 
-    if (nameRect && nameRect.width > 0) {
+    if (nameData && nameData.rect.width > 0) {
       positions.fields.name = {
         pageIndex: 0,
-        rect: pxToPdfRect(nameRect),
+        rect: pxToPdfRect(nameData.rect),
         source: 'DBF',
+        styles: {
+          fontFamily: nameData.styles.fontFamily,
+          fontSize: nameData.styles.fontSize * PX_TO_PT,
+          fontWeight: nameData.styles.fontWeight,
+          color: nameData.styles.color,
+          textAlign: nameData.styles.textAlign,
+          letterSpacing: nameData.styles.letterSpacing * PX_TO_PT,
+          backgroundColor: nameData.backgroundColor,
+        },
       }
-      console.log(`  [page 0] name: found via DBF selector`)
+      console.log(`  [page 0] name: found via DBF selector (font: ${nameData.styles.fontFamily}, weight: ${nameData.styles.fontWeight}, size: ${nameData.styles.fontSize}px, color: ${nameData.styles.color})`)
     } else {
       console.warn(`  [page 0] name: NOT FOUND`)
     }
@@ -160,64 +187,133 @@ async function extractPositionsForProfile(
     const fileUrl = `file:///${htmlPath.replace(/\\/g, '/')}`
     await page.goto(fileUrl, { waitUntil: 'load', timeout: 30000 })
 
-    // Date
-    const dateRect = await page.evaluate(() => {
+    // Wait for fonts to be loaded before measuring
+    await page.evaluate(() => document.fonts.ready)
+
+    // Date - extract both rect AND styles
+    const dateData = await page.evaluate(() => {
       const el = document.querySelector('a[href="http://DBF_Datum"] span') as HTMLElement
       if (el) {
         const rect = el.getBoundingClientRect()
-        return { top: rect.top, left: rect.left, width: rect.width, height: rect.height }
+        const styles = window.getComputedStyle(el)
+        const parentStyles = el.parentElement ? window.getComputedStyle(el.parentElement) : null
+        return {
+          rect: { top: rect.top, left: rect.left, width: rect.width, height: rect.height },
+          styles: {
+            fontFamily: styles.fontFamily,
+            fontSize: parseFloat(styles.fontSize),
+            fontWeight: styles.fontWeight,
+            color: styles.color,
+            textAlign: styles.textAlign,
+            letterSpacing: parseFloat(styles.letterSpacing) || 0,
+          },
+          backgroundColor: parentStyles?.backgroundColor || 'rgb(255, 255, 255)',
+        }
       }
       return null
     })
 
-    if (dateRect && dateRect.width > 0) {
+    if (dateData && dateData.rect.width > 0) {
       positions.fields.date = {
         pageIndex: 1,
-        rect: pxToPdfRect(dateRect),
+        rect: pxToPdfRect(dateData.rect),
         source: 'DBF',
+        styles: {
+          fontFamily: dateData.styles.fontFamily,
+          fontSize: dateData.styles.fontSize * PX_TO_PT,
+          fontWeight: dateData.styles.fontWeight,
+          color: dateData.styles.color,
+          textAlign: dateData.styles.textAlign,
+          letterSpacing: dateData.styles.letterSpacing * PX_TO_PT,
+          backgroundColor: dateData.backgroundColor,
+        },
       }
-      console.log(`  [page 1] date: found via DBF selector`)
+      console.log(`  [page 1] date: found via DBF selector (font: ${dateData.styles.fontFamily}, weight: ${dateData.styles.fontWeight}, size: ${dateData.styles.fontSize}px, color: ${dateData.styles.color})`)
     }
 
-    // Style
-    const styleRect = await page.evaluate(() => {
+    // Style - extract both rect AND styles
+    const styleData = await page.evaluate(() => {
       const el = document.querySelector('a[href="http://DBF_Stijl"] span') as HTMLElement
       if (el) {
         const rect = el.getBoundingClientRect()
-        return { top: rect.top, left: rect.left, width: rect.width, height: rect.height }
+        const styles = window.getComputedStyle(el)
+        const parentStyles = el.parentElement ? window.getComputedStyle(el.parentElement) : null
+        return {
+          rect: { top: rect.top, left: rect.left, width: rect.width, height: rect.height },
+          styles: {
+            fontFamily: styles.fontFamily,
+            fontSize: parseFloat(styles.fontSize),
+            fontWeight: styles.fontWeight,
+            color: styles.color,
+            textAlign: styles.textAlign,
+            letterSpacing: parseFloat(styles.letterSpacing) || 0,
+          },
+          backgroundColor: parentStyles?.backgroundColor || 'rgb(255, 255, 255)',
+        }
       }
       return null
     })
 
-    if (styleRect && styleRect.width > 0) {
+    if (styleData && styleData.rect.width > 0) {
       positions.fields.style = {
         pageIndex: 1,
-        rect: pxToPdfRect(styleRect),
+        rect: pxToPdfRect(styleData.rect),
         source: 'DBF',
+        styles: {
+          fontFamily: styleData.styles.fontFamily,
+          fontSize: styleData.styles.fontSize * PX_TO_PT,
+          fontWeight: styleData.styles.fontWeight,
+          color: styleData.styles.color,
+          textAlign: styleData.styles.textAlign,
+          letterSpacing: styleData.styles.letterSpacing * PX_TO_PT,
+          backgroundColor: styleData.backgroundColor,
+        },
       }
-      console.log(`  [page 1] style: found via DBF selector`)
+      console.log(`  [page 1] style: found via DBF selector (font: ${styleData.styles.fontFamily}, weight: ${styleData.styles.fontWeight}, size: ${styleData.styles.fontSize}px, color: ${styleData.styles.color})`)
     }
 
-    // FirstName (same page, uses voornaam or name)
-    const firstNameRect = await page.evaluate(() => {
+    // FirstName (same page, uses voornaam or name) - extract both rect AND styles
+    const firstNameData = await page.evaluate(() => {
       let el = document.querySelector('a[href="http://DBF_Voornaam"] span') as HTMLElement
       if (!el) {
         el = document.querySelector('a[href="http://DBF_Naam"] span') as HTMLElement
       }
       if (el) {
         const rect = el.getBoundingClientRect()
-        return { top: rect.top, left: rect.left, width: rect.width, height: rect.height }
+        const styles = window.getComputedStyle(el)
+        const parentStyles = el.parentElement ? window.getComputedStyle(el.parentElement) : null
+        return {
+          rect: { top: rect.top, left: rect.left, width: rect.width, height: rect.height },
+          styles: {
+            fontFamily: styles.fontFamily,
+            fontSize: parseFloat(styles.fontSize),
+            fontWeight: styles.fontWeight,
+            color: styles.color,
+            textAlign: styles.textAlign,
+            letterSpacing: parseFloat(styles.letterSpacing) || 0,
+          },
+          backgroundColor: parentStyles?.backgroundColor || 'rgb(255, 255, 255)',
+        }
       }
       return null
     })
 
-    if (firstNameRect && firstNameRect.width > 0) {
+    if (firstNameData && firstNameData.rect.width > 0) {
       positions.fields.firstName = {
         pageIndex: 1,
-        rect: pxToPdfRect(firstNameRect),
+        rect: pxToPdfRect(firstNameData.rect),
         source: 'DBF',
+        styles: {
+          fontFamily: firstNameData.styles.fontFamily,
+          fontSize: firstNameData.styles.fontSize * PX_TO_PT,
+          fontWeight: firstNameData.styles.fontWeight,
+          color: firstNameData.styles.color,
+          textAlign: firstNameData.styles.textAlign,
+          letterSpacing: firstNameData.styles.letterSpacing * PX_TO_PT,
+          backgroundColor: firstNameData.backgroundColor,
+        },
       }
-      console.log(`  [page 1] firstName: found via DBF selector`)
+      console.log(`  [page 1] firstName: found via DBF selector (font: ${firstNameData.styles.fontFamily}, weight: ${firstNameData.styles.fontWeight}, size: ${firstNameData.styles.fontSize}px, color: ${firstNameData.styles.color})`)
     }
   }
 
@@ -226,6 +322,9 @@ async function extractPositionsForProfile(
     const htmlPath = path.join(profile.htmlDir, 'publication-2.html')
     const fileUrl = `file:///${htmlPath.replace(/\\/g, '/')}`
     await page.goto(fileUrl, { waitUntil: 'load', timeout: 30000 })
+
+    // Wait for fonts to be loaded before measuring
+    await page.evaluate(() => document.fonts.ready)
 
     // Find chart image by class pattern used in templates
     const chartRect = await page.evaluate(() => {

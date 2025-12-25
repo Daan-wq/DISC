@@ -151,8 +151,13 @@ async function generateBasePdfForProfile(
       const htmlPath = path.join(actualTempHtmlDir, htmlFile)
       const fileUrl = `file:///${htmlPath.replace(/\\/g, '/')}`
 
-      await page.setViewport({ width: 595, height: 842, deviceScaleFactor: 2 })
+      // Use same viewport as extract-positions.ts: A4 @ 96dpi
+      // 595.28pt / 0.75 = 793.7px, 841.89pt / 0.75 = 1122.5px
+      await page.setViewport({ width: 794, height: 1123, deviceScaleFactor: 2 })
       await page.goto(fileUrl, { waitUntil: 'load', timeout: 30000 })
+
+      // Wait for fonts to be loaded before rendering
+      await page.evaluate(() => document.fonts.ready)
 
       // Inject A4 print styles
       await page.addStyleTag({

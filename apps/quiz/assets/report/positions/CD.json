@@ -11,7 +11,16 @@
         "w": 101.18,
         "h": 22.5
       },
-      "source": "DBF"
+      "source": "DBF",
+      "styles": {
+        "fontFamily": "\"PT Sans\", sans-serif",
+        "fontSize": 450,
+        "fontWeight": "400",
+        "color": "rgb(70, 149, 96)",
+        "textAlign": "start",
+        "letterSpacing": 0,
+        "backgroundColor": "rgba(0, 0, 0, 0)"
+      }
     },
     "date": {
       "pageIndex": 1,
@@ -21,7 +30,16 @@
         "w": 44.49,
         "h": 9
       },
-      "source": "DBF"
+      "source": "DBF",
+      "styles": {
+        "fontFamily": "\"PT Sans\", sans-serif",
+        "fontSize": 180,
+        "fontWeight": "700",
+        "color": "rgb(2, 2, 3)",
+        "textAlign": "start",
+        "letterSpacing": 0,
+        "backgroundColor": "rgba(0, 0, 0, 0)"
+      }
     },
     "style": {
       "pageIndex": 1,
@@ -31,7 +49,16 @@
         "w": 34.36,
         "h": 9
       },
-      "source": "DBF"
+      "source": "DBF",
+      "styles": {
+        "fontFamily": "\"PT Sans\", sans-serif",
+        "fontSize": 180,
+        "fontWeight": "700",
+        "color": "rgb(2, 2, 3)",
+        "textAlign": "start",
+        "letterSpacing": 0,
+        "backgroundColor": "rgba(0, 0, 0, 0)"
+      }
     },
     "firstName": {
       "pageIndex": 1,
@@ -41,7 +68,16 @@
         "w": 112.23,
         "h": 18
       },
-      "source": "DBF"
+      "source": "DBF",
+      "styles": {
+        "fontFamily": "\"PT Sans\", sans-serif",
+        "fontSize": 360,
+        "fontWeight": "400",
+        "color": "rgb(70, 149, 96)",
+        "textAlign": "start",
+        "letterSpacing": -1.7399999999999998,
+        "backgroundColor": "rgba(0, 0, 0, 0)"
+      }
     },
     "chart": {
       "pageIndex": 2,
