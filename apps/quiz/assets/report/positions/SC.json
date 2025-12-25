@@ -1,5 +1,5 @@
 {
-  "templateVersion": "2025-12-24",
+  "templateVersion": "2025-12-25",
   "profileCode": "SC",
   "pages": 9,
   "fields": {
@@ -52,6 +52,142 @@
         "h": 99.91
       },
       "source": "SELECTOR"
+    },
+    "naturalD": {
+      "pageIndex": 2,
+      "rect": {
+        "x": 304.99,
+        "y": 376.18,
+        "w": 11.87,
+        "h": 9
+      },
+      "source": "PERCENTAGE",
+      "styles": {
+        "fontFamily": "\"PT Sans\", sans-serif",
+        "fontSize": 9,
+        "fontWeight": "400",
+        "color": "rgb(255, 255, 255)",
+        "textAlign": "start"
+      }
+    },
+    "naturalI": {
+      "pageIndex": 2,
+      "rect": {
+        "x": 304.99,
+        "y": 365.38,
+        "w": 11.87,
+        "h": 9
+      },
+      "source": "PERCENTAGE",
+      "styles": {
+        "fontFamily": "\"PT Sans\", sans-serif",
+        "fontSize": 9,
+        "fontWeight": "400",
+        "color": "rgb(255, 255, 255)",
+        "textAlign": "start"
+      }
+    },
+    "naturalS": {
+      "pageIndex": 2,
+      "rect": {
+        "x": 304.99,
+        "y": 354.58,
+        "w": 11.87,
+        "h": 9
+      },
+      "source": "PERCENTAGE",
+      "styles": {
+        "fontFamily": "\"PT Sans\", sans-serif",
+        "fontSize": 9,
+        "fontWeight": "400",
+        "color": "rgb(255, 255, 255)",
+        "textAlign": "start"
+      }
+    },
+    "naturalC": {
+      "pageIndex": 2,
+      "rect": {
+        "x": 304.99,
+        "y": 343.78,
+        "w": 11.87,
+        "h": 9
+      },
+      "source": "PERCENTAGE",
+      "styles": {
+        "fontFamily": "\"PT Sans\", sans-serif",
+        "fontSize": 9,
+        "fontWeight": "400",
+        "color": "rgb(255, 255, 255)",
+        "textAlign": "start"
+      }
+    },
+    "responseD": {
+      "pageIndex": 2,
+      "rect": {
+        "x": 351.76,
+        "y": 376.18,
+        "w": 11.87,
+        "h": 9
+      },
+      "source": "PERCENTAGE",
+      "styles": {
+        "fontFamily": "\"PT Sans\", sans-serif",
+        "fontSize": 9,
+        "fontWeight": "400",
+        "color": "rgb(255, 255, 255)",
+        "textAlign": "start"
+      }
+    },
+    "responseI": {
+      "pageIndex": 2,
+      "rect": {
+        "x": 351.76,
+        "y": 365.38,
+        "w": 11.87,
+        "h": 9
+      },
+      "source": "PERCENTAGE",
+      "styles": {
+        "fontFamily": "\"PT Sans\", sans-serif",
+        "fontSize": 9,
+        "fontWeight": "400",
+        "color": "rgb(255, 255, 255)",
+        "textAlign": "start"
+      }
+    },
+    "responseS": {
+      "pageIndex": 2,
+      "rect": {
+        "x": 351.76,
+        "y": 354.58,
+        "w": 11.87,
+        "h": 9
+      },
+      "source": "PERCENTAGE",
+      "styles": {
+        "fontFamily": "\"PT Sans\", sans-serif",
+        "fontSize": 9,
+        "fontWeight": "400",
+        "color": "rgb(255, 255, 255)",
+        "textAlign": "start"
+      }
+    },
+    "responseC": {
+      "pageIndex": 2,
+      "rect": {
+        "x": 351.76,
+        "y": 343.78,
+        "w": 11.87,
+        "h": 9
+      },
+      "source": "PERCENTAGE",
+      "styles": {
+        "fontFamily": "\"PT Sans\", sans-serif",
+        "fontSize": 9,
+        "fontWeight": "400",
+        "color": "rgb(255, 255, 255)",
+        "textAlign": "start"
+      }
     }
   }
 }

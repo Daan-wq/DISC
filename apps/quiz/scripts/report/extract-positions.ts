@@ -36,7 +36,14 @@ export interface FieldPosition {
     w: number  // width in pt
     h: number  // height in pt
   }
-  source: 'DBF' | 'FALLBACK' | 'SELECTOR'
+  source: 'DBF' | 'FALLBACK' | 'SELECTOR' | 'PERCENTAGE'
+  styles?: {
+    fontFamily?: string
+    fontSize?: number  // in pt
+    fontWeight?: string
+    color?: string  // rgb(r,g,b) format
+    textAlign?: string
+  }
 }
 
 export interface PositionsData {
@@ -49,6 +56,15 @@ export interface PositionsData {
     date?: FieldPosition
     style?: FieldPosition
     chart?: FieldPosition
+    // Percentage fields for the green table on page 2
+    naturalD?: FieldPosition
+    naturalI?: FieldPosition
+    naturalS?: FieldPosition
+    naturalC?: FieldPosition
+    responseD?: FieldPosition
+    responseI?: FieldPosition
+    responseS?: FieldPosition
+    responseC?: FieldPosition
   }
 }
 
@@ -205,7 +221,7 @@ async function extractPositionsForProfile(
     }
   }
 
-  // Page 2 (publication-2.html) - Extract chart position
+  // Page 2 (publication-2.html) - Extract chart position AND percentage positions
   {
     const htmlPath = path.join(profile.htmlDir, 'publication-2.html')
     const fileUrl = `file:///${htmlPath.replace(/\\/g, '/')}`
@@ -243,6 +259,104 @@ async function extractPositionsForProfile(
       console.log(`  [page 2] chart: found (${chartRect.width}x${chartRect.height}px)`)
     } else {
       console.warn(`  [page 2] chart: NOT FOUND - will need manual configuration`)
+    }
+
+    // Extract percentage positions from _idContainer028 (Natural) and _idContainer029 (Response)
+    // The HTML has 4 "0%" spans in each container for D, I, S, C
+    const percentageData = await page.evaluate(() => {
+      const result: { natural: any[]; response: any[] } = { natural: [], response: [] }
+      
+      // Find containers with 0% text - they're in _idContainer028 and _idContainer029
+      const containers = document.querySelectorAll('div[id^="_idContainer"]')
+      
+      for (const container of containers) {
+        const spans = container.querySelectorAll('span')
+        const percentSpans: { rect: DOMRect; styles: CSSStyleDeclaration }[] = []
+        
+        for (const span of spans) {
+          if (span.textContent?.trim() === '0%') {
+            const rect = span.getBoundingClientRect()
+            const styles = window.getComputedStyle(span)
+            if (rect.width > 0 && rect.height > 0) {
+              percentSpans.push({ rect, styles })
+            }
+          }
+        }
+        
+        // If we found exactly 4 percentage spans, this is likely a DISC percentage container
+        if (percentSpans.length === 4) {
+          // Sort by vertical position (top to bottom = D, I, S, C)
+          percentSpans.sort((a, b) => a.rect.top - b.rect.top)
+          
+          const extracted = percentSpans.map(({ rect, styles }) => ({
+            top: rect.top,
+            left: rect.left,
+            width: rect.width,
+            height: rect.height,
+            fontFamily: styles.fontFamily,
+            fontSize: parseFloat(styles.fontSize),
+            fontWeight: styles.fontWeight,
+            color: styles.color,
+            textAlign: styles.textAlign,
+          }))
+          
+          // First container with 4 items is Natural, second is Response
+          if (result.natural.length === 0) {
+            result.natural = extracted
+          } else if (result.response.length === 0) {
+            result.response = extracted
+          }
+        }
+      }
+      
+      return result
+    })
+
+    // Map percentage positions to fields
+    const discKeys = ['D', 'I', 'S', 'C'] as const
+    
+    if (percentageData.natural.length === 4) {
+      discKeys.forEach((key, index) => {
+        const data = percentageData.natural[index]
+        const fieldKey = `natural${key}` as keyof typeof positions.fields
+        ;(positions.fields as any)[fieldKey] = {
+          pageIndex: 2,
+          rect: pxToPdfRect(data),
+          source: 'PERCENTAGE' as const,
+          styles: {
+            fontFamily: data.fontFamily,
+            fontSize: data.fontSize * PX_TO_PT,
+            fontWeight: data.fontWeight,
+            color: data.color,
+            textAlign: data.textAlign,
+          },
+        }
+      })
+      console.log(`  [page 2] Natural percentages: found 4 positions`)
+    } else {
+      console.warn(`  [page 2] Natural percentages: NOT FOUND (found ${percentageData.natural.length})`)
+    }
+
+    if (percentageData.response.length === 4) {
+      discKeys.forEach((key, index) => {
+        const data = percentageData.response[index]
+        const fieldKey = `response${key}` as keyof typeof positions.fields
+        ;(positions.fields as any)[fieldKey] = {
+          pageIndex: 2,
+          rect: pxToPdfRect(data),
+          source: 'PERCENTAGE' as const,
+          styles: {
+            fontFamily: data.fontFamily,
+            fontSize: data.fontSize * PX_TO_PT,
+            fontWeight: data.fontWeight,
+            color: data.color,
+            textAlign: data.textAlign,
+          },
+        }
+      })
+      console.log(`  [page 2] Response percentages: found 4 positions`)
+    } else {
+      console.warn(`  [page 2] Response percentages: NOT FOUND (found ${percentageData.response.length})`)
     }
   }
 

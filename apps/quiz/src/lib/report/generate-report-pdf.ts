@@ -33,6 +33,13 @@ interface FieldPosition {
   pageIndex: number
   rect: { x: number; y: number; w: number; h: number }
   source: string
+  styles?: {
+    fontFamily?: string
+    fontSize?: number  // in pt
+    fontWeight?: string
+    color?: string  // rgb(r,g,b) format
+    textAlign?: string
+  }
 }
 
 interface PositionsData {
@@ -45,8 +52,20 @@ interface PositionsData {
     date?: FieldPosition
     style?: FieldPosition
     chart?: FieldPosition
+    // Percentage fields for the green table on page 2
+    naturalD?: FieldPosition
+    naturalI?: FieldPosition
+    naturalS?: FieldPosition
+    naturalC?: FieldPosition
+    responseD?: FieldPosition
+    responseI?: FieldPosition
+    responseS?: FieldPosition
+    responseC?: FieldPosition
   }
 }
+
+// Debug mode flag - set via environment variable
+const DEBUG_PDF = process.env.DEBUG_PDF === 'true' || process.env.DEBUG_PDF === '1'
 
 // Cache for loaded assets
 const assetCache = new Map<string, { pdf: PDFDocument; positions: PositionsData; version: string }>()
@@ -333,7 +352,7 @@ export async function generateReportPdf(options: GenerateReportOptions): Promise
     const pos = positions.fields.chart
     const page = pdf.getPage(pos.pageIndex)
 
-    // Generate chart SVG and convert to PNG
+    // Generate chart SVG and convert to PNG at 2x resolution for sharpness
     const chartSvg = generateChartSVG(discData)
     const chartPng = await svgToPng(chartSvg, { 
       width: Math.round(pos.rect.w * 2), 
@@ -372,6 +391,70 @@ export async function generateReportPdf(options: GenerateReportOptions): Promise
     console.log(`  [page ${pos.pageIndex}] Drew chart at (${drawX.toFixed(1)}, ${drawY.toFixed(1)}) ${drawWidth.toFixed(1)}x${drawHeight.toFixed(1)}pt`)
   }
 
+  // Overlay percentage values on page 2
+  const percentageFields = [
+    { key: 'naturalD', value: discData.natural.D },
+    { key: 'naturalI', value: discData.natural.I },
+    { key: 'naturalS', value: discData.natural.S },
+    { key: 'naturalC', value: discData.natural.C },
+    { key: 'responseD', value: discData.response.D },
+    { key: 'responseI', value: discData.response.I },
+    { key: 'responseS', value: discData.response.S },
+    { key: 'responseC', value: discData.response.C },
+  ] as const
+
+  for (const { key, value } of percentageFields) {
+    const pos = positions.fields[key as keyof typeof positions.fields]
+    if (pos) {
+      const page = pdf.getPage(pos.pageIndex)
+      const percentText = `${Math.round(value)}%`
+      
+      // Use styles from extraction if available, otherwise defaults
+      const fontSize = pos.styles?.fontSize || 8
+      const useFont = pos.styles?.fontWeight === 'bold' ? fontBold : font
+      
+      // Parse color from rgb(r,g,b) format if available
+      let color = textColor
+      if (pos.styles?.color) {
+        const match = pos.styles.color.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/)
+        if (match) {
+          color = rgb(
+            parseInt(match[1]) / 255,
+            parseInt(match[2]) / 255,
+            parseInt(match[3]) / 255
+          )
+        }
+      }
+      
+      // Draw percentage text centered in the rect
+      const textWidth = useFont.widthOfTextAtSize(percentText, fontSize)
+      const textX = pos.rect.x + (pos.rect.w - textWidth) / 2
+      const textY = pos.rect.y + (pos.rect.h / 2) - (fontSize * 0.3)
+      
+      page.drawText(percentText, {
+        x: textX,
+        y: textY,
+        size: fontSize,
+        font: useFont,
+        color,
+      })
+      
+      if (DEBUG_PDF) {
+        console.log(`  [page ${pos.pageIndex}] Drew ${key}: "${percentText}" at (${textX.toFixed(1)}, ${textY.toFixed(1)})`)
+      }
+    }
+  }
+  
+  if (DEBUG_PDF) {
+    console.log(`  [debug] Percentage fields overlaid: ${percentageFields.filter(f => positions.fields[f.key as keyof typeof positions.fields]).length}/8`)
+  }
+
+  // Debug mode: dump positions JSON
+  if (DEBUG_PDF) {
+    console.log(`\n[debug] Positions dump for profile ${profileCode}:`)
+    console.log(JSON.stringify(positions, null, 2))
+  }
+
   // Save PDF
   const pdfBytes = await pdf.save()
   const totalTime = Date.now() - startTime
@@ -400,4 +483,17 @@ export function hasAssetsForProfile(profileCode: string): boolean {
  */
 export function clearAssetCache(): void {
   assetCache.clear()
+}
+
+/**
+ * Debug function: exports positions data for a profile.
+ * Useful for verifying placeholder extraction.
+ */
+export async function getPositionsDebug(profileCode: string): Promise<PositionsData | null> {
+  try {
+    const { positions } = await loadAssets(profileCode)
+    return positions
+  } catch {
+    return null
+  }
 }
