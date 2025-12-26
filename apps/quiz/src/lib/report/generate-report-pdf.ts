@@ -183,19 +183,26 @@ async function embedCustomFont(
  * Works both in development and production (Vercel).
  */
 function getAssetsDir(): string {
-  // Try multiple paths for different environments
   const candidates = [
+    // Development: relative to src/lib/report/
+    path.join(__dirname, '..', '..', '..', 'assets', 'report'),
+    // Production: relative to .next/server/ or dist/
     path.join(process.cwd(), 'assets', 'report'),
     path.join(process.cwd(), 'apps', 'quiz', 'assets', 'report'),
-    path.join(__dirname, '..', '..', '..', 'assets', 'report'),
+    // Vercel serverless: /var/task/apps/quiz/assets/report
+    path.join('/var/task/apps/quiz/assets/report'),
+    path.join('/var/task/assets/report'),
   ]
 
   for (const dir of candidates) {
     if (fs.existsSync(dir)) {
+      console.log(`[report-pdf] Using assets directory: ${dir}`)
       return dir
     }
   }
 
+  console.error(`[report-pdf] Assets directory not found. Tried:`)
+  candidates.forEach(dir => console.error(`  - ${dir} (exists: ${fs.existsSync(dir)})`))
   throw new Error(`[report-pdf] Assets directory not found. Tried: ${candidates.join(', ')}`)
 }
 
