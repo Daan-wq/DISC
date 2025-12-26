@@ -36,7 +36,16 @@ export interface FieldPosition {
     w: number  // width in pt
     h: number  // height in pt
   }
-  source: 'DBF' | 'FALLBACK' | 'SELECTOR'
+  source: 'DBF' | 'FALLBACK' | 'SELECTOR' | 'PERCENTAGE'
+  styles?: {
+    fontFamily?: string
+    fontSize?: number  // in pt
+    fontWeight?: string
+    color?: string  // rgb(r,g,b) format
+    textAlign?: string
+    letterSpacing?: number  // in pt
+    backgroundColor?: string  // rgb(r,g,b) format - for cover rectangles
+  }
 }
 
 export interface PositionsData {
@@ -49,6 +58,15 @@ export interface PositionsData {
     date?: FieldPosition
     style?: FieldPosition
     chart?: FieldPosition
+    // Percentage fields for the green table on page 2
+    naturalD?: FieldPosition
+    naturalI?: FieldPosition
+    naturalS?: FieldPosition
+    naturalC?: FieldPosition
+    responseD?: FieldPosition
+    responseI?: FieldPosition
+    responseS?: FieldPosition
+    responseC?: FieldPosition
   }
 }
 
@@ -67,22 +85,16 @@ const HTML_FILES = [
 /**
  * Convert screen px rect to PDF pt with y-flip.
  */
-function pxToPdfRect(rect: { top: number; left: number; width: number; height: number }): { x: number; y: number; w: number; h: number } {
-  const xPt = rect.left * PX_TO_PT
-  const wPt = rect.width * PX_TO_PT
-  const hPt = rect.height * PX_TO_PT
-  const topPt = rect.top * PX_TO_PT
-  
-  // Y-flip: PDF origin is bottom-left
-  const yPt = PAGE_HEIGHT_PT - (topPt + hPt)
-  
-  return {
-    x: Math.round(xPt * 100) / 100,
-    y: Math.round(yPt * 100) / 100,
-    w: Math.round(wPt * 100) / 100,
-    h: Math.round(hPt * 100) / 100,
-  }
+function pxToPdfRect(rect: { top: number; left: number; width: number; height: number }) {
+  const x = rect.left * PX_TO_PT
+  const y = (PAGE_HEIGHT_PT - rect.top - rect.height) * PX_TO_PT
+  const w = rect.width * PX_TO_PT
+  const h = rect.height * PX_TO_PT
+  return { x, y, w, h }
 }
+
+// Viewport height in px (A4 @ 96dpi)
+const PAGE_HEIGHT_PX = Math.round(PAGE_HEIGHT_PT / PX_TO_PT)
 
 /**
  * Extracts positions from a single profile's HTML templates.
@@ -96,10 +108,11 @@ async function extractPositionsForProfile(
 
   const page = await browser.newPage()
   
-  // Set viewport to match A4 at 96dpi
+  // CRITICAL: Match exact viewport/CSS as used for manual PDFs
+  // Assuming PDFs are A4 @ 96dpi (794×1123px) with no scaling
   await page.setViewport({ 
-    width: Math.round(PAGE_WIDTH_PT / PX_TO_PT), 
-    height: Math.round(PAGE_HEIGHT_PT / PX_TO_PT), 
+    width: 794,
+    height: 1123, 
     deviceScaleFactor: 1 
   })
 
@@ -116,23 +129,72 @@ async function extractPositionsForProfile(
     const fileUrl = `file:///${htmlPath.replace(/\\/g, '/')}`
     await page.goto(fileUrl, { waitUntil: 'load', timeout: 30000 })
 
-    // Try DBF selector first
-    const nameRect = await page.evaluate(() => {
+    // Wait for fonts to be loaded before measuring
+    await page.evaluate(() => document.fonts.ready)
+    
+    // Force body to A4 @ 96dpi to match manual PDFs
+    await page.addStyleTag({
+      content: `
+        html, body {
+          width: 210mm !important;
+          height: 297mm !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          overflow: hidden !important;
+        }
+        body > div:first-child {
+          width: 210mm !important;
+          height: 297mm !important;
+        }
+      `
+    })
+
+    // Try DBF selector first - extract both rect AND styles
+    const nameData = await page.evaluate(() => {
       const el = document.querySelector('a[href="http://DBF_Naam"] span') as HTMLElement
       if (el) {
         const rect = el.getBoundingClientRect()
-        return { top: rect.top, left: rect.left, width: rect.width, height: rect.height }
+        const styles = window.getComputedStyle(el)
+        const parentStyles = el.parentElement ? window.getComputedStyle(el.parentElement) : null
+        
+        // CRITICAL: Use bounding box height as effective fontSize
+        // InDesign HTML has scale(0.05) transforms that getComputedStyle ignores
+        // getBoundingClientRect() gives post-transform size (correct)
+        // Use rect.height as fontSize approximation
+        const effectiveFontSize = rect.height
+        
+        return {
+          rect: { top: rect.top, left: rect.left, width: rect.width, height: rect.height },
+          styles: {
+            fontFamily: styles.fontFamily,
+            fontSize: effectiveFontSize,
+            fontWeight: styles.fontWeight,
+            color: styles.color,
+            textAlign: styles.textAlign,
+            letterSpacing: parseFloat(styles.letterSpacing) || 0,
+          },
+          backgroundColor: parentStyles?.backgroundColor || 'rgb(255, 255, 255)',
+        }
       }
       return null
     })
 
-    if (nameRect && nameRect.width > 0) {
+    if (nameData && nameData.rect.width > 0) {
       positions.fields.name = {
         pageIndex: 0,
-        rect: pxToPdfRect(nameRect),
+        rect: pxToPdfRect(nameData.rect),
         source: 'DBF',
+        styles: {
+          fontFamily: nameData.styles.fontFamily,
+          fontSize: nameData.styles.fontSize * PX_TO_PT,
+          fontWeight: nameData.styles.fontWeight,
+          color: nameData.styles.color,
+          textAlign: nameData.styles.textAlign,
+          letterSpacing: nameData.styles.letterSpacing * PX_TO_PT,
+          backgroundColor: nameData.backgroundColor,
+        },
       }
-      console.log(`  [page 0] name: found via DBF selector`)
+      console.log(`  [page 0] name: found via DBF selector (font: ${nameData.styles.fontFamily}, weight: ${nameData.styles.fontWeight}, size: ${nameData.styles.fontSize}px, color: ${nameData.styles.color})`)
     } else {
       console.warn(`  [page 0] name: NOT FOUND`)
     }
@@ -144,72 +206,181 @@ async function extractPositionsForProfile(
     const fileUrl = `file:///${htmlPath.replace(/\\/g, '/')}`
     await page.goto(fileUrl, { waitUntil: 'load', timeout: 30000 })
 
-    // Date
-    const dateRect = await page.evaluate(() => {
+    // Wait for fonts to be loaded before measuring
+    await page.evaluate(() => document.fonts.ready)
+    
+    // Force body to A4 @ 96dpi to match manual PDFs
+    await page.addStyleTag({
+      content: `
+        html, body {
+          width: 210mm !important;
+          height: 297mm !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          overflow: hidden !important;
+        }
+        body > div:first-child {
+          width: 210mm !important;
+          height: 297mm !important;
+        }
+      `
+    })
+
+    // Date - extract both rect AND styles
+    const dateData = await page.evaluate(() => {
       const el = document.querySelector('a[href="http://DBF_Datum"] span') as HTMLElement
       if (el) {
         const rect = el.getBoundingClientRect()
-        return { top: rect.top, left: rect.left, width: rect.width, height: rect.height }
+        const styles = window.getComputedStyle(el)
+        const parentStyles = el.parentElement ? window.getComputedStyle(el.parentElement) : null
+        const effectiveFontSize = rect.height
+        return {
+          rect: { top: rect.top, left: rect.left, width: rect.width, height: rect.height },
+          styles: {
+            fontFamily: styles.fontFamily,
+            fontSize: effectiveFontSize,
+            fontWeight: styles.fontWeight,
+            color: styles.color,
+            textAlign: styles.textAlign,
+            letterSpacing: parseFloat(styles.letterSpacing) || 0,
+          },
+          backgroundColor: parentStyles?.backgroundColor || 'rgb(255, 255, 255)',
+        }
       }
       return null
     })
 
-    if (dateRect && dateRect.width > 0) {
+    if (dateData && dateData.rect.width > 0) {
       positions.fields.date = {
         pageIndex: 1,
-        rect: pxToPdfRect(dateRect),
+        rect: pxToPdfRect(dateData.rect),
         source: 'DBF',
+        styles: {
+          fontFamily: dateData.styles.fontFamily,
+          fontSize: dateData.styles.fontSize * PX_TO_PT,
+          fontWeight: dateData.styles.fontWeight,
+          color: dateData.styles.color,
+          textAlign: dateData.styles.textAlign,
+          letterSpacing: dateData.styles.letterSpacing * PX_TO_PT,
+          backgroundColor: dateData.backgroundColor,
+        },
       }
-      console.log(`  [page 1] date: found via DBF selector`)
+      console.log(`  [page 1] date: found via DBF selector (font: ${dateData.styles.fontFamily}, weight: ${dateData.styles.fontWeight}, size: ${dateData.styles.fontSize}px, color: ${dateData.styles.color})`)
     }
 
-    // Style
-    const styleRect = await page.evaluate(() => {
+    // Style - extract both rect AND styles
+    const styleData = await page.evaluate(() => {
       const el = document.querySelector('a[href="http://DBF_Stijl"] span') as HTMLElement
       if (el) {
         const rect = el.getBoundingClientRect()
-        return { top: rect.top, left: rect.left, width: rect.width, height: rect.height }
+        const styles = window.getComputedStyle(el)
+        const parentStyles = el.parentElement ? window.getComputedStyle(el.parentElement) : null
+        const effectiveFontSize = rect.height
+        return {
+          rect: { top: rect.top, left: rect.left, width: rect.width, height: rect.height },
+          styles: {
+            fontFamily: styles.fontFamily,
+            fontSize: effectiveFontSize,
+            fontWeight: styles.fontWeight,
+            color: styles.color,
+            textAlign: styles.textAlign,
+            letterSpacing: parseFloat(styles.letterSpacing) || 0,
+          },
+          backgroundColor: parentStyles?.backgroundColor || 'rgb(255, 255, 255)',
+        }
       }
       return null
     })
 
-    if (styleRect && styleRect.width > 0) {
+    if (styleData && styleData.rect.width > 0) {
       positions.fields.style = {
         pageIndex: 1,
-        rect: pxToPdfRect(styleRect),
+        rect: pxToPdfRect(styleData.rect),
         source: 'DBF',
+        styles: {
+          fontFamily: styleData.styles.fontFamily,
+          fontSize: styleData.styles.fontSize * PX_TO_PT,
+          fontWeight: styleData.styles.fontWeight,
+          color: styleData.styles.color,
+          textAlign: styleData.styles.textAlign,
+          letterSpacing: styleData.styles.letterSpacing * PX_TO_PT,
+          backgroundColor: styleData.backgroundColor,
+        },
       }
-      console.log(`  [page 1] style: found via DBF selector`)
+      console.log(`  [page 1] style: found via DBF selector (font: ${styleData.styles.fontFamily}, weight: ${styleData.styles.fontWeight}, size: ${styleData.styles.fontSize}px, color: ${styleData.styles.color})`)
     }
 
-    // FirstName (same page, uses voornaam or name)
-    const firstNameRect = await page.evaluate(() => {
+    // FirstName (same page, uses voornaam or name) - extract both rect AND styles
+    const firstNameData = await page.evaluate(() => {
       let el = document.querySelector('a[href="http://DBF_Voornaam"] span') as HTMLElement
       if (!el) {
         el = document.querySelector('a[href="http://DBF_Naam"] span') as HTMLElement
       }
       if (el) {
         const rect = el.getBoundingClientRect()
-        return { top: rect.top, left: rect.left, width: rect.width, height: rect.height }
+        const styles = window.getComputedStyle(el)
+        const parentStyles = el.parentElement ? window.getComputedStyle(el.parentElement) : null
+        const effectiveFontSize = rect.height
+        return {
+          rect: { top: rect.top, left: rect.left, width: rect.width, height: rect.height },
+          styles: {
+            fontFamily: styles.fontFamily,
+            fontSize: effectiveFontSize,
+            fontWeight: styles.fontWeight,
+            color: styles.color,
+            textAlign: styles.textAlign,
+            letterSpacing: parseFloat(styles.letterSpacing) || 0,
+          },
+          backgroundColor: parentStyles?.backgroundColor || 'rgb(255, 255, 255)',
+        }
       }
       return null
     })
 
-    if (firstNameRect && firstNameRect.width > 0) {
+    if (firstNameData && firstNameData.rect.width > 0) {
       positions.fields.firstName = {
         pageIndex: 1,
-        rect: pxToPdfRect(firstNameRect),
+        rect: pxToPdfRect(firstNameData.rect),
         source: 'DBF',
+        styles: {
+          fontFamily: firstNameData.styles.fontFamily,
+          fontSize: firstNameData.styles.fontSize * PX_TO_PT,
+          fontWeight: firstNameData.styles.fontWeight,
+          color: firstNameData.styles.color,
+          textAlign: firstNameData.styles.textAlign,
+          letterSpacing: firstNameData.styles.letterSpacing * PX_TO_PT,
+          backgroundColor: firstNameData.backgroundColor,
+        },
       }
-      console.log(`  [page 1] firstName: found via DBF selector`)
+      console.log(`  [page 1] firstName: found via DBF selector (font: ${firstNameData.styles.fontFamily}, weight: ${firstNameData.styles.fontWeight}, size: ${firstNameData.styles.fontSize}px, color: ${firstNameData.styles.color})`)
     }
   }
 
-  // Page 2 (publication-2.html) - Extract chart position
+  // Page 2 (publication-2.html) - Extract chart position AND percentage positions
   {
     const htmlPath = path.join(profile.htmlDir, 'publication-2.html')
     const fileUrl = `file:///${htmlPath.replace(/\\/g, '/')}`
     await page.goto(fileUrl, { waitUntil: 'load', timeout: 30000 })
+
+    // Wait for fonts to be loaded before measuring
+    await page.evaluate(() => document.fonts.ready)
+    
+    // Force body to A4 @ 96dpi to match manual PDFs
+    await page.addStyleTag({
+      content: `
+        html, body {
+          width: 210mm !important;
+          height: 297mm !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          overflow: hidden !important;
+        }
+        body > div:first-child {
+          width: 210mm !important;
+          height: 297mm !important;
+        }
+      `
+    })
 
     // Find chart image by class pattern used in templates
     const chartRect = await page.evaluate(() => {
@@ -243,6 +414,104 @@ async function extractPositionsForProfile(
       console.log(`  [page 2] chart: found (${chartRect.width}x${chartRect.height}px)`)
     } else {
       console.warn(`  [page 2] chart: NOT FOUND - will need manual configuration`)
+    }
+
+    // Extract percentage positions from _idContainer028 (Natural) and _idContainer029 (Response)
+    // The HTML has 4 "0%" spans in each container for D, I, S, C
+    const percentageData = await page.evaluate(() => {
+      const result: { natural: any[]; response: any[] } = { natural: [], response: [] }
+      
+      // Find containers with 0% text - they're in _idContainer028 and _idContainer029
+      const containers = document.querySelectorAll('div[id^="_idContainer"]')
+      
+      for (const container of containers) {
+        const spans = container.querySelectorAll('span')
+        const percentSpans: { rect: DOMRect; styles: CSSStyleDeclaration }[] = []
+        
+        for (const span of spans) {
+          if (span.textContent?.trim() === '0%') {
+            const rect = span.getBoundingClientRect()
+            const styles = window.getComputedStyle(span)
+            if (rect.width > 0 && rect.height > 0) {
+              percentSpans.push({ rect, styles })
+            }
+          }
+        }
+        
+        // If we found exactly 4 percentage spans, this is likely a DISC percentage container
+        if (percentSpans.length === 4) {
+          // Sort by vertical position (top to bottom = D, I, S, C)
+          percentSpans.sort((a, b) => a.rect.top - b.rect.top)
+          
+          const extracted = percentSpans.map(({ rect, styles }) => ({
+            top: rect.top,
+            left: rect.left,
+            width: rect.width,
+            height: rect.height,
+            fontFamily: styles.fontFamily,
+            fontSize: rect.height,
+            fontWeight: styles.fontWeight,
+            color: styles.color,
+            textAlign: styles.textAlign,
+          }))
+          
+          // First container with 4 items is Natural, second is Response
+          if (result.natural.length === 0) {
+            result.natural = extracted
+          } else if (result.response.length === 0) {
+            result.response = extracted
+          }
+        }
+      }
+      
+      return result
+    })
+
+    // Map percentage positions to fields
+    const discKeys = ['D', 'I', 'S', 'C'] as const
+    
+    if (percentageData.natural.length === 4) {
+      discKeys.forEach((key, index) => {
+        const data = percentageData.natural[index]
+        const fieldKey = `natural${key}` as keyof typeof positions.fields
+        ;(positions.fields as any)[fieldKey] = {
+          pageIndex: 2,
+          rect: pxToPdfRect(data),
+          source: 'PERCENTAGE' as const,
+          styles: {
+            fontFamily: data.fontFamily,
+            fontSize: data.fontSize * PX_TO_PT,
+            fontWeight: data.fontWeight,
+            color: data.color,
+            textAlign: data.textAlign,
+          },
+        }
+      })
+      console.log(`  [page 2] Natural percentages: found 4 positions`)
+    } else {
+      console.warn(`  [page 2] Natural percentages: NOT FOUND (found ${percentageData.natural.length})`)
+    }
+
+    if (percentageData.response.length === 4) {
+      discKeys.forEach((key, index) => {
+        const data = percentageData.response[index]
+        const fieldKey = `response${key}` as keyof typeof positions.fields
+        ;(positions.fields as any)[fieldKey] = {
+          pageIndex: 2,
+          rect: pxToPdfRect(data),
+          source: 'PERCENTAGE' as const,
+          styles: {
+            fontFamily: data.fontFamily,
+            fontSize: data.fontSize * PX_TO_PT,
+            fontWeight: data.fontWeight,
+            color: data.color,
+            textAlign: data.textAlign,
+          },
+        }
+      })
+      console.log(`  [page 2] Response percentages: found 4 positions`)
+    } else {
+      console.warn(`  [page 2] Response percentages: NOT FOUND (found ${percentageData.response.length})`)
     }
   }
 

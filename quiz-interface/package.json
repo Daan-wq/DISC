@@ -21,7 +21,7 @@
     "seed:admins": "tsx scripts/seed-admins.ts"
   },
   "dependencies": {
-    "@resvg/resvg-js": "^2.6.2",
+    "svg2png-wasm": "^1.4.1",
     "@hookform/resolvers": "^5.2.1",
     "@radix-ui/react-label": "^2.1.7",
     "@radix-ui/react-slot": "^1.2.3",

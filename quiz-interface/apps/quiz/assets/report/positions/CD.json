@@ -1,57 +1,225 @@
 {
-  "templateVersion": "2025-12-24",
+  "templateVersion": "2025-12-26",
   "profileCode": "CD",
   "pages": 9,
+  "source": "PDF_MANUAL",
   "fields": {
     "name": {
       "pageIndex": 0,
       "rect": {
-        "x": 172.64,
-        "y": 701.91,
-        "w": 101.18,
-        "h": 22.5
+        "x": 218.62,
+        "y": 701.50,
+        "w": 158.77,
+        "h": 23.68
       },
-      "source": "DBF"
-    },
-    "date": {
-      "pageIndex": 1,
-      "rect": {
-        "x": 317.5,
-        "y": 276.97,
-        "w": 44.49,
-        "h": 9
-      },
-      "source": "DBF"
-    },
-    "style": {
-      "pageIndex": 1,
-      "rect": {
-        "x": 364.26,
-        "y": 276.97,
-        "w": 34.36,
-        "h": 9
-      },
-      "source": "DBF"
+      "source": "PDF_DIRECT",
+      "styles": {
+        "fontFamily": "\"PT Sans\", sans-serif",
+        "fontSize": 23.68,
+        "fontWeight": "400",
+        "color": "rgb(70, 149, 96)",
+        "textAlign": "center",
+        "letterSpacing": 0,
+        "backgroundColor": "rgba(0, 0, 0, 0)"
+      }
     },
     "firstName": {
       "pageIndex": 1,
+      "label": "<<Voornaam>>",
       "rect": {
-        "x": 244.45,
-        "y": 776.6,
-        "w": 112.23,
-        "h": 18
+        "x": 325.52,
+        "y": 771.12,
+        "w": 56.08,
+        "h": 15.03
       },
-      "source": "DBF"
+      "styles": {
+        "fontSize": 15.03,
+        "fontFamily": "PT Sans",
+        "fontWeight": "400",
+        "color": "rgb(70, 149, 96)",
+        "textAlign": "center"
+      }
+    },
+    "date": {
+      "pageIndex": 1,
+      "label": "<<Datum>>",
+      "rect": {
+        "x": 316.52,
+        "y": 90.12,
+        "w": 59.8,
+        "h": 11.31
+      },
+      "styles": {
+        "fontSize": 11.31,
+        "fontFamily": "PT Sans",
+        "fontWeight": "700",
+        "color": "rgb(2, 2, 3)",
+        "textAlign": "center"
+      }
+    },
+    "style": {
+      "pageIndex": 1,
+      "label": "<<Stijl>>",
+      "rect": {
+        "x": 378.9,
+        "y": 90.12,
+        "w": 36.42,
+        "h": 11.31
+      },
+      "styles": {
+        "fontSize": 11.31,
+        "fontFamily": "PT Sans",
+        "fontWeight": "700",
+        "color": "rgb(2, 2, 3)",
+        "textAlign": "center"
+      }
     },
     "chart": {
       "pageIndex": 2,
+      "label": "Chart area",
       "rect": {
-        "x": 47.83,
-        "y": 285.36,
-        "w": 208.16,
-        "h": 162.16
+        "x": 64.02,
+        "y": 99.83,
+        "w": 277.2,
+        "h": 215.99
       },
-      "source": "SELECTOR"
+      "source": "MANUAL"
+    },
+    "naturalD": {
+      "pageIndex": 2,
+      "label": "Natural D (0%)",
+      "rect": {
+        "x": 406.73,
+        "y": 219.95,
+        "w": 11.9,
+        "h": 12.37
+      },
+      "styles": {
+        "fontSize": 12.37,
+        "fontFamily": "PT Sans",
+        "fontWeight": "400",
+        "color": "rgb(255, 255, 255)",
+        "textAlign": "center"
+      }
+    },
+    "naturalI": {
+      "pageIndex": 2,
+      "label": "Natural I (0%)",
+      "rect": {
+        "x": 406.73,
+        "y": 205.55,
+        "w": 11.9,
+        "h": 12.37
+      },
+      "styles": {
+        "fontSize": 12.37,
+        "fontFamily": "PT Sans",
+        "fontWeight": "400",
+        "color": "rgb(255, 255, 255)",
+        "textAlign": "center"
+      }
+    },
+    "naturalS": {
+      "pageIndex": 2,
+      "label": "Natural S (0%)",
+      "rect": {
+        "x": 406.73,
+        "y": 191.15,
+        "w": 11.9,
+        "h": 12.37
+      },
+      "styles": {
+        "fontSize": 12.37,
+        "fontFamily": "PT Sans",
+        "fontWeight": "400",
+        "color": "rgb(255, 255, 255)",
+        "textAlign": "center"
+      }
+    },
+    "naturalC": {
+      "pageIndex": 2,
+      "label": "Natural C (0%)",
+      "rect": {
+        "x": 406.73,
+        "y": 176.75,
+        "w": 11.9,
+        "h": 12.37
+      },
+      "styles": {
+        "fontSize": 12.37,
+        "fontFamily": "PT Sans",
+        "fontWeight": "400",
+        "color": "rgb(255, 255, 255)",
+        "textAlign": "center"
+      }
+    },
+    "responseD": {
+      "pageIndex": 2,
+      "label": "Response D (0%)",
+      "rect": {
+        "x": 469,
+        "y": 219.95,
+        "w": 11.9,
+        "h": 12.37
+      },
+      "styles": {
+        "fontSize": 12.37,
+        "fontFamily": "PT Sans",
+        "fontWeight": "400",
+        "color": "rgb(255, 255, 255)",
+        "textAlign": "center"
+      }
+    },
+    "responseI": {
+      "pageIndex": 2,
+      "label": "Response I (0%)",
+      "rect": {
+        "x": 469,
+        "y": 205.55,
+        "w": 11.9,
+        "h": 12.37
+      },
+      "styles": {
+        "fontSize": 12.37,
+        "fontFamily": "PT Sans",
+        "fontWeight": "400",
+        "color": "rgb(255, 255, 255)",
+        "textAlign": "center"
+      }
+    },
+    "responseS": {
+      "pageIndex": 2,
+      "label": "Response S (0%)",
+      "rect": {
+        "x": 469,
+        "y": 191.15,
+        "w": 11.9,
+        "h": 12.37
+      },
+      "styles": {
+        "fontSize": 12.37,
+        "fontFamily": "PT Sans",
+        "fontWeight": "400",
+        "color": "rgb(255, 255, 255)",
+        "textAlign": "center"
+      }
+    },
+    "responseC": {
+      "pageIndex": 2,
+      "label": "Response C (0%)",
+      "rect": {
+        "x": 469,
+        "y": 176.75,
+        "w": 11.9,
+        "h": 12.37
+      },
+      "styles": {
+        "fontSize": 12.37,
+        "fontFamily": "PT Sans",
+        "fontWeight": "400",
+        "color": "rgb(255, 255, 255)",
+        "textAlign": "center"
+      }
     }
   }
 }

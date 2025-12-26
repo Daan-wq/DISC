@@ -1076,11 +1076,19 @@ function QuizInner() {
         console.error('Finish flow failed:', finishErr)
       }
       
-      // Redirect to results page using attempt id
+      // Store result data in localStorage for preview page
       const attemptIdForRedirect = typeof window !== 'undefined' ? localStorage.getItem('quizAttemptId') : null
-      if (attemptIdForRedirect) {
-        router.push(`/result/${attemptIdForRedirect}`)
+      if (attemptIdForRedirect && typeof window !== 'undefined') {
+        localStorage.setItem(`quiz_result_${attemptIdForRedirect}`, JSON.stringify({
+          profileCode: computeResult.profileCode,
+          percentages: computeResult.percentages,
+          candidateName: personalData?.fullName || 'Deelnemer'
+        }))
+        
+        // Redirect to preview page
+        router.push(`/rapport/preview?attempt_id=${attemptIdForRedirect}`)
       } else {
+        // Fallback to old result page if no attempt ID
         router.push(`/result/unknown`)
       }
     } catch (err) {

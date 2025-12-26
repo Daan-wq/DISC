@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "prebuild": "tsx scripts/copy-wasm.ts",
+    "build": "npm run prebuild && next build",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
@@ -16,7 +17,7 @@
     "report:discover": "tsx scripts/report/template-discovery.ts"
   },
   "dependencies": {
-    "@resvg/resvg-js": "^2.6.2",
+    "svg2png-wasm": "^1.4.1",
     "@hookform/resolvers": "^5.2.1",
     "@radix-ui/react-label": "^2.1.7",
     "@radix-ui/react-slot": "^1.2.3",

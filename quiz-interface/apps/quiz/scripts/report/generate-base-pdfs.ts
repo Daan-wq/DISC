@@ -151,39 +151,107 @@ async function generateBasePdfForProfile(
       const htmlPath = path.join(actualTempHtmlDir, htmlFile)
       const fileUrl = `file:///${htmlPath.replace(/\\/g, '/')}`
 
-      await page.setViewport({ width: 595, height: 842, deviceScaleFactor: 2 })
+      // CRITICAL: Viewport must EXACTLY match HTML body dimensions (595×842)
+      // The templates are InDesign exports with body width:595px height:842px
+      // These are A4 dimensions in points (pt), notated as px
+      // Using any other viewport causes scaling/centering with white padding
+      const viewportWidth = 595
+      const viewportHeight = 842
+      await page.setViewport({ 
+        width: viewportWidth, 
+        height: viewportHeight, 
+        deviceScaleFactor: 1 
+      })
+      
+      console.log(`  [${htmlFile}] Viewport set to ${viewportWidth}×${viewportHeight}px`)
+      
       await page.goto(fileUrl, { waitUntil: 'load', timeout: 30000 })
 
-      // Inject A4 print styles
+      // Wait for fonts to be loaded before rendering
+      await page.evaluate(() => document.fonts.ready)
+
+      // Get actual content dimensions BEFORE CSS injection
+      const contentBoxBefore = await page.evaluate(() => {
+        const body = document.body
+        return {
+          width: body.offsetWidth,
+          height: body.offsetHeight,
+          scrollWidth: body.scrollWidth,
+          scrollHeight: body.scrollHeight
+        }
+      })
+      console.log(`  [${htmlFile}] Content box BEFORE: ${contentBoxBefore.width}×${contentBoxBefore.height}px`)
+
+      // CRITICAL: Scale InDesign wrapper from 72dpi to 96dpi
+      // InDesign export uses 595×842px canvas (A4 @ 72dpi)
+      // Chrome/Puppeteer uses 96dpi → scale factor = 96/72 = 4/3 = 1.333333...
+      // Solution: Apply transform scale to root wrapper, keep original dimensions
       await page.addStyleTag({
         content: `
-          @page { size: A4; margin: 0; }
+          @page { 
+            size: A4;
+            margin: 0; 
+          }
           html, body {
+            width: 210mm !important;
+            height: 297mm !important;
             margin: 0 !important;
             padding: 0 !important;
-            width: 210mm;
-            min-height: 297mm;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
             color-adjust: exact !important;
-            background: white;
+            box-sizing: border-box !important;
+            overflow: hidden !important;
+          }
+          /* Scale InDesign wrapper (72dpi → 96dpi) */
+          body > div:first-child {
+            transform: scale(1.333333) !important;
+            transform-origin: top left !important;
+            -webkit-transform: scale(1.333333) !important;
+            -webkit-transform-origin: top left !important;
           }
         `
       })
 
+      // Get content dimensions AFTER CSS injection for validation
+      const contentBoxAfter = await page.evaluate(() => {
+        const body = document.body
+        return {
+          width: body.offsetWidth,
+          height: body.offsetHeight,
+          scrollWidth: body.scrollWidth,
+          scrollHeight: body.scrollHeight
+        }
+      })
+      console.log(`  [${htmlFile}] Content box AFTER:  ${contentBoxAfter.width}×${contentBoxAfter.height}px`)
+      
+      // Validate that content now matches A4 @ 96dpi (794×1123px)
+      const expectedWidth = 794  // 210mm @ 96dpi
+      const expectedHeight = 1123 // 297mm @ 96dpi
+      const widthDiff = Math.abs(contentBoxAfter.width - expectedWidth)
+      const heightDiff = Math.abs(contentBoxAfter.height - expectedHeight)
+      
+      if (widthDiff > 2 || heightDiff > 2) {
+        console.warn(`  [${htmlFile}] ⚠️  Content size mismatch! Expected ${expectedWidth}×${expectedHeight}px, got ${contentBoxAfter.width}×${contentBoxAfter.height}px`)
+      } else {
+        console.log(`  [${htmlFile}] ✅ Content size validated: ${contentBoxAfter.width}×${contentBoxAfter.height}px`)
+      }
+
       await page.emulateMediaType('print')
 
+      // Convert A4 pt to inches: 595.28pt / 72 = 8.268in, 841.89pt / 72 = 11.693in
       const pdfBuffer = await page.pdf({
-        format: 'A4',
+        width: '8.268in',
+        height: '11.693in',
         printBackground: true,
         displayHeaderFooter: false,
-        margin: { top: '0mm', right: '0mm', bottom: '0mm', left: '0mm' },
-        preferCSSPageSize: true,
+        margin: { top: '0in', right: '0in', bottom: '0in', left: '0in' },
+        preferCSSPageSize: false,
         pageRanges: '1'
       })
 
       pageBuffers.push(Buffer.from(pdfBuffer))
-      console.log(`  [${htmlFile}] Rendered to PDF`)
+      console.log(`  [${htmlFile}] Rendered to PDF (8.268in × 11.693in = 595.28pt × 841.89pt)`)
     }
 
     await page.close()
