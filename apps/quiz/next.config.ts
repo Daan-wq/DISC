@@ -16,7 +16,7 @@ const nextConfig: NextConfig = {
   },
   serverExternalPackages: ['@react-pdf/renderer'],
   outputFileTracingIncludes: {
-    '/api/quiz/finish': ['./assets/report/**', './assets/vendor/**'],
+    '/api/**': ['./assets/report/**', './assets/vendor/**'],
   },
   allowedDevOrigins: ['localhost', '127.0.0.1'],
   turbopack: {},
