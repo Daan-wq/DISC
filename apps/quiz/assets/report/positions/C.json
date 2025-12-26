@@ -1,20 +1,20 @@
 {
-  "templateVersion": "2025-12-25",
+  "templateVersion": "2025-12-26",
   "profileCode": "C",
   "pages": 9,
   "fields": {
     "name": {
       "pageIndex": 0,
       "rect": {
-        "x": 172.64,
-        "y": 701.91,
-        "w": 101.18,
+        "x": 172.63721466064453,
+        "y": 491.43466232299807,
+        "w": 101.1825942993164,
         "h": 22.5
       },
       "source": "DBF",
       "styles": {
         "fontFamily": "\"PT Sans\", sans-serif",
-        "fontSize": 450,
+        "fontSize": 22.5,
         "fontWeight": "400",
         "color": "rgb(70, 149, 96)",
         "textAlign": "start",
@@ -25,15 +25,15 @@
     "date": {
       "pageIndex": 1,
       "rect": {
-        "x": 317.5,
-        "y": 276.97,
-        "w": 44.49,
+        "x": 317.49586486816406,
+        "y": 66.49991271972655,
+        "w": 44.4873046875,
         "h": 9
       },
       "source": "DBF",
       "styles": {
         "fontFamily": "\"PT Sans\", sans-serif",
-        "fontSize": 180,
+        "fontSize": 9,
         "fontWeight": "700",
         "color": "rgb(2, 2, 3)",
         "textAlign": "start",
@@ -44,15 +44,15 @@
     "style": {
       "pageIndex": 1,
       "rect": {
-        "x": 364.26,
-        "y": 276.97,
-        "w": 34.36,
+        "x": 364.25953674316406,
+        "y": 66.49991271972655,
+        "w": 34.3623046875,
         "h": 9
       },
       "source": "DBF",
       "styles": {
         "fontFamily": "\"PT Sans\", sans-serif",
-        "fontSize": 180,
+        "fontSize": 9,
         "fontWeight": "700",
         "color": "rgb(2, 2, 3)",
         "textAlign": "start",
@@ -63,15 +63,15 @@
     "firstName": {
       "pageIndex": 1,
       "rect": {
-        "x": 244.45,
-        "y": 776.6,
-        "w": 112.23,
+        "x": 244.44557189941406,
+        "y": 566.1267418670654,
+        "w": 112.23046875,
         "h": 18
       },
       "source": "DBF",
       "styles": {
         "fontFamily": "\"PT Sans\", sans-serif",
-        "fontSize": 360,
+        "fontSize": 18,
         "fontWeight": "400",
         "color": "rgb(70, 149, 96)",
         "textAlign": "start",
@@ -82,25 +82,25 @@
     "chart": {
       "pageIndex": 2,
       "rect": {
-        "x": 47.83,
-        "y": 285.36,
-        "w": 208.16,
-        "h": 162.16
+        "x": 47.83424949645996,
+        "y": 74.88394592285155,
+        "w": 208.16015625,
+        "h": 162.1640625
       },
       "source": "SELECTOR"
     },
     "naturalD": {
       "pageIndex": 2,
       "rect": {
-        "x": 304.99,
-        "y": 376.17,
-        "w": 11.86,
+        "x": 304.9932403564453,
+        "y": 165.69803283691405,
+        "w": 11.8623046875,
         "h": 9
       },
       "source": "PERCENTAGE",
       "styles": {
         "fontFamily": "\"PT Sans\", sans-serif",
-        "fontSize": 180,
+        "fontSize": 9,
         "fontWeight": "400",
         "color": "rgb(255, 255, 255)",
         "textAlign": "start"
@@ -109,15 +109,15 @@
     "naturalI": {
       "pageIndex": 2,
       "rect": {
-        "x": 304.99,
-        "y": 365.37,
-        "w": 11.86,
+        "x": 304.9932403564453,
+        "y": 154.89806030273436,
+        "w": 11.8623046875,
         "h": 9
       },
       "source": "PERCENTAGE",
       "styles": {
         "fontFamily": "\"PT Sans\", sans-serif",
-        "fontSize": 180,
+        "fontSize": 9,
         "fontWeight": "400",
         "color": "rgb(255, 255, 255)",
         "textAlign": "start"
@@ -126,15 +126,15 @@
     "naturalS": {
       "pageIndex": 2,
       "rect": {
-        "x": 304.99,
-        "y": 354.57,
-        "w": 11.86,
+        "x": 304.9932403564453,
+        "y": 144.0980419921875,
+        "w": 11.8623046875,
         "h": 9
       },
       "source": "PERCENTAGE",
       "styles": {
         "fontFamily": "\"PT Sans\", sans-serif",
-        "fontSize": 180,
+        "fontSize": 9,
         "fontWeight": "400",
         "color": "rgb(255, 255, 255)",
         "textAlign": "start"
@@ -143,15 +143,15 @@
     "naturalC": {
       "pageIndex": 2,
       "rect": {
-        "x": 304.99,
-        "y": 343.77,
-        "w": 11.86,
+        "x": 304.9932403564453,
+        "y": 133.2980694580078,
+        "w": 11.8623046875,
         "h": 9
       },
       "source": "PERCENTAGE",
       "styles": {
         "fontFamily": "\"PT Sans\", sans-serif",
-        "fontSize": 180,
+        "fontSize": 9,
         "fontWeight": "400",
         "color": "rgb(255, 255, 255)",
         "textAlign": "start"
@@ -160,15 +160,15 @@
     "responseD": {
       "pageIndex": 2,
       "rect": {
-        "x": 351.76,
-        "y": 376.17,
-        "w": 11.86,
+        "x": 351.7647399902344,
+        "y": 165.69803283691405,
+        "w": 11.8623046875,
         "h": 9
       },
       "source": "PERCENTAGE",
       "styles": {
         "fontFamily": "\"PT Sans\", sans-serif",
-        "fontSize": 180,
+        "fontSize": 9,
         "fontWeight": "400",
         "color": "rgb(255, 255, 255)",
         "textAlign": "start"
@@ -177,15 +177,15 @@
     "responseI": {
       "pageIndex": 2,
       "rect": {
-        "x": 351.76,
-        "y": 365.37,
-        "w": 11.86,
+        "x": 351.7647399902344,
+        "y": 154.89806030273436,
+        "w": 11.8623046875,
         "h": 9
       },
       "source": "PERCENTAGE",
       "styles": {
         "fontFamily": "\"PT Sans\", sans-serif",
-        "fontSize": 180,
+        "fontSize": 9,
         "fontWeight": "400",
         "color": "rgb(255, 255, 255)",
         "textAlign": "start"
@@ -194,15 +194,15 @@
     "responseS": {
       "pageIndex": 2,
       "rect": {
-        "x": 351.76,
-        "y": 354.57,
-        "w": 11.86,
+        "x": 351.7647399902344,
+        "y": 144.0980419921875,
+        "w": 11.8623046875,
         "h": 9
       },
       "source": "PERCENTAGE",
       "styles": {
         "fontFamily": "\"PT Sans\", sans-serif",
-        "fontSize": 180,
+        "fontSize": 9,
         "fontWeight": "400",
         "color": "rgb(255, 255, 255)",
         "textAlign": "start"
@@ -211,15 +211,15 @@
     "responseC": {
       "pageIndex": 2,
       "rect": {
-        "x": 351.76,
-        "y": 343.77,
-        "w": 11.86,
+        "x": 351.7647399902344,
+        "y": 133.2980694580078,
+        "w": 11.8623046875,
         "h": 9
       },
       "source": "PERCENTAGE",
       "styles": {
         "fontFamily": "\"PT Sans\", sans-serif",
-        "fontSize": 180,
+        "fontSize": 9,
         "fontWeight": "400",
         "color": "rgb(255, 255, 255)",
         "textAlign": "start"

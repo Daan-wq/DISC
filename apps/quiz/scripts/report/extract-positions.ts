@@ -85,22 +85,16 @@ const HTML_FILES = [
 /**
  * Convert screen px rect to PDF pt with y-flip.
  */
-function pxToPdfRect(rect: { top: number; left: number; width: number; height: number }): { x: number; y: number; w: number; h: number } {
-  const xPt = rect.left * PX_TO_PT
-  const wPt = rect.width * PX_TO_PT
-  const hPt = rect.height * PX_TO_PT
-  const topPt = rect.top * PX_TO_PT
-  
-  // Y-flip: PDF origin is bottom-left
-  const yPt = PAGE_HEIGHT_PT - (topPt + hPt)
-  
-  return {
-    x: Math.round(xPt * 100) / 100,
-    y: Math.round(yPt * 100) / 100,
-    w: Math.round(wPt * 100) / 100,
-    h: Math.round(hPt * 100) / 100,
-  }
+function pxToPdfRect(rect: { top: number; left: number; width: number; height: number }) {
+  const x = rect.left * PX_TO_PT
+  const y = (PAGE_HEIGHT_PT - rect.top - rect.height) * PX_TO_PT
+  const w = rect.width * PX_TO_PT
+  const h = rect.height * PX_TO_PT
+  return { x, y, w, h }
 }
+
+// Viewport height in px (A4 @ 96dpi)
+const PAGE_HEIGHT_PX = Math.round(PAGE_HEIGHT_PT / PX_TO_PT)
 
 /**
  * Extracts positions from a single profile's HTML templates.
@@ -114,10 +108,11 @@ async function extractPositionsForProfile(
 
   const page = await browser.newPage()
   
-  // Set viewport to match A4 at 96dpi
+  // CRITICAL: Match exact viewport/CSS as used for manual PDFs
+  // Assuming PDFs are A4 @ 96dpi (794×1123px) with no scaling
   await page.setViewport({ 
-    width: Math.round(PAGE_WIDTH_PT / PX_TO_PT), 
-    height: Math.round(PAGE_HEIGHT_PT / PX_TO_PT), 
+    width: 794,
+    height: 1123, 
     deviceScaleFactor: 1 
   })
 
@@ -136,6 +131,23 @@ async function extractPositionsForProfile(
 
     // Wait for fonts to be loaded before measuring
     await page.evaluate(() => document.fonts.ready)
+    
+    // Force body to A4 @ 96dpi to match manual PDFs
+    await page.addStyleTag({
+      content: `
+        html, body {
+          width: 210mm !important;
+          height: 297mm !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          overflow: hidden !important;
+        }
+        body > div:first-child {
+          width: 210mm !important;
+          height: 297mm !important;
+        }
+      `
+    })
 
     // Try DBF selector first - extract both rect AND styles
     const nameData = await page.evaluate(() => {
@@ -144,11 +156,18 @@ async function extractPositionsForProfile(
         const rect = el.getBoundingClientRect()
         const styles = window.getComputedStyle(el)
         const parentStyles = el.parentElement ? window.getComputedStyle(el.parentElement) : null
+        
+        // CRITICAL: Use bounding box height as effective fontSize
+        // InDesign HTML has scale(0.05) transforms that getComputedStyle ignores
+        // getBoundingClientRect() gives post-transform size (correct)
+        // Use rect.height as fontSize approximation
+        const effectiveFontSize = rect.height
+        
         return {
           rect: { top: rect.top, left: rect.left, width: rect.width, height: rect.height },
           styles: {
             fontFamily: styles.fontFamily,
-            fontSize: parseFloat(styles.fontSize),
+            fontSize: effectiveFontSize,
             fontWeight: styles.fontWeight,
             color: styles.color,
             textAlign: styles.textAlign,
@@ -189,6 +208,23 @@ async function extractPositionsForProfile(
 
     // Wait for fonts to be loaded before measuring
     await page.evaluate(() => document.fonts.ready)
+    
+    // Force body to A4 @ 96dpi to match manual PDFs
+    await page.addStyleTag({
+      content: `
+        html, body {
+          width: 210mm !important;
+          height: 297mm !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          overflow: hidden !important;
+        }
+        body > div:first-child {
+          width: 210mm !important;
+          height: 297mm !important;
+        }
+      `
+    })
 
     // Date - extract both rect AND styles
     const dateData = await page.evaluate(() => {
@@ -197,11 +233,12 @@ async function extractPositionsForProfile(
         const rect = el.getBoundingClientRect()
         const styles = window.getComputedStyle(el)
         const parentStyles = el.parentElement ? window.getComputedStyle(el.parentElement) : null
+        const effectiveFontSize = rect.height
         return {
           rect: { top: rect.top, left: rect.left, width: rect.width, height: rect.height },
           styles: {
             fontFamily: styles.fontFamily,
-            fontSize: parseFloat(styles.fontSize),
+            fontSize: effectiveFontSize,
             fontWeight: styles.fontWeight,
             color: styles.color,
             textAlign: styles.textAlign,
@@ -238,11 +275,12 @@ async function extractPositionsForProfile(
         const rect = el.getBoundingClientRect()
         const styles = window.getComputedStyle(el)
         const parentStyles = el.parentElement ? window.getComputedStyle(el.parentElement) : null
+        const effectiveFontSize = rect.height
         return {
           rect: { top: rect.top, left: rect.left, width: rect.width, height: rect.height },
           styles: {
             fontFamily: styles.fontFamily,
-            fontSize: parseFloat(styles.fontSize),
+            fontSize: effectiveFontSize,
             fontWeight: styles.fontWeight,
             color: styles.color,
             textAlign: styles.textAlign,
@@ -282,11 +320,12 @@ async function extractPositionsForProfile(
         const rect = el.getBoundingClientRect()
         const styles = window.getComputedStyle(el)
         const parentStyles = el.parentElement ? window.getComputedStyle(el.parentElement) : null
+        const effectiveFontSize = rect.height
         return {
           rect: { top: rect.top, left: rect.left, width: rect.width, height: rect.height },
           styles: {
             fontFamily: styles.fontFamily,
-            fontSize: parseFloat(styles.fontSize),
+            fontSize: effectiveFontSize,
             fontWeight: styles.fontWeight,
             color: styles.color,
             textAlign: styles.textAlign,
@@ -325,6 +364,23 @@ async function extractPositionsForProfile(
 
     // Wait for fonts to be loaded before measuring
     await page.evaluate(() => document.fonts.ready)
+    
+    // Force body to A4 @ 96dpi to match manual PDFs
+    await page.addStyleTag({
+      content: `
+        html, body {
+          width: 210mm !important;
+          height: 297mm !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          overflow: hidden !important;
+        }
+        body > div:first-child {
+          width: 210mm !important;
+          height: 297mm !important;
+        }
+      `
+    })
 
     // Find chart image by class pattern used in templates
     const chartRect = await page.evaluate(() => {
@@ -393,7 +449,7 @@ async function extractPositionsForProfile(
             width: rect.width,
             height: rect.height,
             fontFamily: styles.fontFamily,
-            fontSize: parseFloat(styles.fontSize),
+            fontSize: rect.height,
             fontWeight: styles.fontWeight,
             color: styles.color,
             textAlign: styles.textAlign,
