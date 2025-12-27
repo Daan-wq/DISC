@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -44,7 +44,7 @@ const fetchReport = async (id: string | null): Promise<DiscReport> => {
   };
 };
 
-export default function RapportPage() {
+function RapportPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   
@@ -182,5 +182,13 @@ export default function RapportPage() {
         Rapport gegenereerd op {new Date().toLocaleDateString('nl-NL')} • Vertrouwelijk
       </div>
     </div>
+  );
+}
+
+export default function RapportPage() {
+  return (
+    <Suspense fallback={<LoadingState />}>
+      <RapportPageContent />
+    </Suspense>
   );
 }
