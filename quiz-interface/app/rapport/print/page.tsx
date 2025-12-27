@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { HeroSection } from '../components/HeroSection';
 import { SummaryCard } from '../components/SummaryCard';
@@ -11,7 +11,7 @@ import { ErrorState } from '../components/ErrorState';
 import { DiscReport } from '../types';
 import { getInsightsForProfile } from '../components/data';
 
-export default function PrintPage() {
+function PrintPageContent() {
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
   
@@ -174,5 +174,13 @@ export default function PrintPage() {
         Rapport gegenereerd op {new Date().toLocaleDateString('nl-NL')} • Vertrouwelijk • The Lean Communication
       </div>
     </div>
+  );
+}
+
+export default function PrintPage() {
+  return (
+    <Suspense fallback={<LoadingState />}>
+      <PrintPageContent />
+    </Suspense>
   );
 }
