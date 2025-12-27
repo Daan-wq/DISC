@@ -70,16 +70,17 @@ function LoginInner() {
 
     try {
       // Request server to verify allowlist and send magic link atomically
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+      // Don't build redirectTo client-side - let the server determine the correct base URL
       const redirectParam = search.get('redirect') || '/quiz'
-      const redirectTo = `${baseUrl}/auth/callback?redirect=${encodeURIComponent(redirectParam)}`
 
       const res = await fetch('/api/auth/request-magic-link', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           email: normalized, 
-          redirectTo,
+          // Pass only the redirect path, not the full URL
+          // Server will build the full redirectTo URL with correct base URL
+          redirectPath: redirectParam,
           first_name: firstName.trim(),
           last_name: lastName.trim()
         })

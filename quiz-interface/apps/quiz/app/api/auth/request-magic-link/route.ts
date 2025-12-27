@@ -7,13 +7,9 @@ export const dynamic = 'force-dynamic'
 
 const BodySchema = z.object({
   email: z.string().email(),
-  redirectTo: z.string().url().refine(
-    (url) => {
-      const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
-      return url.startsWith(baseUrl)
-    },
-    'Redirect URL must be on same domain'
-  ).optional(),
+  // Accept either full redirectTo URL (legacy) or just redirectPath
+  redirectTo: z.string().optional(),
+  redirectPath: z.string().optional(),
   first_name: z.string().trim().min(1).optional(),
   last_name: z.string().trim().min(1).optional()
 })
@@ -70,9 +66,20 @@ export async function POST(req: NextRequest) {
     console.log('[magic-link] Using baseUrl:', baseUrl, '(production:', isProduction, ')')
 
     const email = parsed.data.email.trim().toLowerCase()
-    let redirectTo = parsed.data.redirectTo
     const firstName = toProperCase((parsed.data.first_name || '').trim())
     const lastName = toProperCase((parsed.data.last_name || '').trim())
+    
+    // Build redirectTo from redirectPath if provided, otherwise use legacy redirectTo
+    let redirectTo = parsed.data.redirectTo
+    if (parsed.data.redirectPath) {
+      // Client sent only the path - build full URL with server-determined baseUrl
+      const finalTarget = new URL(parsed.data.redirectPath, baseUrl)
+      if (firstName) finalTarget.searchParams.set('fn', firstName)
+      if (lastName) finalTarget.searchParams.set('ln', lastName)
+      const callbackUrl = new URL('/auth/callback', baseUrl)
+      callbackUrl.searchParams.set('redirect', finalTarget.pathname + finalTarget.search)
+      redirectTo = callbackUrl.toString()
+    }
 
     // Check allowlist: prefer email_normalized, fallback to email
     const { data, error } = await supabaseAdmin
@@ -114,8 +121,8 @@ export async function POST(req: NextRequest) {
     }
 
     // Allowed → send magic link using anon client
-    // baseUrl is already determined above from request origin or env vars
-    // If redirectTo not provided, build default and carry names
+    // redirectTo should already be built above from redirectPath or legacy redirectTo
+    // If still not set, build default
     if (!redirectTo) {
       const finalTarget = new URL('/quiz', baseUrl)
       if (firstName) finalTarget.searchParams.set('fn', firstName)
@@ -123,20 +130,9 @@ export async function POST(req: NextRequest) {
       const callbackUrl = new URL('/auth/callback', baseUrl)
       callbackUrl.searchParams.set('redirect', finalTarget.pathname + finalTarget.search)
       redirectTo = callbackUrl.toString()
-    } else {
-      // redirectTo provided, try to inject fn/ln into its inner 'redirect' param if present
-      try {
-        const u = new URL(redirectTo)
-        const inner = u.searchParams.get('redirect') || '/quiz'
-        const innerUrl = new URL(inner, baseUrl)
-        if (firstName) innerUrl.searchParams.set('fn', firstName)
-        if (lastName) innerUrl.searchParams.set('ln', lastName)
-        u.searchParams.set('redirect', innerUrl.pathname + innerUrl.search)
-        redirectTo = u.toString()
-      } catch {
-        // Fallback: leave as provided
-      }
     }
+    
+    console.log('[magic-link] Final redirectTo:', redirectTo)
 
     const { error: sendErr } = await supabase.auth.signInWithOtp({
       email,
