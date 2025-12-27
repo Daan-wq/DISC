@@ -45,26 +45,29 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ sent: false, reason: 'INVALID_PAYLOAD' }, { status: 200 })
     }
 
-    // Determine base URL from request origin (most reliable on Vercel)
-    // Fall back to env vars, but NEVER to localhost in production
-    const requestOrigin = req.headers.get('origin') || req.headers.get('referer')?.split('/').slice(0, 3).join('/')
-    const envBaseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL
+    // Determine base URL for magic link redirect
+    // In development: always use localhost for easy testing
+    // In production: use env var or request origin
     const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production'
+    const isVercel = process.env.VERCEL === '1'
     
-    // In production, prefer request origin, then env. Never fall back to localhost.
-    // In development, allow localhost fallback.
     let baseUrl: string
-    if (isProduction) {
-      baseUrl = requestOrigin || envBaseUrl || ''
+    if (!isProduction && !isVercel) {
+      // Local development: always use localhost
+      baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+    } else {
+      // Production/Vercel: use env var or request origin
+      const requestOrigin = req.headers.get('origin') || req.headers.get('referer')?.split('/').slice(0, 3).join('/')
+      const envBaseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL
+      baseUrl = envBaseUrl || requestOrigin || ''
+      
       if (!baseUrl || baseUrl.includes('localhost')) {
-        console.error('[magic-link] No valid production base URL. Origin:', requestOrigin, 'Env:', envBaseUrl)
+        console.error('[magic-link] No valid production base URL. Env:', envBaseUrl, 'Origin:', requestOrigin)
         return NextResponse.json({ sent: false, reason: 'SERVER_NOT_CONFIGURED' }, { status: 200 })
       }
-    } else {
-      baseUrl = requestOrigin || envBaseUrl || 'http://localhost:3000'
     }
     
-    console.log('[magic-link] Using baseUrl:', baseUrl, 'Origin:', requestOrigin, 'Env:', envBaseUrl)
+    console.log('[magic-link] Using baseUrl:', baseUrl, '(production:', isProduction, ')')
 
     const email = parsed.data.email.trim().toLowerCase()
     let redirectTo = parsed.data.redirectTo
