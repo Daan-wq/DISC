@@ -59,7 +59,13 @@ export async function POST(req: NextRequest) {
       // IMPORTANT: Always use QUIZ_SITE_URL env var for quiz invitations
       // Never use request origin (that's the admin URL, not quiz URL)
       const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production'
-      const quizSiteUrl = process.env.QUIZ_SITE_URL || (isProduction ? 'https://disc-quiz-interface.vercel.app' : 'http://localhost:3000')
+      const isVercel = process.env.VERCEL === '1'
+      
+      // In local development: always use localhost
+      // In production/Vercel: use env var or fallback to Vercel URL
+      const quizSiteUrl = (!isProduction && !isVercel) 
+        ? (process.env.QUIZ_SITE_URL || 'http://localhost:3000')
+        : (process.env.QUIZ_SITE_URL || 'https://disc-quiz-interface.vercel.app')
       
       await sendAllowlistEmail({
         to: data.email,
