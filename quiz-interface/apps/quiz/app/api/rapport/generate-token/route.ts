@@ -1,1 +1,1 @@
-export * from '../../../../../../../app/api/rapport/generate-token/route'
+export * from '../../../../../../app/api/rapport/generate-token/route'
