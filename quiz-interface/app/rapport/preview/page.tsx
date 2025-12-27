@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Download, Loader2, CheckCircle } from 'lucide-react';
@@ -14,7 +14,7 @@ import { ErrorState } from '../components/ErrorState';
 import { DiscReport } from '../types';
 import { getInsightsForProfile } from '../components/data';
 
-export default function PreviewPage() {
+function PreviewPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const attemptId = searchParams.get('attempt_id');
@@ -180,5 +180,13 @@ export default function PreviewPage() {
         </motion.div>
       </main>
     </div>
+  );
+}
+
+export default function PreviewPage() {
+  return (
+    <Suspense fallback={<LoadingState />}>
+      <PreviewPageContent />
+    </Suspense>
   );
 }
