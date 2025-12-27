@@ -1,7 +1,0 @@
-{
-  "buildCommand": "cd quiz-interface && pnpm --filter=quiz run build",
-  "outputDirectory": "quiz-interface/apps/quiz/.next",
-  "installCommand": "cd quiz-interface && pnpm install",
-  "framework": null,
-  "ignoreCommand": "git diff --quiet HEAD^ HEAD ./quiz-interface/apps/quiz ./quiz-interface/app ./quiz-interface/src"
-}
