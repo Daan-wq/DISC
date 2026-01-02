@@ -1,1 +1,1 @@
-export * from '../../../../../../../app/api/admin/allowlist/revoke/route'
+export * from '../../../../../../quiz/app/api/admin/allowlist/revoke/route'
