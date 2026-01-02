@@ -7,18 +7,19 @@ import { supabase } from "@/lib/supabase"
 function AuthCallbackInner() {
   const router = useRouter()
   const params = useSearchParams()
-  const [error, setError] = useState<boolean>(false)
+  const [error] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false
+
+    const hashParams = new URLSearchParams(window.location.hash.substring(1))
+    const errorCode = hashParams.get('error_code')
+    return errorCode === 'otp_expired' || errorCode === 'access_denied'
+  })
 
   useEffect(() => {
     let redirected = false
 
-    // Check for Supabase errors in URL hash (e.g., #error=access_denied&error_code=otp_expired)
-    const hashParams = new URLSearchParams(window.location.hash.substring(1))
-    const errorCode = hashParams.get('error_code')
-    
-    if (errorCode === 'otp_expired' || errorCode === 'access_denied') {
-      console.log('Auth error:', errorCode)
-      setError(true)
+    if (error) {
+      console.log('Auth callback: error in URL hash, skipping redirect flow')
       return
     }
 
@@ -65,7 +66,7 @@ function AuthCallbackInner() {
     return () => {
       authListener?.subscription.unsubscribe()
     }
-  }, [])
+  }, [error, params, router])
 
   const handleBackToLogin = () => {
     router.push("/login")

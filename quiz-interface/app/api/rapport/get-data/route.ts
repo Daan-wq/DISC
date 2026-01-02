@@ -15,6 +15,8 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Server not configured' }, { status: 500 });
     }
 
+    console.log('[rapport/get-data] supabaseUrl:', process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL);
+
     const { searchParams } = new URL(req.url);
     const token = searchParams.get('token');
 
@@ -28,6 +30,26 @@ export async function GET(req: NextRequest) {
       .select('id, attempt_id, user_id, expires_at, used')
       .eq('token', token)
       .maybeSingle();
+
+    if (tokenErr) {
+      const errAny = tokenErr as any;
+      console.error('[rapport/get-data] token lookup failed:', {
+        code: errAny?.code,
+        message: errAny?.message,
+        hint: errAny?.hint,
+        details: errAny?.details,
+      });
+
+      if (errAny?.code === 'PGRST205') {
+        return NextResponse.json(
+          {
+            error: "Server misconfigured: missing 'public.print_tokens' table (migration not applied or schema cache stale)",
+            code: errAny.code,
+          },
+          { status: 500 }
+        );
+      }
+    }
 
     if (tokenErr || !tokenData) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });

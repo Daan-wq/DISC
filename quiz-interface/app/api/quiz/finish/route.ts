@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { supabase, supabaseAdmin } from '@/lib/supabase'
-import { generateReportPdf } from '@/lib/report'
-import { sendRapportEmail, generateEmailHtml, generateEmailText } from '@/server/email/mailer'
-import { buildPdfStoragePath, buildPdfFilename, findUniqueStoragePath } from '@/lib/utils/slugify'
 import { QUIZ_ID } from '@/lib/constants'
 import { randomUUID } from 'crypto'
 
@@ -14,16 +11,9 @@ export const dynamic = 'force-dynamic'
 // PDF generation is now much faster without Chromium (typically <5 seconds)
 export const maxDuration = 30
 
-// Processing lock TTL in minutes (stale locks older than this can be reclaimed)
-const PROCESSING_TTL_MINUTES = 5
-
 // Timing helper
 interface Timings {
   t_start: number
-  t_claim?: number
-  t_render?: number
-  t_upload?: number
-  t_email?: number
   t_total?: number
 }
 
@@ -52,20 +42,6 @@ const BodySchema = z.object({
 export async function POST(req: NextRequest) {
   const timings: Timings = { t_start: Date.now() }
   const requestId = req.headers.get('x-request-id') || randomUUID().slice(0, 8)
-  
-  // Helper to reset processing state on error
-  const resetProcessingState = async (attemptId: string, error: string, errorCode: string) => {
-    try {
-      await supabaseAdmin?.from('quiz_attempts').update({
-        pdf_status: 'failed',
-        pdf_error: `${errorCode}: ${error.slice(0, 500)}`,
-        processing_token: null,
-      }).eq('id', attemptId)
-      console.log(`[finish][${requestId}] Reset processing state to failed`)
-    } catch (resetErr) {
-      console.error(`[finish][${requestId}] Failed to reset processing state:`, resetErr)
-    }
-  }
   
   let attempt_id: string | undefined
   
@@ -131,478 +107,87 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    // IDEMPOTENCY: If PDF already exists (pdf_status = 'done'), handle email if needed
-    if (attempt.pdf_status === 'done' && attempt.pdf_path) {
-      console.log('[finish] PDF already exists, checking email status')
-      
-      // Check if email was already sent for this attempt
-      const { data: attemptWithEmail } = await supabaseAdmin
-        .from('quiz_attempts')
-        .select('email_status, email_sent_at')
-        .eq('id', attempt_id)
-        .single()
-      
-      const emailAlreadySent = attemptWithEmail?.email_status === 'sent' || attemptWithEmail?.email_sent_at
-      
-      if (emailAlreadySent) {
-        console.log('[finish] PDF exists AND email already sent - returning cached result')
-        return NextResponse.json({
-          ok: true,
-          storage_path: attempt.pdf_path,
-          pdf_filename: attempt.pdf_filename || 'DISC-rapport.pdf',
-          cached: true,
-          email_status: 'already_sent'
-        })
-      }
-      
-      // PDF exists but email NOT sent - need to send email now
-      console.log('[finish] PDF exists but email NOT sent - sending email now')
-      
-      // Download PDF from storage to attach to email
-      const bucket = supabaseAdmin.storage.from('quiz-docs')
-      const { data: pdfData, error: downloadErr } = await bucket.download(attempt.pdf_path)
-      
-      if (downloadErr || !pdfData) {
-        console.error('[finish] Failed to download cached PDF for email:', downloadErr)
-        return NextResponse.json({
-          ok: true,
-          storage_path: attempt.pdf_path,
-          pdf_filename: attempt.pdf_filename || 'DISC-rapport.pdf',
-          cached: true,
-          email_status: 'failed',
-          email_error: 'Could not retrieve PDF for email'
-        })
-      }
-      
-      // Convert Blob to Buffer
-      const pdfBuffer = Buffer.from(await pdfData.arrayBuffer())
-      const pdfFilename = attempt.pdf_filename || 'DISC-rapport.pdf'
-      const displayName = user.email?.split('@')[0] || 'user'
-      
-      // Send email for cached PDF
-      const toEmail = user.email || ''
-      let emailSent = false
-      let emailError: string | null = null
-      
-      try {
-        const year = new Date().getFullYear()
-        const company = process.env.COMPANY_NAME || 'The Lean Communication'
-        
-        // Check allowlist delivery toggles
-        const emailNormalized = toEmail.toLowerCase().trim()
-        const { data: allow } = await supabaseAdmin
-          .from('allowlist')
-          .select('trainer_email, send_pdf_user, send_pdf_trainer, status')
-          .eq('email_normalized', emailNormalized)
-          .maybeSingle()
-        
-        const sendUser = allow?.send_pdf_user !== false
-        const sendTrainer = !!(allow?.send_pdf_trainer && allow?.trainer_email)
-        const trainerEmail = (allow?.trainer_email || '').trim()
-        
-        const recipients: string[] = []
-        if (sendUser) recipients.push(toEmail)
-        if (sendTrainer) recipients.push(trainerEmail)
-        if (recipients.length === 0) recipients.push(toEmail)
-        
-        console.log('[finish] Sending cached PDF email to:', recipients)
-        
-        for (const rcpt of recipients) {
-          await sendRapportEmail({
-            to: rcpt,
-            subject: 'Uw DISC rapport is gereed',
-            html: generateEmailHtml({ name: displayName, year, company }),
-            text: generateEmailText({ name: displayName, year, company }),
-            attachments: [{ filename: pdfFilename, content: pdfBuffer }]
-          })
-          try {
-            await supabaseAdmin.from('notifications').insert({
-              severity: 'success',
-              source: 'mailer',
-              message: `PDF emailed to ${rcpt} (cached)`,
-              meta: { attempt_id, quiz_id, user_id: user.id }
-            })
-          } catch {}
+    // Production flow (HTML report): do not generate PDFs server-side.
+    // Persist computed result payload and mark the attempt finished.
+    // NOTE: The legacy PDF+email pipeline remains below but is no longer executed.
+
+    const nowIso = new Date().toISOString()
+    const finishedAtIso = attempt.finished_at || nowIso
+    const finalPD = providedPD || null
+
+    const profileCode = (finalPD?.results?.profile_code as string | undefined) || null
+    const percentages = finalPD?.results
+      ? {
+          natural: {
+            D: Math.round(finalPD.results.natural_d || 0),
+            I: Math.round(finalPD.results.natural_i || 0),
+            S: Math.round(finalPD.results.natural_s || 0),
+            C: Math.round(finalPD.results.natural_c || 0),
+          },
+          response: {
+            D: Math.round(finalPD.results.response_d || 0),
+            I: Math.round(finalPD.results.response_i || 0),
+            S: Math.round(finalPD.results.response_s || 0),
+            C: Math.round(finalPD.results.response_c || 0),
+          },
         }
-        
-        emailSent = true
-        console.log('[finish] Cached PDF email sent successfully')
-        
-        // Update allowlist status
+      : null
+
+    const nextUpdate: Record<string, unknown> = {
+      finished_at: finishedAtIso,
+      pdf_status: null,
+      processing_started_at: null,
+      processing_token: null,
+      pdf_error: null,
+      pdf_path: null,
+      pdf_filename: null,
+      pdf_created_at: null,
+      pdf_expires_at: null,
+      email_status: null,
+      email_error: null,
+      email_sent_at: null,
+    }
+
+    if (profileCode && percentages) {
+      nextUpdate.result_payload = {
+        profileCode,
+        percentages,
+      }
+    }
+
+    const { error: finishErr } = await supabaseAdmin
+      .from('quiz_attempts')
+      .update(nextUpdate)
+      .eq('id', attempt_id)
+      .eq('user_id', user.id)
+
+    if (finishErr) {
+      console.error(`[finish][${requestId}] Failed to mark attempt finished:`, finishErr)
+      return NextResponse.json({ error: 'FINISH_FAILED', details: (finishErr as any)?.message }, { status: 500 })
+    }
+
+    const emailNormalized = (user.email || '').toLowerCase().trim()
+    if (emailNormalized) {
+      try {
         await supabaseAdmin
           .from('allowlist')
           .update({ status: 'used' })
           .eq('email_normalized', emailNormalized)
           .in('status', ['pending', 'claimed'])
-      } catch (mailErr) {
-        emailSent = false
-        emailError = (mailErr as any)?.message || String(mailErr)
-        console.error('[finish] Cached PDF email send failed:', mailErr)
-        try {
-          await supabaseAdmin.from('notifications').insert({
-            severity: 'error',
-            source: 'mailer',
-            message: 'Failed to email cached PDF to user',
-            meta: { attempt_id, quiz_id, user_id: user.id, error: emailError }
-          })
-        } catch {}
-      }
-      
-      // Update attempt with email status
-      try {
-        await supabaseAdmin
-          .from('quiz_attempts')
-          .update({
-            email_status: emailSent ? 'sent' : 'failed',
-            email_error: emailError,
-            email_sent_at: emailSent ? new Date().toISOString() : null
-          })
-          .eq('id', attempt_id)
-      } catch (updateErr) {
-        console.error('[finish] Failed to update email status:', updateErr)
-      }
-      
-      return NextResponse.json({
-        ok: true,
-        storage_path: attempt.pdf_path,
-        pdf_filename: pdfFilename,
-        cached: true,
-        email_status: emailSent ? 'sent' : 'failed',
-        email_error: emailError
-      })
-    }
-
-    // CLAIM PROCESSING LOCK with TTL-based stale lock recovery
-    // Claim conditions:
-    // 1. pdf_status is NULL or 'pending' or 'failed' (never started, or failed before)
-    // 2. OR pdf_status is 'processing' but started > TTL minutes ago (stale lock)
-    const processingToken = randomUUID()
-    const now = new Date()
-    const staleCutoff = new Date(now.getTime() - PROCESSING_TTL_MINUTES * 60 * 1000).toISOString()
-    
-    console.log('[finish] Attempting to claim processing lock, token:', processingToken.slice(0, 8))
-    
-    // Use raw SQL for complex OR condition with TTL check
-    const { data: claimResult, error: claimError } = await supabaseAdmin.rpc('claim_pdf_processing', {
-      p_attempt_id: attempt_id,
-      p_processing_token: processingToken,
-      p_stale_cutoff: staleCutoff
-    }).maybeSingle()
-    
-    // Fallback if RPC doesn't exist: try simple update
-    let claimed = (claimResult as { claimed?: boolean })?.claimed === true
-    if (claimError?.message?.includes('function') || claimError?.code === '42883') {
-      console.log('[finish] RPC not found, using fallback claim logic')
-      // Fallback: simple claim for pending/failed/null status
-      const { data: fallbackClaim } = await supabaseAdmin
-        .from('quiz_attempts')
-        .update({
-          pdf_status: 'processing',
-          processing_started_at: now.toISOString(),
-          processing_token: processingToken
-        })
-        .eq('id', attempt_id)
-        .or(`pdf_status.is.null,pdf_status.eq.pending,pdf_status.eq.failed,and(pdf_status.eq.processing,processing_started_at.lt.${staleCutoff})`)
-        .select('id')
-        .maybeSingle()
-      claimed = !!fallbackClaim
-    }
-
-    if (!claimed) {
-      // Could not claim - either done or another request is processing
-      console.log('[finish] Could not claim lock, checking current state')
-      
-      // Re-fetch to see current state
-      const { data: current } = await supabaseAdmin
-        .from('quiz_attempts')
-        .select('pdf_path, pdf_filename, pdf_status, processing_started_at')
-        .eq('id', attempt_id)
-        .single()
-      
-      if (current?.pdf_status === 'done' && current?.pdf_path) {
-        // Already done by another request
-        return NextResponse.json({
-          ok: true,
-          storage_path: current.pdf_path,
-          pdf_filename: current.pdf_filename,
-          cached: true
-        })
-      }
-      
-      if (current?.pdf_status === 'processing') {
-        // Another request is actively processing
-        const startedAt = current.processing_started_at ? new Date(current.processing_started_at) : now
-        const elapsedSec = Math.round((now.getTime() - startedAt.getTime()) / 1000)
-        console.log('[finish] Another request is processing, elapsed:', elapsedSec, 's')
-        
-        return NextResponse.json(
-          { error: 'Processing in progress', retry_after: Math.max(30, PROCESSING_TTL_MINUTES * 60 - elapsedSec) },
-          { status: 202, headers: { 'Retry-After': '30' } }
-        )
-      }
-      
-      // Unknown state - return error
-      return NextResponse.json({ error: 'Could not start processing' }, { status: 500 })
-    }
-    
-    timings.t_claim = Date.now()
-    console.log(`[finish][${requestId}] Successfully claimed processing lock in ${timings.t_claim - timings.t_start}ms`)
-
-    // Build placeholder data from provided data only (results table removed)
-    let profileCode = 'D'
-    const finalPD = providedPD || null
-
-    profileCode = (finalPD?.results?.profile_code as string) || 'D'
-    
-    // Detecteer afwijkende patronen in natuurlijke scores
-    let hasAlert = false
-    if (finalPD?.results) {
-      const naturalScores = [
-        finalPD.results.natural_d,
-        finalPD.results.natural_i,
-        finalPD.results.natural_s,
-        finalPD.results.natural_c
-      ]
-      // Alert als ALLE scores onder de 50% zijn (te laag)
-      const allBelow50 = naturalScores.every(score => score < 50)
-      
-      // Alert als ALLE scores op of boven de 50% zijn (te hoog/vlak)
-      const allAboveOrEqual50 = naturalScores.every(score => score >= 50)
-      
-      // Trigger alert bij beide patronen
-      hasAlert = allBelow50 || allAboveOrEqual50
-    }
-    let pdfBuffer: Buffer
-    try {
-      // Use Node-only PDF generator (no Chromium required)
-      const fullName = finalPD?.candidate?.full_name || 'Gebruiker'
-      const dateText = finalPD?.meta?.dateISO || finalPD?.results?.created_at || new Date().toISOString()
-      const styleLabel = finalPD?.meta?.stijlLabel || profileCode
-      
-      pdfBuffer = await generateReportPdf({
-        profileCode,
-        fullName,
-        date: dateText,
-        styleLabel,
-        discData: {
-          natural: {
-            D: Math.round(finalPD?.results?.natural_d || 0),
-            I: Math.round(finalPD?.results?.natural_i || 0),
-            S: Math.round(finalPD?.results?.natural_s || 0),
-            C: Math.round(finalPD?.results?.natural_c || 0),
-          },
-          response: {
-            D: Math.round(finalPD?.results?.response_d || 0),
-            I: Math.round(finalPD?.results?.response_i || 0),
-            S: Math.round(finalPD?.results?.response_s || 0),
-            C: Math.round(finalPD?.results?.response_c || 0),
-          },
-        },
-      })
-      timings.t_render = Date.now()
-      console.log(`[finish][${requestId}] PDF rendered in ${timings.t_render - (timings.t_claim || timings.t_start)}ms, size: ${pdfBuffer.length} bytes`)
-    } catch (renderErr: any) {
-      console.error(`[finish][${requestId}] PDF render failed:`, renderErr?.message)
-      await resetProcessingState(attempt_id, renderErr?.message || 'Unknown render error', 'PDF_RENDER_FAILED')
-      return NextResponse.json({ error: 'PDF_RENDER_FAILED', details: renderErr?.message }, { status: 500 })
-    }
-
-    // Build readable storage path with user name
-    const displayName = finalPD?.candidate?.full_name || (user.email?.split('@')[0] || 'user')
-    const baseStoragePath = buildPdfStoragePath(user.id, quiz_id, displayName)
-    const pdfFilename = buildPdfFilename(displayName)
-
-    // Find unique path (handles collisions by appending -1, -2, etc.)
-    const bucket = supabaseAdmin.storage.from('quiz-docs')
-    const storagePath = await findUniqueStoragePath(baseStoragePath, async (path) => {
-      const { data } = await bucket.list(path.substring(0, path.lastIndexOf('/')), {
-        search: path.substring(path.lastIndexOf('/') + 1)
-      })
-      return (data && data.length > 0) || false
-    })
-
-    // Upload to storage (private bucket)
-    const { error: upErr } = await bucket.upload(storagePath, pdfBuffer, {
-      contentType: 'application/pdf',
-      upsert: false, // Never upsert since we found unique path
-    })
-    if (upErr) {
-      console.error(`[finish][${requestId}] Upload failed:`, upErr.message)
-      await resetProcessingState(attempt_id, upErr.message, 'UPLOAD_FAILED')
-      return NextResponse.json({ error: 'UPLOAD_FAILED', details: upErr.message }, { status: 500 })
-    }
-    timings.t_upload = Date.now()
-    console.log(`[finish][${requestId}] PDF uploaded in ${timings.t_upload - (timings.t_render || timings.t_start)}ms to ${storagePath}`)
-
-    // Consolidated schema: store PDF metadata, alert flag, and profile code on the attempt
-    // Set expiry to 180 days from now
-    const expiresAt = new Date(now.getTime() + 180 * 24 * 60 * 60 * 1000).toISOString()
-    
-    const { error: updateErr } = await supabaseAdmin
-      .from('quiz_attempts')
-      .update({
-        pdf_path: storagePath,
-        pdf_filename: pdfFilename,
-        pdf_created_at: now.toISOString(),
-        pdf_expires_at: expiresAt,
-        alert: hasAlert,
-      })
-      .eq('id', attempt_id)
-    
-    if (updateErr) {
-      console.error('[finish] Failed to update attempt with PDF metadata:', updateErr)
-      return NextResponse.json({ error: 'Failed to save PDF metadata', details: updateErr.message }, { status: 500 })
-    }
-    
-    console.log('[finish] PDF metadata saved successfully')
-
-    // Create notification if alert was triggered (unusual score pattern)
-    if (hasAlert) {
-      try {
-        const alertType = finalPD?.results ? (
-          [finalPD.results.natural_d, finalPD.results.natural_i, finalPD.results.natural_s, finalPD.results.natural_c].every(s => s < 50)
-            ? 'alle scores onder 50%'
-            : 'alle scores op of boven 50%'
-        ) : 'onbekend patroon'
-        
-        await supabaseAdmin.from('notifications').insert({
-          severity: 'warning',
-          source: 'quiz',
-          message: `Afwijkend scorepatroon gedetecteerd: ${alertType}`,
-          meta: { 
-            attempt_id, 
-            quiz_id, 
-            user_id: user.id,
-            user_email: user.email,
-            candidate_name: finalPD?.candidate?.full_name || null,
-            natural_scores: finalPD?.results ? {
-              D: Math.round(finalPD.results.natural_d),
-              I: Math.round(finalPD.results.natural_i),
-              S: Math.round(finalPD.results.natural_s),
-              C: Math.round(finalPD.results.natural_c),
-            } : null
-          }
-        })
-        console.log('[finish] Alert notification created')
-      } catch (notifErr) {
-        console.error('[finish] Failed to create alert notification:', notifErr)
+      } catch (allowErr) {
+        console.error(`[finish][${requestId}] Failed to mark allowlist used:`, allowErr)
       }
     }
 
-    // Email the PDF as attachment (no Supabase URL)
-    const toEmail = user.email || ''
-    let emailSent = false
-    let emailError: string | null = null
-    
-    try {
-      const year = new Date().getFullYear()
-      const company = process.env.COMPANY_NAME || 'The Lean Communication'
-
-      // Check allowlist delivery toggles
-      const emailNormalized = toEmail.toLowerCase().trim()
-      const { data: allow } = await supabaseAdmin
-        .from('allowlist')
-        .select('trainer_email, send_pdf_user, send_pdf_trainer, status')
-        .eq('email_normalized', emailNormalized)
-        .maybeSingle()
-
-      const sendUser = allow?.send_pdf_user !== false
-      const sendTrainer = !!(allow?.send_pdf_trainer && allow?.trainer_email)
-      const trainerEmail = (allow?.trainer_email || '').trim()
-
-      const recipients: string[] = []
-      if (sendUser) recipients.push(toEmail)
-      if (sendTrainer) recipients.push(trainerEmail)
-      if (recipients.length === 0) {
-        recipients.push(toEmail) // safe fallback
-      }
-
-      // Send individually to recipients and record notifications
-      for (const rcpt of recipients) {
-        await sendRapportEmail({
-          to: rcpt,
-          subject: 'Uw DISC rapport is gereed',
-          html: generateEmailHtml({ name: displayName, year, company }),
-          text: generateEmailText({ name: displayName, year, company }),
-          attachments: [{ filename: pdfFilename, content: pdfBuffer }]
-        })
-        // notification success
-        try {
-          await supabaseAdmin.from('notifications').insert({
-            severity: 'success',
-            source: 'mailer',
-            message: `PDF emailed to ${rcpt}`,
-            meta: { attempt_id, quiz_id, user_id: user.id }
-          })
-        } catch {}
-      }
-
-      // Mark email as successfully sent
-      emailSent = true
-
-      // Update allowlist status to "used" after successful email send
-      await supabaseAdmin
-        .from('allowlist')
-        .update({ status: 'used' })
-        .eq('email_normalized', emailNormalized)
-        .in('status', ['pending', 'claimed'])
-    } catch (mailErr) {
-      // Email failed - record error details
-      emailSent = false
-      emailError = (mailErr as any)?.message || String(mailErr)
-      console.error('Email send failed:', mailErr)
-      try {
-        await supabaseAdmin.from('notifications').insert({
-          severity: 'error',
-          source: 'mailer',
-          message: 'Failed to email PDF to user',
-          meta: { attempt_id, quiz_id, user_id: user.id, error: emailError }
-        })
-      } catch {}
-    }
-
-    // Update attempt with email status
-    try {
-      await supabaseAdmin
-        .from('quiz_attempts')
-        .update({
-          email_status: emailSent ? 'sent' : 'failed',
-          email_error: emailError,
-          email_sent_at: emailSent ? new Date().toISOString() : null
-        })
-        .eq('id', attempt_id)
-    } catch (updateErr) {
-      console.error('Failed to update email status:', updateErr)
-    }
-
-    // Mark as done with finished_at timestamp
-    await supabaseAdmin
-      .from('quiz_attempts')
-      .update({
-        pdf_status: 'done',
-        finished_at: new Date().toISOString(),
-        processing_token: null,
-        pdf_error: null
-      })
-      .eq('id', attempt_id)
-
-    timings.t_email = Date.now()
-    timings.t_total = timings.t_email - timings.t_start
-    
-    console.log(`[finish][${requestId}] SUCCESS - email_sent: ${emailSent}, timings: claim=${timings.t_claim! - timings.t_start}ms render=${timings.t_render! - timings.t_claim!}ms upload=${timings.t_upload! - timings.t_render!}ms email=${timings.t_email - timings.t_upload!}ms total=${timings.t_total}ms`)
+    timings.t_total = Date.now() - timings.t_start
     console.log(`=== /api/quiz/finish END (SUCCESS) [${requestId}] ===`)
-    return NextResponse.json({ ok: true, storage_path: storagePath, pdf_filename: pdfFilename, timings })
+    return NextResponse.json({ ok: true, finished_at: finishedAtIso, timings })
   } catch (e: any) {
     const elapsed = Date.now() - timings.t_start
     console.error(`[finish][${requestId}] EXCEPTION after ${elapsed}ms:`, e?.message || String(e))
     console.error(`[finish][${requestId}] Stack:`, e?.stack)
-    
-    // On error: reset processing state so it can be retried
-    if (attempt_id) {
-      await resetProcessingState(attempt_id, e?.message || String(e), 'UNHANDLED_ERROR')
-    }
-    
+
     console.log(`=== /api/quiz/finish END (ERROR) [${requestId}] after ${elapsed}ms ===`)
     return NextResponse.json({ error: 'UNHANDLED_ERROR', details: e?.message || String(e), elapsed_ms: elapsed }, { status: 500 })
   }
-}
+ }

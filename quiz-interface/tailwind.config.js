@@ -22,6 +22,15 @@ module.exports = {
         accent: { DEFAULT: "hsl(var(--accent))", foreground: "hsl(var(--accent-foreground))" },
         popover: { DEFAULT: "hsl(var(--popover))", foreground: "hsl(var(--popover-foreground))" },
         card: { DEFAULT: "hsl(var(--card))", foreground: "hsl(var(--card-foreground))" },
+        disc: {
+          d: "hsl(var(--disc-d))",
+          i: "hsl(var(--disc-i))",
+          s: "hsl(var(--disc-s))",
+          c: "hsl(var(--disc-c))",
+        },
+        tlc: {
+          green: "hsl(var(--tlc-green))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

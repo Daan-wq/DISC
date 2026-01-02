@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Download, Printer, ExternalLink } from 'lucide-react';
+import { Download, Printer, ExternalLink, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { DiscReport } from '../types';
@@ -47,7 +47,7 @@ export function DownloadCTA({ report }: DownloadCTAProps) {
 
   const handleOpenNewTab = () => {
     console.log('event: print_opened_new_tab');
-    window.open(`/rapport/print?code=${report.profileCode}`, '_blank');
+    window.location.assign(`/rapport/print?code=${report.profileCode}`);
   };
 
   return (
@@ -55,7 +55,7 @@ export function DownloadCTA({ report }: DownloadCTAProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.4 }}
-      className="bg-[#2F6B4F] rounded-2xl p-8 md:p-12 text-center text-white relative overflow-hidden mb-12"
+      className="bg-[#46915f] rounded-2xl p-8 md:p-12 text-center text-white relative overflow-hidden mb-12"
       id="pdf"
     >
       {/* Background decoration */}
@@ -77,7 +77,7 @@ export function DownloadCTA({ report }: DownloadCTAProps) {
           <Button
             onClick={handleDownload}
             disabled={downloadState !== 'idle'}
-            className="bg-white text-[#2F6B4F] hover:bg-green-50 border-0 h-12 px-8 text-base font-semibold shadow-lg hover:shadow-xl transition-all min-w-[240px]"
+            className="bg-white text-[#46915f] hover:bg-green-50 border-0 h-12 px-8 text-base font-semibold shadow-lg hover:shadow-xl transition-all min-w-[240px]"
           >
             {downloadState === 'idle' && (
               <>
@@ -87,7 +87,7 @@ export function DownloadCTA({ report }: DownloadCTAProps) {
             )}
             {downloadState === 'preparing' && (
               <>
-                <span className="animate-spin mr-2">⏳</span>
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                 Rapport voorbereiden...
               </>
             )}
@@ -104,14 +104,14 @@ export function DownloadCTA({ report }: DownloadCTAProps) {
             onClick={handleOpenNewTab}
             className="text-green-100 hover:text-white text-sm font-medium underline underline-offset-4 flex items-center gap-1 mt-2 sm:mt-0"
           >
-            Werkt het niet? Open in nieuw tabblad
+            Werkt het niet? Open in dit tabblad
             <ExternalLink className="w-3 h-3" />
           </button>
         </div>
 
         {/* Helper text */}
         <p className="text-green-200/80 text-sm mt-6">
-          Je browser opent een printvenster. Kies bij bestemming voor <strong>'Opslaan als PDF'</strong>.
+          Je browser opent een printvenster. Kies bij bestemming voor <strong>&apos;Opslaan als PDF&apos;</strong>.
         </p>
       </div>
     </motion.div>

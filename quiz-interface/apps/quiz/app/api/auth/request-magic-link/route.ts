@@ -42,15 +42,21 @@ export async function POST(req: NextRequest) {
     }
 
     // Determine base URL for magic link redirect
-    // In development: always use localhost for easy testing
-    // In production: use env var or request origin
+    // In local development: always force localhost so Supabase receives localhost redirect.
+    // In production: use env var or request origin.
     const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production'
-    const isVercel = process.env.VERCEL === '1'
+    const requestHost = req.headers.get('x-forwarded-host') || req.headers.get('host')
+    const hostOnly = (requestHost || '').split(':')[0]
+    const portOnly = (requestHost || '').includes(':') ? (requestHost || '').split(':').slice(1).join(':') : ''
+    const isLocalHost = !!hostOnly && (hostOnly === 'localhost' || hostOnly === '127.0.0.1' || hostOnly === '0.0.0.0' || hostOnly === '::1')
+    const localHostForUrls = hostOnly === '0.0.0.0' || hostOnly === '::1' ? 'localhost' : hostOnly
+    const localPortForUrls = portOnly || '3000'
     
     let baseUrl: string
-    if (!isProduction && !isVercel) {
-      // Local development: always use localhost
-      baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+    if (isLocalHost) {
+      baseUrl = `http://${localHostForUrls}:${localPortForUrls}`
+    } else if (!isProduction) {
+      baseUrl = 'http://localhost:3000'
     } else {
       // Production/Vercel: use env var or request origin
       const requestOrigin = req.headers.get('origin') || req.headers.get('referer')?.split('/').slice(0, 3).join('/')
@@ -68,18 +74,19 @@ export async function POST(req: NextRequest) {
     const email = parsed.data.email.trim().toLowerCase()
     const firstName = toProperCase((parsed.data.first_name || '').trim())
     const lastName = toProperCase((parsed.data.last_name || '').trim())
-    
-    // Build redirectTo from redirectPath if provided, otherwise use legacy redirectTo
-    let redirectTo = parsed.data.redirectTo
-    if (parsed.data.redirectPath) {
-      // Client sent only the path - build full URL with server-determined baseUrl
-      const finalTarget = new URL(parsed.data.redirectPath, baseUrl)
-      if (firstName) finalTarget.searchParams.set('fn', firstName)
-      if (lastName) finalTarget.searchParams.set('ln', lastName)
-      const callbackUrl = new URL('/auth/callback', baseUrl)
-      callbackUrl.searchParams.set('redirect', finalTarget.pathname + finalTarget.search)
-      redirectTo = callbackUrl.toString()
-    }
+
+    const requestedRedirectPath = (parsed.data.redirectPath || '/quiz').trim()
+    const safeRedirectPath = requestedRedirectPath.startsWith('/') ? requestedRedirectPath : '/quiz'
+
+    // Always build redirectTo server-side to avoid mismatches and to guarantee localhost in local dev.
+    const finalTarget = new URL(safeRedirectPath, baseUrl)
+    if (firstName) finalTarget.searchParams.set('fn', firstName)
+    if (lastName) finalTarget.searchParams.set('ln', lastName)
+    const callbackUrl = new URL('/auth/callback', baseUrl)
+    callbackUrl.searchParams.set('redirect', finalTarget.pathname + finalTarget.search)
+    let redirectTo = callbackUrl.toString()
+
+    const debug = undefined
 
     // Check allowlist: prefer email_normalized, fallback to email
     const { data, error } = await supabaseAdmin
@@ -113,11 +120,11 @@ export async function POST(req: NextRequest) {
 
     if (!found) {
       // Not on allowlist
-      return NextResponse.json({ sent: false, reason: 'NO_ACCESS' }, { status: 200 })
+      return NextResponse.json({ sent: false, reason: 'NO_ACCESS', debug }, { status: 200 })
     }
 
     if (found.expires_at && new Date(found.expires_at) <= new Date()) {
-      return NextResponse.json({ sent: false, reason: 'NO_ACCESS' }, { status: 200 })
+      return NextResponse.json({ sent: false, reason: 'NO_ACCESS', debug }, { status: 200 })
     }
 
     // Allowed → send magic link using anon client
@@ -154,11 +161,12 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ 
           sent: false, 
           reason: 'SUPABASE_RATE_LIMIT',
-          retryAfterSeconds: seconds
+          retryAfterSeconds: seconds,
+          debug,
         }, { status: 200 })
       }
       
-      return NextResponse.json({ sent: false, reason: 'SEND_FAILED' }, { status: 200 })
+      return NextResponse.json({ sent: false, reason: 'SEND_FAILED', debug }, { status: 200 })
     }
 
     // After successful OTP send, create candidate if it doesn't exist
@@ -204,7 +212,10 @@ export async function POST(req: NextRequest) {
       console.error('Exception creating candidate:', e)
     }
 
-    return NextResponse.json({ sent: true })
+    return NextResponse.json({
+      sent: true,
+      debug,
+    })
   } catch (e: any) {
     console.error('request-magic-link unhandled:', e?.message || String(e))
     return NextResponse.json({ sent: false, reason: 'UNHANDLED' }, { status: 200 })

@@ -60,6 +60,14 @@ export function DiscChartSection({ report, viewMode = 'both', onViewModeChange }
     }
   };
 
+  // DISC color mapping per letter
+  const DISC_COLORS: Record<string, string> = {
+    D: '#cc151b', // Red
+    I: '#ffcb04', // Yellow
+    S: '#029939', // Green
+    C: '#2665ad', // Blue
+  };
+
   // Prepare data for Recharts
   const data = useMemo(() => {
     const traits = ['D', 'I', 'S', 'C'];
@@ -67,36 +75,13 @@ export function DiscChartSection({ report, viewMode = 'both', onViewModeChange }
       name: trait,
       Natuurlijk: Math.max(0, Math.min(100, report.natuurlijkeStijl[trait as keyof typeof report.natuurlijkeStijl])),
       Respons: Math.max(0, Math.min(100, report.responsStijl[trait as keyof typeof report.responsStijl])),
+      color: DISC_COLORS[trait],
     }));
   }, [report]);
 
-  // Calculate insights
-  const insights = useMemo(() => {
-    let maxNatural = { trait: '', value: -1 };
-    let maxDiff = { trait: '', value: -1, nat: 0, res: 0 };
 
-    data.forEach(item => {
-      // Highest natural trait
-      if (item.Natuurlijk > maxNatural.value) {
-        maxNatural = { trait: item.name, value: item.Natuurlijk };
-      }
-      
-      // Biggest difference
-      const diff = Math.abs(item.Natuurlijk - item.Respons);
-      if (diff > maxDiff.value) {
-        maxDiff = { trait: item.name, value: diff, nat: item.Natuurlijk, res: item.Respons };
-      }
-    });
 
-    return { maxNatural, maxDiff };
-  }, [data]);
-
-  const COLORS = {
-    natural: '#2F6B4F', // Primary Green
-    response: '#A0C4B4', // Lighter Green/Teal for contrast
-  };
-
-  const activeButtonStyle = "bg-[#E7F3ED] text-[#2F6B4F] border-[#2F6B4F] font-medium ring-1 ring-[#2F6B4F]";
+  const activeButtonStyle = "bg-[#E7F3ED] text-[#46915f] border-[#46915f] font-medium ring-1 ring-[#46915f]";
   const inactiveButtonStyle = "bg-white text-slate-600 border-slate-200 hover:bg-slate-50";
 
   return (
@@ -137,21 +122,7 @@ export function DiscChartSection({ report, viewMode = 'both', onViewModeChange }
         </CardHeader>
 
         <CardContent>
-          {/* Mini-summary chips */}
-          <div className="flex flex-wrap gap-3 mb-6">
-            <div className="bg-[#E7F3ED] border border-[#2F6B4F]/20 rounded-lg px-3 py-2 text-sm text-[#2F6B4F]">
-              <span className="font-semibold block text-xs uppercase tracking-wider opacity-80">Hoogste Natuurlijk</span>
-              <span className="font-bold">{insights.maxNatural.trait} ({Math.round(insights.maxNatural.value)}%)</span>
-            </div>
-            {insights.maxDiff.value > 10 && (
-              <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-sm text-amber-800">
-                <span className="font-semibold block text-xs uppercase tracking-wider opacity-80">Grootste Verschil</span>
-                <span className="font-bold">{insights.maxDiff.trait} ({Math.round(insights.maxDiff.nat)}% vs {Math.round(insights.maxDiff.res)}%)</span>
-              </div>
-            )}
-          </div>
-
-          <div className="h-[300px] w-full mt-4" role="img" aria-label="Staafdiagram met jouw DISC scores">
+          <div className="h-[300px] w-full" role="img" aria-label="Staafdiagram met jouw DISC scores">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={data}
@@ -159,6 +130,7 @@ export function DiscChartSection({ report, viewMode = 'both', onViewModeChange }
                 barGap={8}
               >
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E6E6E6" />
+                <ReferenceLine y={50} stroke="#cbd5e1" strokeDasharray="3 3" />
                 <XAxis 
                   dataKey="name" 
                   tick={{ fill: '#666', fontSize: 14, fontWeight: 600 }} 
@@ -174,27 +146,32 @@ export function DiscChartSection({ report, viewMode = 'both', onViewModeChange }
                 />
                 <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(0,0,0,0.03)' }} />
                 <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                <ReferenceLine y={50} stroke="#cbd5e1" strokeDasharray="3 3" />
                 
                 {(currentViewMode === 'both' || currentViewMode === 'natural') && (
                   <Bar 
                     dataKey="Natuurlijk" 
-                    fill={COLORS.natural} 
                     radius={[4, 4, 0, 0]} 
                     animationDuration={1000}
                     name="Natuurlijke Stijl"
-                  />
+                  >
+                    {data.map((entry, index) => (
+                      <Cell key={`cell-nat-${index}`} fill={entry.color} />
+                    ))}
+                  </Bar>
                 )}
                 
                 {(currentViewMode === 'both' || currentViewMode === 'response') && (
                   <Bar 
                     dataKey="Respons" 
-                    fill={COLORS.response} 
                     radius={[4, 4, 0, 0]} 
                     animationDuration={1000}
                     animationBegin={200}
                     name="Respons Stijl"
-                  />
+                  >
+                    {data.map((entry, index) => (
+                      <Cell key={`cell-res-${index}`} fill={entry.color} opacity={0.6} />
+                    ))}
+                  </Bar>
                 )}
               </BarChart>
             </ResponsiveContainer>
@@ -203,7 +180,7 @@ export function DiscChartSection({ report, viewMode = 'both', onViewModeChange }
           <div className="mt-4 text-center">
              <p className="text-xs text-slate-400 italic">
                * Scores zijn indicatief en gebaseerd op je antwoorden op {new Date(report.assessmentDate).toLocaleDateString()}.
-               <br/>Meer context vind je in het volledige rapport.
+               <br/>Meer uitleg vind je in het volledige rapport.
              </p>
           </div>
         </CardContent>

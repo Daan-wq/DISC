@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import bcrypt from 'bcryptjs'
 import { createSessionCookie } from '@/server/admin/session'
-import { checkRateLimit, getClientIp, getResetTime } from '@/lib/rate-limiter'
+import { checkRateLimit, getClientIp, getRemainingAttempts, getResetTime } from '@/lib/rate-limiter'
 import { authenticator } from 'otplib'
 
 export const runtime = 'nodejs'
@@ -48,11 +48,9 @@ export async function POST(req: NextRequest) {
 
     // Helper to check rate limits (read-only, doesn't increment)
     const isIpRateLimited = () => {
-      const { getRemainingAttempts } = require('@/lib/rate-limiter')
       return !isWhitelisted && getRemainingAttempts(ipLimitKey, 5, 15 * 60 * 1000) <= 0
     }
     const isUserRateLimited = () => {
-      const { getRemainingAttempts } = require('@/lib/rate-limiter')
       return getRemainingAttempts(usernameLimitKey, 5, 15 * 60 * 1000) <= 0
     }
 

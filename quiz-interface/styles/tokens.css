@@ -14,6 +14,15 @@
   --container: 1200px;
   --gutter: 24px;
 
+  /* DISC Official Colors */
+  --disc-d: 358 81% 44%; /* #cc151b */
+  --disc-i: 48 100% 51%; /* #ffcb04 */
+  --disc-s: 142 98% 30%; /* #029939 */
+  --disc-c: 212 64% 41%; /* #2665ad */
+
+  /* TLC Accent Green */
+  --tlc-green: 142 36% 43%; /* #469560 */
+
   /* Bridge to existing Tailwind CSS variables used in app/globals.css */
   --background: var(--bg);
   --foreground: var(--fg);

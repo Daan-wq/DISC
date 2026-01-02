@@ -16,6 +16,7 @@ export async function POST(req: NextRequest) {
     if (!supabaseAdmin) {
       return NextResponse.json({ error: 'Server not configured' }, { status: 500 });
     }
+    console.log('[rapport/generate-token] supabaseUrl:', process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL);
 
     // Verify authentication
     const authHeader = req.headers.get('authorization') || '';
@@ -76,7 +77,24 @@ export async function POST(req: NextRequest) {
       });
 
     if (insertErr) {
-      console.error('Failed to store print token:', insertErr);
+      const errAny = insertErr as any;
+      console.error('Failed to store print token:', {
+        code: errAny?.code,
+        message: errAny?.message,
+        hint: errAny?.hint,
+        details: errAny?.details,
+      });
+
+      if (errAny?.code === 'PGRST205') {
+        return NextResponse.json(
+          {
+            error: "Server misconfigured: missing 'public.print_tokens' table (migration not applied or schema cache stale)",
+            code: errAny.code,
+          },
+          { status: 500 }
+        );
+      }
+
       return NextResponse.json({ error: 'Failed to generate token' }, { status: 500 });
     }
 

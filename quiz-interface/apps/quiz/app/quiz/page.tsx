@@ -1150,10 +1150,15 @@ function QuizInner() {
 
   if (showThankYou) {
     return (
-      <div className="min-h-screen bg-gray-50 py-6 px-3 sm:py-8 sm:px-4 md:py-12">
-        <div className="max-w-md mx-auto bg-white rounded-lg shadow p-4 sm:p-6 md:p-8 text-center">
-          <h1 className="text-xl sm:text-2xl font-bold mb-4">Bedankt voor het invullen</h1>
-          <p className="text-sm sm:text-base text-gray-600">We verwerken je resultaten en sturen je een mail met je eindrapport.</p>
+      <div className="min-h-screen bg-gray-50 py-6 px-3 sm:py-8 sm:px-4 md:py-12 flex items-center justify-center">
+        <div className="w-full max-w-md mx-auto bg-white rounded-lg shadow p-4 sm:p-6 md:p-8 text-center">
+          <div className="mb-6">
+            <div className="w-16 h-16 mx-auto mb-4 relative">
+              <div className="absolute inset-0 border-4 border-[#46915f] border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          </div>
+          <h1 className="text-xl sm:text-2xl font-bold mb-4 text-gray-900">Bedankt voor het invullen</h1>
+          <p className="text-sm sm:text-base text-gray-600 leading-relaxed">We verwerken je resultaten en sturen je een mail met je eindrapport.</p>
         </div>
       </div>
     )
@@ -1232,11 +1237,11 @@ function QuizInner() {
           
           <h2 className="text-base sm:text-lg md:text-xl font-semibold mb-4 sm:mb-6">
             {isMostQuestion 
-              ? 'Welke uitspraak past het MEEST bij jou?'
-              : 'Welke uitspraak past het MINST bij jou?'}
+              ? <span>Welke uitspraak past het <span className="underline">MEEST</span> bij jou?</span>
+              : <span>Welke uitspraak past het <span className="underline">MINST</span> bij jou?</span>}
           </h2>
 
-          <div className="space-y-2 sm:space-y-3">
+          <div className="space-y-3 sm:space-y-4">
             {availableStatements.map((statement: Statement) => {
               // Check if this statement was already answered FOR THIS SPECIFIC QUESTION
               // Only mark as selected if:

@@ -1153,7 +1153,15 @@ function QuizInner() {
       <div className="min-h-screen bg-gray-50 py-6 px-3 sm:py-8 sm:px-4 md:py-12">
         <div className="max-w-md mx-auto bg-white rounded-lg shadow p-4 sm:p-6 md:p-8 text-center">
           <h1 className="text-xl sm:text-2xl font-bold mb-4">Bedankt voor het invullen</h1>
-          <p className="text-sm sm:text-base text-gray-600">We verwerken je resultaten en sturen je een mail met je eindrapport.</p>
+          <p className="text-sm sm:text-base text-gray-600 mb-6">Je resultaten worden nu verwerkt en je wordt binnenkort doorgestuurd naar het eindrapport.</p>
+          
+          {/* Loading animation */}
+          <div className="flex justify-center items-center">
+            <div className="relative w-16 h-16">
+              <div className="absolute top-0 left-0 w-full h-full border-4 border-blue-200 rounded-full"></div>
+              <div className="absolute top-0 left-0 w-full h-full border-4 border-blue-600 rounded-full border-t-transparent animate-spin"></div>
+            </div>
+          </div>
         </div>
       </div>
     )

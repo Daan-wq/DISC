@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, Suspense } from 'react';
+import React, { useEffect, useRef, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { HeroSection } from '../components/HeroSection';
 import { SummaryCard } from '../components/SummaryCard';
@@ -19,8 +19,10 @@ function PrintPageContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [fontsReady, setFontsReady] = useState(false);
+  const mountedRef = useRef(true);
 
   useEffect(() => {
+    mountedRef.current = true;
     const loadData = async () => {
       if (!token) {
         setError('Geen geldig token opgegeven');
@@ -31,15 +33,87 @@ function PrintPageContent() {
       try {
         setLoading(true);
 
+        const isInIframe = typeof window !== 'undefined' && window.self !== window.top;
+
+        const cacheKey = `print_data_${token}`;
+        const printedKey = `print_done_${token}`;
+        const cached = typeof window !== 'undefined' ? window.sessionStorage.getItem(cacheKey) : null;
+        const alreadyPrinted = typeof window !== 'undefined' ? !!window.sessionStorage.getItem(printedKey) : false;
+
+        if (cached) {
+          const data = JSON.parse(cached);
+          const reportData: DiscReport = {
+            profileCode: data.profileCode,
+            natuurlijkeStijl: data.natuurlijkeStijl,
+            responsStijl: data.responsStijl,
+            assessmentDate: data.assessmentDate,
+            candidateName: data.candidateName,
+            insights: getInsightsForProfile(data.profileCode),
+          };
+
+          if (!mountedRef.current) return;
+          setReport(reportData);
+
+          if (document.fonts && document.fonts.ready) {
+            await document.fonts.ready;
+            console.log('[print] Fonts ready');
+          }
+
+          if (!mountedRef.current) return;
+          setFontsReady(true);
+
+          try {
+            window.parent?.postMessage(
+              {
+                type: 'disc_report_ready',
+                token,
+              },
+              window.location.origin
+            );
+          } catch {
+          }
+
+          if (!isInIframe && !alreadyPrinted) {
+            setTimeout(() => {
+              try {
+                window.sessionStorage.setItem(printedKey, new Date().toISOString());
+              } catch {}
+              console.log('[print] Triggering window.print()');
+              window.print();
+            }, 1500);
+          }
+
+          return;
+        }
+
         // Fetch data using token
         const response = await fetch(`/api/rapport/get-data?token=${token}`);
         
         if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Kon rapport niet laden');
+          const errorData = await response.json().catch(() => ({} as any));
+          const msg = (errorData as any)?.error || `Kon rapport niet laden (${response.status})`;
+          if (!mountedRef.current) return;
+          setError(msg);
+
+          try {
+            window.parent?.postMessage(
+              {
+                type: 'disc_report_error',
+                token,
+                message: msg,
+              },
+              window.location.origin
+            );
+          } catch {
+          }
+          return;
         }
 
         const data = await response.json();
+
+        try {
+          window.sessionStorage.setItem(cacheKey, JSON.stringify(data));
+        } catch {}
         
         const reportData: DiscReport = {
           profileCode: data.profileCode,
@@ -60,21 +134,53 @@ function PrintPageContent() {
         
         setFontsReady(true);
         
+        try {
+          window.parent?.postMessage(
+            {
+              type: 'disc_report_ready',
+              token,
+            },
+            window.location.origin
+          );
+        } catch {
+        }
+
         // Small delay to ensure everything is rendered
-        setTimeout(() => {
-          console.log('[print] Triggering window.print()');
-          window.print();
-        }, 1500);
+        if (!isInIframe) {
+          setTimeout(() => {
+            try {
+              window.sessionStorage.setItem(`print_done_${token}`, new Date().toISOString());
+            } catch {}
+            console.log('[print] Triggering window.print()');
+            window.print();
+          }, 1500);
+        }
         
       } catch (err) {
         console.error('[print] Error loading data:', err);
-        setError(err instanceof Error ? err.message : 'Er is een onbekende fout opgetreden');
+        const msg = err instanceof Error ? err.message : 'Er is een onbekende fout opgetreden';
+        setError(msg);
+
+        try {
+          window.parent?.postMessage(
+            {
+              type: 'disc_report_error',
+              token,
+              message: msg,
+            },
+            window.location.origin
+          );
+        } catch {
+        }
       } finally {
         setLoading(false);
       }
     };
 
     loadData();
+    return () => {
+      mountedRef.current = false;
+    };
   }, [token]);
 
   // Inject print styles specific to this page
@@ -134,9 +240,9 @@ function PrintPageContent() {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2F6B4F] mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#46915f] mx-auto mb-4"></div>
           <p className="text-slate-600">Rapport laden...</p>
-          {fontsReady && <p className="text-xs text-slate-400 mt-2">Lettertypes geladen ✓</p>}
+          {fontsReady && <p className="text-xs text-slate-400 mt-2">Lettertypes geladen</p>}
         </div>
       </div>
     );
@@ -150,7 +256,7 @@ function PrintPageContent() {
         <p className="text-sm text-slate-500 mb-2">Het printvenster opent automatisch...</p>
         <button 
           onClick={() => window.print()}
-          className="text-[#2F6B4F] underline text-sm font-medium hover:text-[#25543D]"
+          className="text-[#46915f] underline text-sm font-medium hover:text-[#3a7a4f]"
         >
           Printvenster handmatig openen
         </button>

@@ -7,14 +7,15 @@
     "prebuild": "tsx scripts/copy-wasm.ts",
     "build": "npm run prebuild && next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "typecheck": "tsc --noEmit",
     "report:build": "tsx scripts/report/build-all.ts",
     "report:generate-base-pdfs": "tsx scripts/report/generate-base-pdfs.ts",
     "report:extract-positions": "tsx scripts/report/extract-positions.ts",
     "report:debug-overlay": "tsx scripts/report/debug-overlay.ts",
     "report:manifest": "tsx scripts/report/generate-manifest.ts",
-    "report:discover": "tsx scripts/report/template-discovery.ts"
+    "report:discover": "tsx scripts/report/template-discovery.ts",
+    "templates:copy": "tsx scripts/copy-html-templates.ts"
   },
   "dependencies": {
     "svg2png-wasm": "^1.4.1",

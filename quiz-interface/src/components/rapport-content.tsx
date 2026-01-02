@@ -1,29 +1,44 @@
-"use client"
+﻿"use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { motion } from "framer-motion"
-import { Download, Copy, Check, TrendingUp, Users, Target, Lightbulb, AlertCircle, Printer, Loader2 } from "lucide-react"
+import { 
+  Check, 
+  TrendingUp, 
+  Users, 
+  Target, 
+  Lightbulb, 
+  AlertCircle, 
+  Printer, 
+  LayoutGrid, 
+  Info, 
+  ArrowRight, 
+  Share2,
+  Copy
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
+import { PROFILE_CONTENT, type ProfileCode } from "@/lib/data/profile-content"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { Separator } from "@/components/ui/separator"
 import { DiscChart } from "@/components/disc-chart"
 import { Skeleton } from "@/components/ui/skeleton"
 
 // Type definitions
-type ProfileCode = "DI" | "DC" | "IS" | "SC" | "CD" | "SI" | "DS" | "IC" | "CI" | "SD" | "CS" | "ID"
 type ViewMode = "both" | "natural" | "response"
 
-interface DiscScores {
+export interface DiscScores {
   D: number
   I: number
   S: number
   C: number
 }
 
-interface DiscReport {
+export interface DiscReport {
   profileCode: ProfileCode
   natuurlijkeStijl: DiscScores
   responsStijl: DiscScores
@@ -31,354 +46,27 @@ interface DiscReport {
   candidateName?: string
 }
 
-interface Insight {
-  icon: typeof TrendingUp
-  title: string
-  description: string
+export interface RapportContentProps {
+  initialReport?: DiscReport;
+  isPrintMode?: boolean;
 }
 
-// Insights templates per profile code
-const INSIGHTS_BY_PROFILE: Record<ProfileCode, Insight[]> = {
-  DI: [
-    {
-      icon: TrendingUp,
-      title: "Resultaatgericht en enthousiast",
-      description: "Je combineert een sterke drive voor resultaten met het vermogen om anderen te inspireren en mee te nemen.",
-    },
-    {
-      icon: Users,
-      title: "Dynamische leider",
-      description: "Je neemt graag de leiding en inspireert teams met je energie en visie.",
-    },
-    {
-      icon: Target,
-      title: "Snel beslisser",
-      description: "Je bent in staat om snel beslissingen te nemen en direct actie te ondernemen.",
-    },
-    {
-      icon: Lightbulb,
-      title: "Innovatief denken",
-      description: "Je zoekt naar nieuwe mogelijkheden en bent niet bang om risico's te nemen.",
-    },
-    {
-      icon: AlertCircle,
-      title: "Ontwikkelpunt: geduld",
-      description: "Let op dat je voldoende tijd neemt voor details en anderen meeneemt in je tempo.",
-    },
-  ],
-  DC: [
-    {
-      icon: TrendingUp,
-      title: "Besluitvaardig en analytisch",
-      description: "Je combineert doelgerichtheid met een scherp oog voor detail en kwaliteit.",
-    },
-    {
-      icon: Target,
-      title: "Hoge standaarden",
-      description: "Je stelt hoge eisen aan jezelf en anderen en streeft naar perfectie.",
-    },
-    {
-      icon: Users,
-      title: "Onafhankelijk",
-      description: "Je werkt het liefst zelfstandig en neemt graag de controle.",
-    },
-    {
-      icon: Lightbulb,
-      title: "Strategisch denker",
-      description: "Je denkt op lange termijn en plant je stappen zorgvuldig.",
-    },
-    {
-      icon: AlertCircle,
-      title: "Ontwikkelpunt: flexibiliteit",
-      description: "Probeer open te staan voor andere meningen en werkwijzen.",
-    },
-  ],
-  IS: [
-    {
-      icon: Users,
-      title: "Sociaal en enthousiast",
-      description: "Je bouwt gemakkelijk relaties en creëert een positieve sfeer.",
-    },
-    {
-      icon: TrendingUp,
-      title: "Teamspeler",
-      description: "Je werkt graag samen en ondersteunt anderen met je optimisme.",
-    },
-    {
-      icon: Lightbulb,
-      title: "Creatief en harmonieus",
-      description: "Je zoekt naar creatieve oplossingen die iedereen tevreden stellen.",
-    },
-    {
-      icon: Target,
-      title: "Goed luisteraar",
-      description: "Je neemt de tijd voor anderen en voelt goed aan wat zij nodig hebben.",
-    },
-    {
-      icon: AlertCircle,
-      title: "Ontwikkelpunt: assertiviteit",
-      description: "Durf vaker je eigen mening te geven en grenzen te stellen.",
-    },
-  ],
-  SC: [
-    {
-      icon: Target,
-      title: "Betrouwbaar en nauwkeurig",
-      description: "Je combineert stabiliteit met aandacht voor detail en kwaliteit.",
-    },
-    {
-      icon: TrendingUp,
-      title: "Methodisch werken",
-      description: "Je werkt systematisch en zorgt voor consistente resultaten.",
-    },
-    {
-      icon: Users,
-      title: "Loyaal en geduldig",
-      description: "Je bent een stabiele factor in het team en neemt de tijd voor anderen.",
-    },
-    {
-      icon: Lightbulb,
-      title: "Zorgvuldig plannen",
-      description: "Je denkt vooruit en zorgt dat alles goed geregeld is.",
-    },
-    {
-      icon: AlertCircle,
-      title: "Ontwikkelpunt: verandering",
-      description: "Probeer opener te staan voor nieuwe ideeën en werkwijzen.",
-    },
-  ],
-  CD: [
-    {
-      icon: Lightbulb,
-      title: "Analytisch en gedreven",
-      description: "Je combineert nauwkeurigheid met een sterke focus op resultaten.",
-    },
-    {
-      icon: Target,
-      title: "Hoge standaarden",
-      description: "Je stelt hoge eisen aan jezelf en streeft naar excellentie.",
-    },
-    {
-      icon: Users,
-      title: "Zelfstandig",
-      description: "Je werkt het liefst onafhankelijk en neemt graag de leiding.",
-    },
-    {
-      icon: TrendingUp,
-      title: "Strategisch en precies",
-      description: "Je plant zorgvuldig en let op elk detail.",
-    },
-    {
-      icon: AlertCircle,
-      title: "Ontwikkelpunt: samenwerking",
-      description: "Let op dat je anderen meeneemt en open blijft voor andere perspectieven.",
-    },
-  ],
-  SI: [
-    {
-      icon: Users,
-      title: "Harmonieus en sociaal",
-      description: "Je creëert een prettige sfeer en bent een echte teamspeler.",
-    },
-    {
-      icon: TrendingUp,
-      title: "Ondersteunend en positief",
-      description: "Je helpt anderen graag en benadert uitdagingen met optimisme.",
-    },
-    {
-      icon: Lightbulb,
-      title: "Empathisch luisteren",
-      description: "Je luistert goed naar anderen en voelt aan wat zij nodig hebben.",
-    },
-    {
-      icon: Target,
-      title: "Geduldig en stabiel",
-      description: "Je bent een stabiele factor en behoudt de rust in drukke tijden.",
-    },
-    {
-      icon: AlertCircle,
-      title: "Ontwikkelpunt: doorpakken",
-      description: "Durf sneller beslissingen te nemen en initiatief te tonen.",
-    },
-  ],
-  DS: [
-    {
-      icon: TrendingUp,
-      title: "Gedreven en betrouwbaar",
-      description: "Je combineert doelgerichtheid met stabiliteit en consistentie.",
-    },
-    {
-      icon: Target,
-      title: "Praktisch en efficiënt",
-      description: "Je pakt dingen direct aan en werkt gestructureerd naar resultaten.",
-    },
-    {
-      icon: Users,
-      title: "Stevig en eerlijk",
-      description: "Je bent direct in je communicatie en mensen weten waar ze aan toe zijn.",
-    },
-    {
-      icon: Lightbulb,
-      title: "Pragmatisch denker",
-      description: "Je zoekt naar praktische oplossingen en houdt van duidelijkheid.",
-    },
-    {
-      icon: AlertCircle,
-      title: "Ontwikkelpunt: aanpassingsvermogen",
-      description: "Probeer flexibeler te zijn wanneer plannen wijzigen.",
-    },
-  ],
-  IC: [
-    {
-      icon: Users,
-      title: "Enthousiast en precies",
-      description: "Je combineert sociale vaardigheden met aandacht voor detail.",
-    },
-    {
-      icon: TrendingUp,
-      title: "Creatief en analytisch",
-      description: "Je denkt out-of-the-box maar behoudt ook oog voor kwaliteit.",
-    },
-    {
-      icon: Lightbulb,
-      title: "Goede communicator",
-      description: "Je legt complexe zaken helder uit en inspireert anderen.",
-    },
-    {
-      icon: Target,
-      title: "Innovatief met structuur",
-      description: "Je zoekt naar nieuwe ideeën maar werkt deze systematisch uit.",
-    },
-    {
-      icon: AlertCircle,
-      title: "Ontwikkelpunt: focus",
-      description: "Let op dat je niet te veel hooi op je vork neemt en prioriteiten stelt.",
-    },
-  ],
-  CI: [
-    {
-      icon: Lightbulb,
-      title: "Analytisch en sociaal",
-      description: "Je combineert nauwkeurigheid met het vermogen om anderen te betrekken.",
-    },
-    {
-      icon: Target,
-      title: "Kwaliteitsgericht communiceren",
-      description: "Je deelt informatie op een heldere en gestructureerde manier.",
-    },
-    {
-      icon: Users,
-      title: "Diplomatiek",
-      description: "Je bent tactvol in je benadering en houdt rekening met anderen.",
-    },
-    {
-      icon: TrendingUp,
-      title: "Onderzoekend",
-      description: "Je graaft graag dieper en deelt je bevindingen met enthousiasme.",
-    },
-    {
-      icon: AlertCircle,
-      title: "Ontwikkelpunt: besluitvorming",
-      description: "Probeer sneller te beslissen en niet te lang vast te houden aan perfectie.",
-    },
-  ],
-  SD: [
-    {
-      icon: Target,
-      title: "Stabiel en gedreven",
-      description: "Je bent betrouwbaar maar neemt ook graag de leiding.",
-    },
-    {
-      icon: TrendingUp,
-      title: "Geduldig uitvoeren",
-      description: "Je werkt gestaag naar resultaten en laat je niet afleiden.",
-    },
-    {
-      icon: Users,
-      title: "Loyaal teamlid",
-      description: "Je bent een betrouwbare speler die teams vooruit helpt.",
-    },
-    {
-      icon: Lightbulb,
-      title: "Praktische oplossingen",
-      description: "Je zoekt naar haalbare en effectieve manieren om doelen te bereiken.",
-    },
-    {
-      icon: AlertCircle,
-      title: "Ontwikkelpunt: verandering omarmen",
-      description: "Probeer opener te staan voor nieuwe werkwijzen en ideeën.",
-    },
-  ],
-  CS: [
-    {
-      icon: Lightbulb,
-      title: "Zorgvuldig en betrouwbaar",
-      description: "Je combineert precisie met stabiliteit en consistentie.",
-    },
-    {
-      icon: Target,
-      title: "Methodisch werken",
-      description: "Je volgt procedures en zorgt voor hoge kwaliteit.",
-    },
-    {
-      icon: Users,
-      title: "Ondersteunend en geduldig",
-      description: "Je helpt anderen graag en neemt de tijd voor uitleg.",
-    },
-    {
-      icon: TrendingUp,
-      title: "Accuraat en grondig",
-      description: "Je controleert je werk zorgvuldig en maakt weinig fouten.",
-    },
-    {
-      icon: AlertCircle,
-      title: "Ontwikkelpunt: risico nemen",
-      description: "Durf soms te vertrouwen op je gevoel en niet alles uit te zoeken.",
-    },
-  ],
-  ID: [
-    {
-      icon: TrendingUp,
-      title: "Enthousiast en direct",
-      description: "Je combineert energie met een no-nonsense aanpak.",
-    },
-    {
-      icon: Users,
-      title: "Inspirerende leider",
-      description: "Je motiveert anderen en neemt graag initiatief.",
-    },
-    {
-      icon: Lightbulb,
-      title: "Optimistisch en gedreven",
-      description: "Je ziet kansen en zet snel stappen om deze te benutten.",
-    },
-    {
-      icon: Target,
-      title: "Flexibel en resultaatgericht",
-      description: "Je past snel aan en blijft gefocust op de eindbestemming.",
-    },
-    {
-      icon: AlertCircle,
-      title: "Ontwikkelpunt: luisteren",
-      description: "Neem de tijd om naar anderen te luisteren en details niet te missen.",
-    },
-  ],
-}
-
-export function RapportContent() {
+export function RapportContent({ initialReport, isPrintMode = false }: RapportContentProps) {
   const searchParams = useSearchParams()
   const attemptId = searchParams.get('attempt_id')
   
   const [viewMode, setViewMode] = useState<ViewMode>("both")
   const [copied, setCopied] = useState(false)
   const [downloadState, setDownloadState] = useState<"idle" | "preparing" | "opening" | "success" | "error">("idle")
-  const [report, setReport] = useState<DiscReport | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [report, setReport] = useState<DiscReport | null>(initialReport || null)
+  const [loading, setLoading] = useState(!initialReport)
   const [error, setError] = useState<string | null>(null)
   const [fontsReady, setFontsReady] = useState(false)
 
-  // Load data from localStorage
+  // Load data from localStorage if not provided
   useEffect(() => {
+    if (initialReport) return;
+    
     const loadData = async () => {
       if (!attemptId) {
         setError('Geen rapport ID opgegeven')
@@ -387,7 +75,7 @@ export function RapportContent() {
       }
 
       try {
-        const cachedData = localStorage.getItem(`quiz_result_${attemptId}`)
+        const cachedData = localStorage.getItem('quiz_result_' + attemptId)
         
         if (cachedData) {
           const parsed = JSON.parse(cachedData)
@@ -422,16 +110,6 @@ export function RapportContent() {
     }
   }, [])
 
-  // Handle auto-print from URL
-  useEffect(() => {
-    if (searchParams.get("print") === "1" && report && fontsReady) {
-      const timer = setTimeout(() => {
-        handleDownload()
-      }, 1000)
-      return () => clearTimeout(timer)
-    }
-  }, [searchParams, report, fontsReady])
-
   const handleCopyCode = async () => {
     if (!report) return
 
@@ -440,7 +118,7 @@ export function RapportContent() {
       setCopied(true)
       toast({
         title: "Gekopieerd!",
-        description: `Profielcode ${report.profileCode} gekopieerd naar klembord`,
+        description: "Profielcode " + report.profileCode + " gekopieerd naar klembord",
         duration: 2000,
       })
       setTimeout(() => setCopied(false), 2000)
@@ -459,7 +137,6 @@ export function RapportContent() {
     setDownloadState("preparing")
 
     try {
-      // Get auth token
       const { supabase } = await import('@/lib/supabase')
       const { data: sessionRes } = await supabase.auth.getSession()
       const token = sessionRes.session?.access_token
@@ -468,27 +145,27 @@ export function RapportContent() {
         throw new Error('Niet geauthenticeerd')
       }
 
-      // Generate print token
       const response = await fetch('/api/rapport/generate-token', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          'Authorization': "Bearer " + token,
         },
         body: JSON.stringify({ attempt_id: attemptId }),
       })
 
       if (!response.ok) {
-        throw new Error('Kon geen print token genereren')
+        const errorData = await response.json().catch(() => ({} as any))
+        const msg = (errorData as any)?.error || `Kon geen print token genereren (${response.status})`
+        throw new Error(msg)
       }
 
       const { token: printToken } = await response.json()
 
       setDownloadState("opening")
 
-      // Open print page in new window
-      const printUrl = `/rapport/print?token=${printToken}`
-      window.open(printUrl, '_blank')
+      const printUrl = "/rapport/print-html?token=" + printToken
+      window.location.assign(printUrl)
 
       setDownloadState("success")
       setTimeout(() => setDownloadState("idle"), 3000)
@@ -497,31 +174,14 @@ export function RapportContent() {
       setDownloadState("error")
       toast({
         title: "Fout",
-        description: "Kon printvenster niet openen. Probeer het opnieuw.",
+        description: err instanceof Error ? err.message : "Kon printvenster niet openen. Probeer het opnieuw.",
         variant: "destructive",
       })
       setTimeout(() => setDownloadState("idle"), 3000)
     }
   }
 
-  const getTopTraits = (scores: DiscScores): [string, number][] => {
-    return Object.entries(scores)
-      .sort(([, a], [, b]) => b - a)
-      .slice(0, 2) as [string, number][]
-  }
-
-  const getBiggestDifference = (): { trait: string; natural: number; response: number; diff: number } | null => {
-    if (!report) return null
-
-    const diffs = (["D", "I", "S", "C"] as const).map((trait) => ({
-      trait,
-      natural: report.natuurlijkeStijl[trait],
-      response: report.responsStijl[trait],
-      diff: Math.abs(report.natuurlijkeStijl[trait] - report.responsStijl[trait]),
-    }))
-
-    return diffs.sort((a, b) => b.diff - a.diff)[0]
-  }
+  const content = report ? PROFILE_CONTENT[report.profileCode] : null
 
   if (loading) {
     return (
@@ -560,79 +220,167 @@ export function RapportContent() {
     )
   }
 
-  const insights = INSIGHTS_BY_PROFILE[report.profileCode]
-  const topTraits = getTopTraits(report.natuurlijkeStijl)
-  const biggestDiff = getBiggestDifference()
+  const discColorMap: Record<string, string> = {
+    D: "text-disc-d",
+    I: "text-disc-i",
+    S: "text-disc-s",
+    C: "text-disc-c",
+  }
+
+  const discBgMap: Record<string, string> = {
+    D: "bg-disc-d",
+    I: "bg-disc-i",
+    S: "bg-disc-s",
+    C: "bg-disc-c",
+  }
 
   return (
     <div className="min-h-screen bg-background">
+      <style jsx global>{`
+        @media print {
+          @page {
+            margin: 20mm;
+            size: A4;
+          }
+          body {
+            print-color-adjust: exact;
+            -webkit-print-color-adjust: exact;
+          }
+          .print\:hidden {
+            display: none !important;
+          }
+          .shadow-apple-lg {
+            box-shadow: none !important;
+            border: 1px solid #e2e8f0 !important;
+          }
+          section, .motion-div, .Card {
+            page-break-inside: avoid;
+            break-inside: avoid;
+          }
+          h1, h2, h3 {
+            page-break-after: avoid;
+            break-after: avoid;
+          }
+        }
+      `}</style>
       <div className="mx-auto max-w-5xl px-4 py-8 md:py-12 print:py-4">
-        {/* Hero Section */}
+        {/* 1. Hero / Introductiesectie */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="relative mb-8 print:mb-4"
+          className="relative mb-12 print:mb-8"
         >
-          <div className="mb-4">
-            <Badge className="mb-4 bg-[#2F6B4F] hover:bg-[#2F6B4F]/90 text-white text-xs print:text-[10px]">
-              DISC Persoonlijkheidsanalyse
+          <div className="mb-6">
+            <Badge className="mb-4 bg-tlc-green hover:bg-tlc-green/90 text-white px-3 py-1 text-xs font-semibold tracking-wider uppercase border-none rounded-full">
+              Persoonlijk Communicatieprofiel
             </Badge>
-            <h1 className="text-4xl md:text-5xl font-bold mb-2 text-balance">Jouw DISC Rapport</h1>
-            <p className="text-muted-foreground text-sm md:text-base">
-              Analyse voltooid op{" "}
-              {new Date(report.assessmentDate).toLocaleDateString("nl-NL", {
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-              })}
-            </p>
-          </div>
-
-          {/* Profile Code Badge */}
-          <div className="flex items-center gap-4 flex-wrap">
-            <div className="inline-flex items-center gap-3 bg-[#E7F3ED] rounded-2xl px-6 py-4 print:py-2">
-              <span className="text-sm font-medium text-[#2F6B4F]">Jouw profiel:</span>
-              <span className="text-5xl md:text-6xl font-bold text-[#2F6B4F] print:text-4xl">{report.profileCode}</span>
+            <h1 className="text-4xl md:text-6xl font-bold mb-4 text-balance tracking-tight">
+              Jouw persoonlijke communicatieprofiel
+            </h1>
+            <h2 className="text-xl md:text-2xl text-muted-foreground font-medium mb-8">
+              Basisprofiel Plus – The Lean Communication
+            </h2>
+            
+            <div className="flex flex-col gap-2 border-l-4 border-tlc-green pl-6 py-2">
+              <p className="text-2xl font-bold text-foreground italic">
+                {report.candidateName}
+              </p>
+              <p className="text-sm text-muted-foreground font-medium">
+                Afgerond op{" "}
+                {new Date(report.assessmentDate).toLocaleDateString("nl-NL", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })}
+              </p>
+              <p className="text-lg font-semibold mt-2">
+                Hoofdstijl: <span className={discColorMap[report.profileCode[0]]}>{content?.hoofdstijl} ({report.profileCode[0]})</span>
+              </p>
             </div>
-            <Button variant="outline" size="sm" onClick={handleCopyCode} className="gap-2 print:hidden bg-transparent">
-              {copied ? (
-                <>
-                  <Check className="h-4 w-4" />
-                  Gekopieerd
-                </>
-              ) : (
-                <>
-                  <Copy className="h-4 w-4" />
-                  Kopieer code
-                </>
-              )}
-            </Button>
           </div>
         </motion.div>
 
-        {/* Top 2 Traits Chips */}
+        {/* 2. Korte samenvatting (Executive Summary) */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" }}
-          className="mb-8 print:mb-4"
+          className="mb-12 print:mb-8"
         >
-          <Card className="print:shadow-none">
-            <CardContent className="pt-6 print:pt-3">
-              <div className="grid md:grid-cols-2 gap-4 print:gap-2">
-                <div className="space-y-2">
-                  <h4 className="font-semibold mb-2 text-[#2F6B4F] print:text-sm">Natuurlijke stijl</h4>
-                  <p className="text-sm text-muted-foreground print:text-xs">
-                    Dit is hoe je van nature bent, zonder externe druk. Het weerspiegelt je authentieke zelf en
-                    voorkeuren.
+          <Card className="border-none shadow-apple-lg bg-muted/30 rounded-3xl overflow-hidden">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-2xl font-bold text-tlc-green">Samenvatting</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-4">
+                {content?.samenvatting.map((line, idx) => (
+                  <li key={idx} className="flex gap-3 items-start text-lg leading-relaxed">
+                    <div className="mt-2.5 h-2 w-2 rounded-full bg-tlc-green shrink-0" />
+                    <span>{line}</span>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* 3. Jouw profiel in één oogopslag */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
+          className="mb-12 print:mb-8"
+          id="scores"
+        >
+          <Card className="shadow-apple-lg border-none overflow-hidden rounded-3xl">
+            <CardHeader className="bg-muted/50 pb-8 px-8 pt-8">
+              <div className="flex items-start justify-between flex-wrap gap-4">
+                <div>
+                  <CardTitle className="text-2xl font-bold text-tlc-green mb-2">Jouw profiel in één oogopslag</CardTitle>
+                  <CardDescription className="text-base max-w-2xl text-muted-foreground">
+                    In deze grafiek zie je hoe jouw natuurlijke stijl en responsstijl zich tot elkaar verhouden. 
+                    De natuurlijke stijl is hoe je van nature bent, de responsstijl hoe je je aanpast onder druk.
+                  </CardDescription>
+                </div>
+                <div className="flex bg-background rounded-xl p-1 border shadow-sm print:hidden">
+                  {(["both", "natural", "response"] as ViewMode[]).map((mode) => (
+                    <Button
+                      key={mode}
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setViewMode(mode)}
+                      className={cn(
+                        "px-4 py-2 text-xs font-semibold transition-all rounded-lg",
+                        viewMode === mode ? "bg-tlc-green text-white shadow-sm hover:bg-tlc-green/90" : "text-muted-foreground hover:text-foreground"
+                      )}
+                    >
+                      {mode === "both" ? "Beide" : mode === "natural" ? "Natuurlijk" : "Respons"}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-8">
+              <DiscChart natuurlijk={report.natuurlijkeStijl} respons={report.responsStijl} viewMode={viewMode} />
+              
+              <div className="mt-12 grid md:grid-cols-2 gap-8">
+                <div className="p-6 rounded-2xl bg-muted/30 border border-muted-foreground/10">
+                  <h4 className="font-bold text-tlc-green mb-3 flex items-center gap-2">
+                    <div className="h-3 w-3 rounded-full bg-tlc-green" />
+                    Natuurlijke stijl
+                  </h4>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    Dit is je authentieke zelf, je voorkeursgedrag zonder druk. Het kost je de minste energie om vanuit deze stijl te handelen.
                   </p>
                 </div>
-                <div className="space-y-2">
-                  <h4 className="font-semibold mb-2 text-[#2F6B4F] print:text-sm">Responsstijl</h4>
-                  <p className="text-sm text-muted-foreground print:text-xs">
-                    Dit toont hoe je je aanpast aan uitdagende situaties of druk van buitenaf. Grote verschillen met je
-                    natuurlijke stijl kunnen wijzen op stress of aanpassingsgedrag.
+                <div className="p-6 rounded-2xl bg-muted/30 border border-muted-foreground/10">
+                  <h4 className="font-bold text-tlc-green/70 mb-3 flex items-center gap-2">
+                    <div className="h-3 w-3 rounded-full bg-tlc-green/50" />
+                    Responsstijl
+                  </h4>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    Dit toont hoe je je aanpast aan je omgeving, verwachtingen of druk. Grote verschillen kunnen wijzen op bewuste aanpassing of stress.
                   </p>
                 </div>
               </div>
@@ -640,205 +388,354 @@ export function RapportContent() {
           </Card>
         </motion.div>
 
-        {/* Chart Section */}
+        {/* 4. Persoonlijke beschrijving */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3, ease: "easeOut" }}
-          id="scores"
+          className="mb-12 print:mb-8"
         >
-          <Card className="mb-8 print:mb-4 print:shadow-none">
-            <CardHeader className="print:pb-2">
-              <div className="flex items-start justify-between flex-wrap gap-4">
-                <div>
-                  <CardTitle className="print:text-lg">Jouw DISC-scores</CardTitle>
-                  <CardDescription className="print:text-xs">
-                    Vergelijk je natuurlijke en responsstijl per dimensie
-                  </CardDescription>
-                </div>
-                <div className="flex gap-2 print:hidden">
-                  <Button
-                    variant={viewMode === "both" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setViewMode("both")}
-                    className={cn(viewMode === "both" && "bg-[#2F6B4F] hover:bg-[#2F6B4F]/90")}
-                  >
-                    Beide
-                  </Button>
-                  <Button
-                    variant={viewMode === "natural" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setViewMode("natural")}
-                    className={cn(viewMode === "natural" && "bg-[#2F6B4F] hover:bg-[#2F6B4F]/90")}
-                  >
-                    Natuurlijk
-                  </Button>
-                  <Button
-                    variant={viewMode === "response" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setViewMode("response")}
-                    className={cn(viewMode === "response" && "bg-[#2F6B4F] hover:bg-[#2F6B4F]/90")}
-                  >
-                    Respons
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="print:pt-2">
-              {/* Mini summary */}
-              {biggestDiff && (
-                <div className="mb-6 p-4 bg-muted rounded-lg print:mb-3 print:p-2">
-                  <div className="grid md:grid-cols-2 gap-4 text-sm print:text-xs print:gap-2">
-                    <div>
-                      <span className="font-medium">Hoogste natuurlijke stijl: </span>
-                      <span className="text-[#2F6B4F] font-semibold">
-                        {topTraits[0][0]} ({topTraits[0][1]}%)
-                      </span>
-                    </div>
-                    <div>
-                      <span className="font-medium">Grootste verschil: </span>
-                      <span className="text-[#2F6B4F] font-semibold">
-                        {biggestDiff.trait} ({biggestDiff.natural}% vs {biggestDiff.response}%)
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <DiscChart natuurlijk={report.natuurlijkeStijl} respons={report.responsStijl} viewMode={viewMode} />
-
-              {/* Disclaimer */}
-              <p className="text-xs text-muted-foreground mt-4 text-center print:mt-2">
-                Scores zijn indicatief en gebaseerd op je antwoorden op{" "}
-                {new Date(report.assessmentDate).toLocaleDateString("nl-NL")}.
-              </p>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Insights Grid */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
-          id="inzichten"
-        >
-          <div className="mb-8 print:mb-4">
-            <h2 className="text-2xl font-bold mb-2 print:text-xl">Jouw inzichten</h2>
-            <p className="text-muted-foreground text-sm mb-6 print:text-xs print:mb-3">
-              Ontdek wat jouw {report.profileCode}-profiel betekent voor je werk en samenwerking.
-            </p>
-
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 print:gap-2">
-              {insights.map((insight, idx) => {
-                const Icon = insight.icon
-                const isDevPoint = insight.title.toLowerCase().includes("ontwikkelpunt")
-
-                return (
-                  <Card
-                    key={idx}
-                    className={cn(
-                      "print:shadow-none print:break-inside-avoid",
-                      isDevPoint && "border-amber-200 bg-amber-50/50",
-                    )}
-                  >
-                    <CardHeader className="pb-3 print:pb-1">
-                      <div className="flex items-start gap-3">
-                        <div
-                          className={cn(
-                            "p-2 rounded-lg shrink-0",
-                            isDevPoint ? "bg-amber-100 text-amber-700" : "bg-[#E7F3ED] text-[#2F6B4F]",
-                          )}
-                        >
-                          <Icon className="h-5 w-5 print:h-4 print:w-4" />
-                        </div>
-                        <div>
-                          <CardTitle className="text-base print:text-sm">{insight.title}</CardTitle>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="print:pt-0">
-                      <p className="text-sm text-muted-foreground print:text-xs">{insight.description}</p>
-                    </CardContent>
-                  </Card>
-                )
-              })}
+          <div className="space-y-8 max-w-4xl px-2">
+            <h2 className="text-3xl font-bold text-tlc-green text-balance">Persoonlijke beschrijving</h2>
+            <div className="space-y-6">
+              {content?.persoonlijkeBeschrijving.map((p, idx) => (
+                <p key={idx} className="text-lg leading-relaxed text-foreground/90 first-letter:text-4xl first-letter:font-bold first-letter:text-tlc-green first-letter:mr-2 first-letter:float-left first-letter:mt-1">
+                  {p}
+                </p>
+              ))}
             </div>
           </div>
         </motion.div>
 
-        {/* Download Section */}
+        <Separator className="my-16 opacity-50" />
+
+        <div className="grid md:grid-cols-2 gap-12 mb-16 print:gap-8 print:mb-8">
+          {/* 5. Jouw taakgerichte kwaliteiten */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <Card className="h-full border-none shadow-apple-lg rounded-3xl overflow-hidden">
+              <CardHeader className="bg-tlc-green/5 pb-6">
+                <CardTitle className="text-xl font-bold text-tlc-green flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-tlc-green/10">
+                    <Target className="h-6 w-6 text-tlc-green" />
+                  </div>
+                  Taakgerichte kwaliteiten
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <ul className="space-y-6">
+                  {content?.taakgerichteKwaliteiten.map((q, idx) => {
+                    const parts = q.split(': ')
+                    const title = parts[0]
+                    const desc = parts[1] || ""
+                    return (
+                      <li key={idx}>
+                        <div className="font-bold text-foreground mb-1">{title}</div>
+                        <div className="text-sm text-muted-foreground leading-relaxed">{desc}</div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* 6. Jouw mensgerichte kwaliteiten */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <Card className="h-full border-none shadow-apple-lg rounded-3xl overflow-hidden">
+              <CardHeader className="bg-tlc-green/5 pb-6">
+                <CardTitle className="text-xl font-bold text-tlc-green flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-tlc-green/10">
+                    <Users className="h-6 w-6 text-tlc-green" />
+                  </div>
+                  Mensgerichte kwaliteiten
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <ul className="space-y-6">
+                  {content?.mensgerichteKwaliteiten.map((q, idx) => {
+                    const parts = q.split(': ')
+                    const title = parts[0]
+                    const desc = parts[1] || ""
+                    return (
+                      <li key={idx}>
+                        <div className="font-bold text-foreground mb-1">{title}</div>
+                        <div className="text-sm text-muted-foreground leading-relaxed">{desc}</div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+
+        {/* 7. Mogelijke valkuilen */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.5, ease: "easeOut" }}
-          className="print:hidden"
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="mb-16 print:mb-8"
         >
-          <Card className="border-[#2F6B4F] border-2">
-            <CardHeader className="text-center">
-              <CardTitle className="text-2xl">Download je rapport als PDF</CardTitle>
-              <CardDescription>
-                Bewaar je DISC-analyse voor later of deel deze met je team of coach.
-              </CardDescription>
+          <Card className="border-none shadow-apple-lg bg-amber-50/30 rounded-3xl overflow-hidden">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-2xl font-bold text-amber-700 flex items-center gap-3">
+                <AlertCircle className="h-7 w-7" />
+                Mogelijke valkuilen
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col items-center gap-4">
-                <Button
-                  onClick={handleDownload}
-                  size="lg"
-                  disabled={downloadState !== "idle"}
-                  className="bg-[#2F6B4F] hover:bg-[#2F6B4F]/90 gap-2"
-                >
-                  {downloadState === "idle" && (
-                    <>
-                      <Printer className="h-5 w-5" />
-                      Download als PDF
-                    </>
-                  )}
-                  {downloadState === "preparing" && "Rapport voorbereiden..."}
-                  {downloadState === "opening" && "Printvenster openen..."}
-                  {downloadState === "success" && (
-                    <>
-                      <Check className="h-5 w-5" />
-                      Printvenster geopend!
-                    </>
-                  )}
-                  {downloadState === "error" && "Fout opgetreden"}
-                </Button>
-
-                <p className="text-xs text-muted-foreground mt-4">
-                  Werkt het printvenster niet?{" "}
-                  <a
-                    href={`/rapport/print?code=${report.profileCode}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[#2F6B4F] hover:underline font-medium"
-                  >
-                    Open print pagina in nieuw tabblad
-                  </a>
+              <div className="grid md:grid-cols-2 gap-x-12 gap-y-6 mb-8">
+                {content?.valkuilen.map((v, idx) => (
+                  <div key={idx} className="flex gap-3 items-start">
+                    <div className="mt-2.5 h-1.5 w-1.5 rounded-full bg-amber-500 shrink-0" />
+                    <span className="text-lg leading-tight">{v}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="bg-amber-100/50 p-6 rounded-2xl border border-amber-200/50">
+                <p className="text-sm font-medium text-amber-800 italic">
+                  Bewustzijn van deze valkuilen helpt je om ze tijdig te herkennen en bij te sturen.
                 </p>
               </div>
             </CardContent>
           </Card>
         </motion.div>
 
-        {/* Trust Footer */}
+        {/* 8. Communicatiestijl: wat heb jij nodig? */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="mb-16 print:mb-8"
+        >
+          <h2 className="text-3xl font-bold text-tlc-green mb-8 px-2">Communicatiestijl: wat heb jij nodig?</h2>
+          <div className="grid md:grid-cols-3 gap-8">
+            <Card className="border-none shadow-apple-lg rounded-3xl p-8 space-y-6 text-card-foreground bg-card">
+              <div className="h-14 w-14 rounded-2xl bg-tlc-green/10 flex items-center justify-center text-tlc-green">
+                <Info className="h-7 w-7" />
+              </div>
+              <div className="space-y-4">
+                <h4 className="font-bold uppercase tracking-widest text-muted-foreground text-xs">Wat belangrijk is</h4>
+                <p className="text-xl font-bold leading-snug">{content?.behoeften.belangrijk}</p>
+              </div>
+            </Card>
+            
+            <Card className="border-none shadow-apple-lg rounded-3xl p-8 space-y-6 text-card-foreground bg-card">
+              <div className="h-14 w-14 rounded-2xl bg-red-50 flex items-center justify-center text-red-600">
+                <LayoutGrid className="h-7 w-7" />
+              </div>
+              <div className="space-y-4">
+                <h4 className="font-bold uppercase tracking-widest text-muted-foreground text-xs">Wat energie kost</h4>
+                <ul className="space-y-3">
+                  {content?.behoeften.energieKost.map((item, idx) => (
+                    <li key={idx} className="text-foreground/80 font-semibold flex items-center gap-2">
+                      <div className="h-1 w-1 rounded-full bg-red-400" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </Card>
+
+            <Card className="border-none shadow-apple-lg rounded-3xl p-8 space-y-6 text-card-foreground bg-card">
+              <div className="h-14 w-14 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600">
+                <Share2 className="h-7 w-7" />
+              </div>
+              <div className="space-y-4">
+                <h4 className="font-bold uppercase tracking-widest text-muted-foreground text-xs">Beste benadering</h4>
+                <ul className="space-y-3">
+                  {content?.behoeften.benadering.map((item, idx) => (
+                    <li key={idx} className="text-foreground/80 font-semibold flex items-center gap-2">
+                      <div className="h-1 w-1 rounded-full bg-blue-400" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </Card>
+          </div>
+        </motion.div>
+
+        {/* 9. Jouw stijl binnen DISC */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="mb-16 print:mb-8"
+        >
+          <Card className="border-none shadow-apple-lg overflow-hidden rounded-3xl">
+            <div className="grid md:grid-cols-3">
+              <div className={cn("p-12 text-white flex flex-col justify-center items-center text-center", discBgMap[report.profileCode[0]])}>
+                <span className="text-xs font-bold uppercase tracking-[0.2em] mb-4 opacity-80">Hoofdstijl</span>
+                <span className="text-9xl font-black mb-4 tracking-tighter">{report.profileCode[0]}</span>
+                <span className="text-2xl font-bold uppercase tracking-wider">{content?.hoofdstijl}</span>
+              </div>
+              <div className="md:col-span-2 p-12 flex flex-col justify-center bg-card">
+                <h3 className="text-2xl font-bold mb-8 text-tlc-green">Positionering binnen DISC</h3>
+                <div className="space-y-8">
+                  {content?.steunstijlen && content.steunstijlen.length > 0 && (
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground block mb-4">Steunstijlen</span>
+                      <div className="flex flex-wrap gap-3">
+                        {content.steunstijlen.map((style, idx) => (
+                          <Badge key={idx} variant="outline" className="text-lg px-6 py-2 font-bold border-2 rounded-xl">
+                            {style}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground block mb-4">Kenmerken</span>
+                    <div className="flex flex-wrap gap-3">
+                      {content?.samenvatting.slice(0, 4).map((feat, idx) => (
+                        <div key={idx} className="bg-muted px-5 py-2.5 rounded-2xl text-sm font-bold text-foreground/80">
+                          {feat.replace(/^[.\s]*Je bent\s/i, '').replace(/^[.\s]*Je\s/i, '')}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Card>
+        </motion.div>
+
+        {/* 10. Korte uitleg van het model (Accordion) */}
         <motion.div
           initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.6 }}
-          className="mt-8 text-center print:mt-4"
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          className="mb-16 print:hidden"
         >
-          <p className="text-sm text-muted-foreground mb-2 print:text-xs">
-            Je resultaten zijn privé. De PDF wordt lokaal voorbereid.
-          </p>
-          <p className="text-xs text-muted-foreground print:text-[10px]">
-            Vragen over je rapport?{" "}
-            <a href="mailto:support@disc.nl" className="text-[#2F6B4F] hover:underline">
-              Neem contact op met support
-            </a>
-          </p>
+          <Accordion type="single" className="w-full">
+            <AccordionItem value="model-explanation" className="border-none shadow-apple-lg rounded-3xl px-8 bg-muted/20">
+              <AccordionTrigger className="text-xl font-bold text-tlc-green hover:no-underline py-8">
+                Uitleg van het DISC-model
+              </AccordionTrigger>
+              <AccordionContent className="pb-10 text-base leading-relaxed text-muted-foreground">
+                <div className="grid md:grid-cols-2 gap-12 pt-4">
+                  <div className="space-y-4">
+                    <h4 className="font-bold text-foreground text-lg text-balance">Wat meten we wel?</h4>
+                    <p>We meten gedragsvoorkeuren: hoe je geneigd bent te reageren op situaties, hoe je communiceert en waar je energie van krijgt. Het model is gebaseerd op het werk van William Moulton Marston en Carl Jung.</p>
+                  </div>
+                  <div className="space-y-4">
+                    <h4 className="font-bold text-foreground text-lg text-balance">Wat meten we niet?</h4>
+                    <p>DISC meet geen competenties, vaardigheden, intelligentie of waarden. Het is een beschrijving van hoe je dingen doet, niet hoe goed je ergens in bent. Competenties kun je ontwikkelen, je DISC-stijl is je basisvoorkeur.</p>
+                  </div>
+                </div>
+                <Separator className="my-10 opacity-30" />
+                <p className="italic text-sm text-center">DISC is een hulpmiddel voor zelfinzicht en betere samenwerking, geen label of oordeel.</p>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </motion.div>
+
+        {/* 11. Toepassing: wat kan je met dit profiel? */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="mb-16 print:mb-8"
+        >
+          <div className="bg-tlc-green text-white rounded-[2.5rem] p-12 md:p-16 shadow-apple-lg">
+            <h2 className="text-3xl font-bold mb-10">Wat kun je met dit profiel?</h2>
+            <div className="grid md:grid-cols-3 gap-10 text-white/90">
+              <div className="bg-white/10 p-8 rounded-3xl backdrop-blur-md border border-white/10">
+                <h4 className="font-bold text-xl mb-4">Persoonlijke groei</h4>
+                <p className="text-sm leading-relaxed">Gebruik de inzichten over je valkuilen om bewuster keuzes te maken in je dagelijkse communicatie en professionele interacties.</p>
+              </div>
+              <div className="bg-white/10 p-8 rounded-3xl backdrop-blur-md border border-white/10">
+                <h4 className="font-bold text-xl mb-4">Teamontwikkeling</h4>
+                <p className="text-sm leading-relaxed">Deel je profiel met collega's om wederzijds begrip te vergroten, irritaties te verminderen en samenwerking te versoepelen.</p>
+              </div>
+              <div className="bg-white/10 p-8 rounded-3xl backdrop-blur-md border border-white/10">
+                <h4 className="font-bold text-xl mb-4">Effectief leiderschap</h4>
+                <p className="text-sm leading-relaxed">Stem je managementstijl af op de gedragsvoorkeuren van anderen voor meer impact, betere resultaten en minder weerstand.</p>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* 12. Afsluiting & Call-to-Action */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="text-center py-20 px-4"
+        >
+          <h3 className="text-3xl md:text-4xl font-bold mb-8 tracking-tight max-w-3xl mx-auto leading-tight">
+            "Dit profiel geeft inzicht. De echte kracht zit in wat je ermee doet."
+          </h3>
+          <div className="flex flex-wrap justify-center gap-6 mt-12 print:hidden">
+            <Button
+              onClick={handleDownload}
+              size="lg"
+              disabled={downloadState !== "idle"}
+              className="bg-tlc-green hover:bg-tlc-green/90 text-white h-auto px-10 py-5 text-xl font-bold rounded-2xl shadow-apple-lg transition-all hover:scale-105"
+            >
+              {downloadState === "idle" && (
+                <>
+                  <Printer className="mr-3 h-6 w-6" />
+                  Download PDF
+                </>
+              )}
+              {downloadState === "preparing" && "Voorbereiden..."}
+              {downloadState === "opening" && "Bezig..."}
+              {downloadState === "success" && "Gelukt!"}
+              {downloadState === "error" && "Fout opgetreden"}
+            </Button>
+            
+            <Button
+              variant="outline"
+              size="lg"
+              className="h-auto px-10 py-5 text-xl font-bold rounded-2xl border-2 transition-all hover:bg-muted"
+              onClick={() => {
+                toast({
+                  title: "In ontwikkeling",
+                  description: "De deelfunctie wordt binnenkort toegevoegd.",
+                })
+              }}
+            >
+              <Share2 className="mr-3 h-6 w-6" />
+              Deel resultaat
+            </Button>
+
+            <Button
+              variant="link"
+              size="lg"
+              className="text-tlc-green font-black text-xl h-auto py-5 group"
+              onClick={() => window.open('https://tlcprofielen.nl', '_blank')}
+            >
+              Meer over TLC Profielen
+              <ArrowRight className="ml-3 h-6 w-6 transition-transform group-hover:translate-x-1" />
+            </Button>
+          </div>
+        </motion.div>
+
+        {/* Footer info */}
+        <div className="mt-16 pt-12 border-t text-center text-muted-foreground text-sm print:mt-8 font-medium">
+          <p>© {new Date().getFullYear()} TLC Profielen - Alle rechten voorbehouden</p>
+          <div className="flex justify-center gap-8 mt-6 print:hidden">
+            <a href="https://tlcprofielen.nl/privacybeleid/" className="hover:text-tlc-green transition-colors">Privacy</a>
+            <a href="https://tlcprofielen.nl/contact/" className="hover:text-tlc-green transition-colors">Contact</a>
+          </div>
+        </div>
       </div>
     </div>
   )

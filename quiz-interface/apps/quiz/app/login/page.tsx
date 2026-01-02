@@ -70,21 +70,20 @@ function LoginInner() {
 
     try {
       // Request server to verify allowlist and send magic link atomically
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
       const redirectParam = search.get('redirect') || '/quiz'
-      const redirectTo = `${baseUrl}/auth/callback?redirect=${encodeURIComponent(redirectParam)}`
 
       const res = await fetch('/api/auth/request-magic-link', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           email: normalized, 
-          redirectTo,
+          redirectPath: redirectParam,
           first_name: firstName.trim(),
           last_name: lastName.trim()
         })
       })
       const j = await res.json().catch(() => ({ sent: false }))
+
       if (!j?.sent) {
         if (j?.reason === 'NO_ACCESS') {
           setError('NO_ACCESS')
@@ -101,6 +100,7 @@ function LoginInner() {
         setIsSubmitting(false)
         return
       }
+
       setSentEmail(normalized)
       setSent(true)
       setCooldownSeconds(0)
@@ -128,7 +128,12 @@ function LoginInner() {
         <div className="max-w-md mx-auto bg-white rounded-lg shadow p-8 text-center">
           <h1 className="text-2xl font-bold mb-4">Controleer je e-mail</h1>
           <p className="text-gray-600 mb-2">U ontvangt een email van TLC Profielen met een inloglink:</p>
-          <p className="text-lg font-semibold text-gray-900">{sentEmail}</p>
+          <a 
+            href={`mailto:${sentEmail}`}
+            className="text-lg font-semibold text-blue-600 hover:text-blue-800 underline block"
+          >
+            {sentEmail}
+          </a>
         </div>
       </div>
     )

@@ -3,7 +3,6 @@
 import React from 'react';
 import { AlertCircle, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { SparrowIcon } from './SparrowIcon';
 
 interface ErrorStateProps {
   title?: string;
@@ -19,12 +18,7 @@ export function ErrorState({
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-sm border border-[#E6E6E6] p-8 text-center relative overflow-hidden">
-        {/* Background decoration */}
-        <div className="absolute top-0 right-0 w-32 h-32 -mt-8 -mr-8 pointer-events-none opacity-5">
-          <SparrowIcon className="w-full h-full text-red-500" />
-        </div>
-
-        <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6 relative z-10">
+        <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
           <AlertCircle className="w-8 h-8 text-red-500" />
         </div>
         
@@ -40,7 +34,7 @@ export function ErrorState({
           {onRetry && (
             <Button 
               onClick={onRetry} 
-              className="bg-[#2F6B4F] hover:bg-[#25543D] text-white w-full"
+              className="bg-[#46915f] hover:bg-[#3a7a4f] text-white w-full"
             >
               Probeer opnieuw
             </Button>

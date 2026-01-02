@@ -1,0 +1,81 @@
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+
+  html,
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 210mm !important;
+    height: 297mm !important;
+    background: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  body {
+    overflow: hidden !important;
+  }
+
+  header,
+  footer,
+  nav,
+  .no-print,
+  .prev,
+  .next {
+    display: none !important;
+  }
+
+  .report-page {
+    width: 210mm;
+    height: 297mm;
+    overflow: hidden;
+    break-after: page;
+    page-break-after: always;
+  }
+
+  .report-page:last-child {
+    break-after: auto;
+    page-break-after: auto;
+  }
+
+  :root {
+    /* Templates are exported as 595x842 (A4 at 72dpi). CSS pixels are 96dpi in print layout.
+       Scale factor: 96/72 = 1.333333... */
+    --report-scale: 1.3333333333;
+  }
+
+  .report-iframe {
+    width: 595px;
+    height: 842px;
+    border: 0;
+    transform: scale(var(--report-scale));
+    transform-origin: top left;
+    display: block;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+.report-page {
+  width: 210mm;
+  height: 297mm;
+  overflow: hidden;
+}
+
+.report-iframe {
+  width: 595px;
+  height: 842px;
+  border: 0;
+}
