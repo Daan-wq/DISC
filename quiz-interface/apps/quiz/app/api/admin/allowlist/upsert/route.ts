@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+﻿import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getAdminSession } from '@/server/admin/session'
 import { supabaseAdmin } from '@/lib/supabase'
@@ -19,14 +19,14 @@ export async function POST(req: NextRequest) {
   try {
     const session = await getAdminSession()
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    
+
     // CSRF validation for state-changing request
     const csrfError = validateCsrf(req)
     if (csrfError) {
       console.warn('[allowlist/upsert] CSRF validation failed:', csrfError)
       return NextResponse.json({ error: 'Invalid request origin' }, { status: 403 })
     }
-    
+
     if (!supabaseAdmin) return NextResponse.json({ error: 'Server not configured' }, { status: 500 })
 
     const json = await req.json().catch(() => null)
@@ -60,21 +60,21 @@ export async function POST(req: NextRequest) {
       // Never use request origin (that's the admin URL, not quiz URL)
       const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production'
       const isVercel = process.env.VERCEL === '1'
-      
+
       // In local development: always use localhost
       // In production/Vercel: use env var or fallback to Vercel URL
-      const quizSiteUrl = (!isProduction && !isVercel) 
+      const quizSiteUrl = (!isProduction && !isVercel)
         ? (process.env.QUIZ_SITE_URL || 'http://localhost:3000')
         : (process.env.QUIZ_SITE_URL || 'https://disc-quiz-interface.vercel.app')
-      
+
       await sendAllowlistEmail({
         to: data.email,
         fullName: data.full_name,
         quizUrl: `${quizSiteUrl}/login`
       })
-      console.log(`✅ Invitation email sent to ${data.email}`)
+      console.log(`Invitation email sent to ${data.email}`)
     } catch (emailError) {
-      console.error('⚠️ Failed to send invitation email:', emailError)
+      console.error('Failed to send invitation email:', emailError)
       // Don't fail the request if email fails - allowlist entry was still created
     }
 

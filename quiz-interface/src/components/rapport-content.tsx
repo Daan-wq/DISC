@@ -3,17 +3,17 @@
 import { useEffect, useState, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { motion } from "framer-motion"
-import { 
-  Check, 
-  TrendingUp, 
-  Users, 
-  Target, 
-  Lightbulb, 
-  AlertCircle, 
-  Printer, 
-  LayoutGrid, 
-  Info, 
-  ArrowRight, 
+import {
+  Check,
+  TrendingUp,
+  Users,
+  Target,
+  Lightbulb,
+  AlertCircle,
+  Printer,
+  LayoutGrid,
+  Info,
+  ArrowRight,
   Share2,
   Copy
 } from "lucide-react"
@@ -54,7 +54,7 @@ export interface RapportContentProps {
 export function RapportContent({ initialReport, isPrintMode = false }: RapportContentProps) {
   const searchParams = useSearchParams()
   const attemptId = searchParams.get('attempt_id')
-  
+
   const [viewMode, setViewMode] = useState<ViewMode>("both")
   const [copied, setCopied] = useState(false)
   const [downloadState, setDownloadState] = useState<"idle" | "preparing" | "opening" | "success" | "error">("idle")
@@ -66,7 +66,7 @@ export function RapportContent({ initialReport, isPrintMode = false }: RapportCo
   // Load data from localStorage if not provided
   useEffect(() => {
     if (initialReport) return;
-    
+
     const loadData = async () => {
       if (!attemptId) {
         setError('Geen rapport ID opgegeven')
@@ -76,7 +76,7 @@ export function RapportContent({ initialReport, isPrintMode = false }: RapportCo
 
       try {
         const cachedData = localStorage.getItem('quiz_result_' + attemptId)
-        
+
         if (cachedData) {
           const parsed = JSON.parse(cachedData)
           const reportData: DiscReport = {
@@ -145,7 +145,7 @@ export function RapportContent({ initialReport, isPrintMode = false }: RapportCo
         throw new Error('Niet geauthenticeerd')
       }
 
-      const response = await fetch('/api/rapport/generate-token', {
+      const response = await fetch('/api/rapport/download-pdf', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -156,25 +156,40 @@ export function RapportContent({ initialReport, isPrintMode = false }: RapportCo
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({} as any))
-        const msg = (errorData as any)?.error || `Kon geen print token genereren (${response.status})`
+        const msg =
+          (errorData as any)?.error ||
+          `Kon geen PDF genereren (${response.status}). Bekijk Network tab voor details.`
         throw new Error(msg)
       }
 
-      const { token: printToken } = await response.json()
+      const contentDisposition = response.headers.get('content-disposition') || ''
+      const filenameMatch = contentDisposition.match(/filename="?([^";]+)"?/i)
+      const filename = filenameMatch?.[1] ? decodeURIComponent(filenameMatch[1]) : 'DISC-Rapport.pdf'
 
       setDownloadState("opening")
 
-      const printUrl = "/rapport/print-html?token=" + printToken
-      window.location.assign(printUrl)
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+
+      try {
+        const a = document.createElement('a')
+        a.href = url
+        a.download = filename
+        document.body.appendChild(a)
+        a.click()
+        a.remove()
+      } finally {
+        window.URL.revokeObjectURL(url)
+      }
 
       setDownloadState("success")
       setTimeout(() => setDownloadState("idle"), 3000)
     } catch (err) {
-      console.error('Failed to generate print token:', err)
+      console.error('Failed to download PDF:', err)
       setDownloadState("error")
       toast({
         title: "Fout",
-        description: err instanceof Error ? err.message : "Kon printvenster niet openen. Probeer het opnieuw.",
+        description: err instanceof Error ? err.message : "Kon de PDF niet downloaden. Probeer het opnieuw.",
         variant: "destructive",
       })
       setTimeout(() => setDownloadState("idle"), 3000)
@@ -281,7 +296,7 @@ export function RapportContent({ initialReport, isPrintMode = false }: RapportCo
             <h2 className="text-xl md:text-2xl text-muted-foreground font-medium mb-8">
               Basisprofiel Plus – The Lean Communication
             </h2>
-            
+
             <div className="flex flex-col gap-2 border-l-4 border-tlc-green pl-6 py-2">
               <p className="text-2xl font-bold text-foreground italic">
                 {report.candidateName}
@@ -339,7 +354,7 @@ export function RapportContent({ initialReport, isPrintMode = false }: RapportCo
                 <div>
                   <CardTitle className="text-2xl font-bold text-tlc-green mb-2">Jouw profiel in één oogopslag</CardTitle>
                   <CardDescription className="text-base max-w-2xl text-muted-foreground">
-                    In deze grafiek zie je hoe jouw natuurlijke stijl en responsstijl zich tot elkaar verhouden. 
+                    In deze grafiek zie je hoe jouw natuurlijke stijl en responsstijl zich tot elkaar verhouden.
                     De natuurlijke stijl is hoe je van nature bent, de responsstijl hoe je je aanpast onder druk.
                   </CardDescription>
                 </div>
@@ -363,7 +378,7 @@ export function RapportContent({ initialReport, isPrintMode = false }: RapportCo
             </CardHeader>
             <CardContent className="p-8">
               <DiscChart natuurlijk={report.natuurlijkeStijl} respons={report.responsStijl} viewMode={viewMode} />
-              
+
               <div className="mt-12 grid md:grid-cols-2 gap-8">
                 <div className="p-6 rounded-2xl bg-muted/30 border border-muted-foreground/10">
                   <h4 className="font-bold text-tlc-green mb-3 flex items-center gap-2">
@@ -531,7 +546,7 @@ export function RapportContent({ initialReport, isPrintMode = false }: RapportCo
                 <p className="text-xl font-bold leading-snug">{content?.behoeften.belangrijk}</p>
               </div>
             </Card>
-            
+
             <Card className="border-none shadow-apple-lg rounded-3xl p-8 space-y-6 text-card-foreground bg-card">
               <div className="h-14 w-14 rounded-2xl bg-red-50 flex items-center justify-center text-red-600">
                 <LayoutGrid className="h-7 w-7" />
@@ -700,7 +715,7 @@ export function RapportContent({ initialReport, isPrintMode = false }: RapportCo
               {downloadState === "success" && "Gelukt!"}
               {downloadState === "error" && "Fout opgetreden"}
             </Button>
-            
+
             <Button
               variant="outline"
               size="lg"

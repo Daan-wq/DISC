@@ -1,1 +1,1 @@
-export * from '../../../../../../quiz/app/api/admin/notifications/list/route'
+export * from '../../../../../../../app/api/admin/notifications/list/route'

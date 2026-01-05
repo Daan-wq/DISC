@@ -1,1 +1,1 @@
-export * from '../../../../../../quiz/app/api/admin/2fa/disable/route'
+export * from '../../../../../../../app/api/admin/2fa/disable/route'

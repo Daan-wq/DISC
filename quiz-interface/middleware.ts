@@ -1,12 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
+﻿import { NextRequest, NextResponse } from 'next/server'
 
 // Host isolation configuration
 // Include Vercel domains for deployment
-const IS_PRODUCTION = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production'
-const IS_VERCEL = process.env.VERCEL === '1'
-const DISABLE_MIDDLEWARE = !IS_PRODUCTION && !IS_VERCEL && process.env.DISABLE_MIDDLEWARE === '1'
-
-const QUIZ_HOSTS = (process.env.QUIZ_HOSTS || 'quiz.tlcprofielen.nl,localhost,disc-quiz.vercel.app,disc-quiz-interface.vercel.app').split(',').map(h => h.trim().toLowerCase())
+const QUIZ_HOSTS = (process.env.QUIZ_HOSTS || 'quiz.tlcprofielen.nl,localhost,disc-quiz.vercel.app').split(',').map(h => h.trim().toLowerCase())
 const ADMIN_HOSTS = (process.env.ADMIN_HOSTS || 'admin.tlcprofielen.nl,disc-admin.vercel.app').split(',').map(h => h.trim().toLowerCase())
 
 // Paths that should only be accessible on specific hosts
@@ -37,20 +33,6 @@ export function middleware(req: NextRequest) {
   const requestId = req.headers.get('x-request-id') || crypto.randomUUID()
   const host = getHostWithoutPort(req.headers.get('host'))
   const pathname = req.nextUrl.pathname
-
-  if (process.env.DISABLE_MIDDLEWARE === '1' && (IS_PRODUCTION || IS_VERCEL)) {
-    console.warn('[middleware] DISABLE_MIDDLEWARE is set but ignored on Vercel/production')
-  }
-
-  if (DISABLE_MIDDLEWARE) {
-    const requestHeaders = new Headers(req.headers)
-    requestHeaders.set('x-request-id', requestId)
-    requestHeaders.set('x-host-type', 'disabled')
-    const response = NextResponse.next({ request: { headers: requestHeaders } })
-    response.headers.set('x-request-id', requestId)
-    response.headers.set('x-middleware-disabled', '1')
-    return response
-  }
 
   // Public API paths are allowed on ALL hosts (debug endpoints, health checks, etc.)
   if (pathStartsWith(pathname, PUBLIC_API_PATHS)) {

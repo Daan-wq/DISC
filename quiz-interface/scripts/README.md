@@ -41,8 +41,8 @@ Example: `DI-profile.pdf`, `C-profile.pdf`
 ### Verifying Output
 
 After generation, review all PDFs to ensure:
-- ✅ Charts render correctly with proper proportions
-- ✅ Percentages display accurately
-- ✅ Layouts are consistent across all profile types
-- ✅ No visual artifacts or rendering issues
-- ✅ All 9 pages are present in each PDF
+- Charts render correctly with proper proportions
+- Percentages display accurately
+- Layouts are consistent across all profile types
+- No visual artifacts or rendering issues
+- All 9 pages are present in each PDF

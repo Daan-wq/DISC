@@ -1,1 +1,1 @@
-export * from '../../../../../../quiz/app/api/admin/templates/email-preview/route'
+export * from '../../../../../../../app/api/admin/templates/email-preview/route'

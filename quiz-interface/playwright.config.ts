@@ -1,4 +1,4 @@
-import { defineConfig, devices } from '@playwright/test'
+﻿import { defineConfig, devices } from '@playwright/test'
 
 export default defineConfig({
   testDir: './tests',
@@ -11,21 +11,21 @@ export default defineConfig({
     trace: 'on-first-retry'
   },
   projects: [
-    { 
-      name: 'quiz-app', 
-      use: { 
+    {
+      name: 'quiz-app',
+      use: {
         ...devices['Desktop Chrome'],
         baseURL: 'http://localhost:3000',
       },
-      testMatch: /quiz.*\.spec\.ts/,
+      testMatch: /(^|[\\/])quiz[^\\/]*\.spec\.ts$/,
     },
-    { 
-      name: 'admin-app', 
-      use: { 
+    {
+      name: 'admin-app',
+      use: {
         ...devices['Desktop Chrome'],
         baseURL: 'http://localhost:3001',
       },
-      testMatch: /admin.*\.spec\.ts/,
+      testMatch: /(^|[\\/])admin[^\\/]*\.spec\.ts$/,
     },
   ],
   webServer: [
@@ -33,7 +33,7 @@ export default defineConfig({
       command: 'pnpm dev',
       url: 'http://localhost:3000',
       reuseExistingServer: !process.env.CI,
-      cwd: '.',
+      cwd: './apps/quiz',
     },
     {
       command: 'pnpm dev',

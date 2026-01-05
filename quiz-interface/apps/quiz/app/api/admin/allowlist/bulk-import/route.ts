@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+﻿import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getAdminSession } from '@/server/admin/session'
 import { supabaseAdmin } from '@/lib/supabase'
@@ -20,7 +20,8 @@ const BodySchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
-    if (!getAdminSession()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const session = await getAdminSession()
+    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     if (!supabaseAdmin) return NextResponse.json({ error: 'Server not configured' }, { status: 500 })
 
     const json = await req.json().catch(() => null)
@@ -65,16 +66,16 @@ export async function POST(req: NextRequest) {
     // Never use request origin (that's the admin URL, not quiz URL)
     const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production'
     const isVercel = process.env.VERCEL === '1'
-    
+
     // In local development: always use localhost
     // In production/Vercel: use env var or fallback to Vercel URL
-    const quizSiteUrl = (!isProduction && !isVercel) 
+    const quizSiteUrl = (!isProduction && !isVercel)
       ? (process.env.QUIZ_SITE_URL || 'http://localhost:3000')
       : (process.env.QUIZ_SITE_URL || 'https://disc-quiz-interface.vercel.app')
-    
+
     let emailsSent = 0
     let emailsFailed = 0
-    
+
     for (const row of rows) {
       try {
         await sendAllowlistEmail({
@@ -83,17 +84,17 @@ export async function POST(req: NextRequest) {
           quizUrl: `${quizSiteUrl}/login`
         })
         emailsSent++
-        console.log(`✅ Invitation email sent to ${row.email}`)
+        console.log(`Invitation email sent to ${row.email}`)
       } catch (emailError) {
         emailsFailed++
-        console.error(`⚠️ Failed to send email to ${row.email}:`, emailError)
+        console.error(`Failed to send email to ${row.email}:`, emailError)
       }
     }
 
-    console.log(`📧 Email summary: ${emailsSent} sent, ${emailsFailed} failed`)
+    console.log(`Email summary: ${emailsSent} sent, ${emailsFailed} failed`)
 
-    return NextResponse.json({ 
-      ok: true, 
+    return NextResponse.json({
+      ok: true,
       count: data?.length || 0,
       emails: { sent: emailsSent, failed: emailsFailed }
     })

@@ -48,12 +48,13 @@
   }
 
   .report-iframe {
-    width: 595px;
-    height: 842px;
+    width: 595.28px;
+    height: 841.89px;
     border: 0;
-    transform: scale(var(--report-scale));
+    transform: translate(0px, 0px) scale(var(--report-scale));
     transform-origin: top left;
     display: block;
+    overflow: hidden;
   }
 
   * {
@@ -75,7 +76,7 @@ body {
 }
 
 .report-iframe {
-  width: 595px;
-  height: 842px;
+  width: 595.28px;
+  height: 841.89px;
   border: 0;
 }

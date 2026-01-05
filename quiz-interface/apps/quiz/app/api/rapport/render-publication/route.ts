@@ -5,6 +5,7 @@ import { supabaseAdmin } from '@/lib/supabase'
 import { isValidProfileCode, normalizeProfileCode } from '@/lib/report/template-registry'
 import { computeDisc, type AnswerInput } from '@/lib/disc'
 import { generateChartSVG } from '@/lib/utils/chart-generator'
+import { resolveTemplatesRoots } from '@/server/rapport-pdf/templateFs'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -170,6 +171,13 @@ function replaceDiscPercentagesInHtml(html: string, disc: DiscPercentages): stri
   return html
 }
 
+function removeDiscChartMidlineOverlayFromHtml(html: string): string {
+  return html.replace(
+    /<div\s+id="_idContainer\d+"[^>]*>\s*<div[^>]*class="[^"]*\bBasisafbeeldingskader\b[^"]*"[^>]*>\s*<img[^>]*src="data:image\/png;base64,iVBORw0KGgoAAAANSUhEUgAAAK4AAAABCAYAAABHRpXV[^"]*"[^>]*>\s*<\/div>\s*<\/div>/g,
+    ''
+  )
+}
+
 function replaceDiscChartImageInHtml(html: string, disc: DiscPercentages): string {
   const svg = generateChartSVG({ natural: disc.natural, response: disc.response })
   const b64 = Buffer.from(svg, 'utf8').toString('base64')
@@ -285,6 +293,21 @@ function injectBaseHref(html: string, baseHref: string): string {
   const headOpen = headOpenMatch[0]
   const injection = `${headOpen}\n\t\t<base href="${baseHref}">`
   return html.replace(headOpen, injection)
+}
+
+function ensureCoverDynamicScript(html: string): string {
+  const withoutExisting = html.replace(
+    /<script\b[^>]*src=["'][^"']*cover-dynamic\.js[^"']*["'][^>]*>\s*<\/script>\s*/gi,
+    ''
+  )
+
+  const headCloseMatch = withoutExisting.match(/<\/head\s*>/i)
+  if (!headCloseMatch) {
+    return withoutExisting
+  }
+
+  const injection = `\n\t\t<script src="/report-templates/cover-dynamic.js"></script>\n` + headCloseMatch[0]
+  return withoutExisting.replace(headCloseMatch[0], injection)
 }
 
 function replacePlaceholders(
@@ -434,15 +457,8 @@ async function getReportDataFromToken(token: string): Promise<RenderReportData> 
 }
 
 function getPublicationFilePath(profileCode: string, file: string): string {
-  return path.join(
-    process.cwd(),
-    'public',
-    'report-templates',
-    profileCode,
-    'publication-web-resources',
-    'html',
-    file
-  )
+  const { templatesRoot } = resolveTemplatesRoots()
+  return path.join(templatesRoot, profileCode, 'publication-web-resources', 'html', file)
 }
 
 export async function GET(req: NextRequest) {
@@ -500,6 +516,10 @@ export async function GET(req: NextRequest) {
 
     html = injectBaseHref(html, baseHref)
 
+    if (file === 'publication.html') {
+      html = ensureCoverDynamicScript(html)
+    }
+
     const replacements: Record<string, string> = {
       Naam: data.candidateName,
       Voornaam: getVoornaam(data.candidateName),
@@ -515,6 +535,7 @@ export async function GET(req: NextRequest) {
     let finalHtml = replacedHtml
     if (file === 'publication-2.html') {
       finalHtml = replaceDiscChartImageInHtml(finalHtml, data.percentages)
+      finalHtml = removeDiscChartMidlineOverlayFromHtml(finalHtml)
       finalHtml = replaceDiscPercentagesInHtml(finalHtml, data.percentages)
     }
 

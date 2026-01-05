@@ -1,2 +1,1 @@
-export * from '../../../../../../quiz/app/api/admin/allowlist/import/route'
-
+export * from '../../../../../../../app/api/admin/allowlist/import/route'

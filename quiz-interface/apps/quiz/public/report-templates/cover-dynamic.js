@@ -1,4 +1,8 @@
 (() => {
+  const FONT_SCALE_FACTOR = 0.9;
+  const GAP_SCALE_FACTOR = 1;
+  const PROFIEL_NAME_GAP_SCALE_FACTOR = 0;
+
   function toPx(value) {
     const n = Number.parseFloat(String(value || '').replace('px', ''));
     return Number.isFinite(n) ? n : null;
@@ -112,11 +116,12 @@
     });
   }
 
-  function applyScaledTextStyle(targetEl, sourceEl, scale) {
+  function applyScaledTextStyle(targetEl, sourceEl, scale, sizeFactor) {
     const cs = window.getComputedStyle(sourceEl);
     const fs = toPx(cs.fontSize) ?? 0;
-    const fontSizePx = fs * (scale.sx > 0 ? scale.sx : 1);
-    const lineHeightPx = getLineHeightPxFromStyle(fs, cs.lineHeight) * (scale.sy > 0 ? scale.sy : 1);
+    const factor = Number.isFinite(sizeFactor) && sizeFactor > 0 ? sizeFactor : 1;
+    const fontSizePx = fs * (scale.sx > 0 ? scale.sx : 1) * factor;
+    const lineHeightPx = getLineHeightPxFromStyle(fs, cs.lineHeight) * (scale.sy > 0 ? scale.sy : 1) * factor;
 
     targetEl.style.fontFamily = cs.fontFamily;
     targetEl.style.fontWeight = cs.fontWeight;
@@ -127,7 +132,7 @@
 
     const ls = toPx(cs.letterSpacing);
     if (ls !== null) {
-      targetEl.style.letterSpacing = `${ls * (scale.sx > 0 ? scale.sx : 1)}px`;
+      targetEl.style.letterSpacing = `${ls * (scale.sx > 0 ? scale.sx : 1) * factor}px`;
     } else {
       targetEl.style.letterSpacing = cs.letterSpacing;
     }
@@ -153,13 +158,20 @@
     const rootRect = pageRoot.getBoundingClientRect();
     const nameRect = nameSource.getBoundingClientRect();
 
-    const nameTop = nameRect.top - rootRect.top;
+    let nameTop = nameRect.top - rootRect.top;
+    const vanSource = document.getElementById('_idTextSpan001');
+    if (vanSource) {
+      const vanRect = vanSource.getBoundingClientRect();
+      const originalGapPx = nameRect.top - vanRect.bottom;
+      const scaledGapPx = Math.max(0, originalGapPx) * PROFIEL_NAME_GAP_SCALE_FACTOR;
+      nameTop = vanRect.bottom - rootRect.top + scaledGapPx;
+    }
 
     nameBox.style.top = `${nameTop}px`;
     nameBox.textContent = (nameSource.textContent || '').trim();
 
     const nameScale = getTotalScale(nameSource);
-    const nameMetrics = applyScaledTextStyle(nameBox, nameSource, nameScale);
+    const nameMetrics = applyScaledTextStyle(nameBox, nameSource, nameScale, FONT_SCALE_FACTOR);
 
     const nameBoxRect = nameBox.getBoundingClientRect();
     const lineHeight = nameMetrics.lineHeightPx > 0 ? nameMetrics.lineHeightPx : 1;
@@ -170,13 +182,15 @@
     basisBox.textContent = basisText;
 
     const basisSourceRect = basisSourceEls[0]?.getBoundingClientRect();
-    const baseGapPx = basisSourceRect ? Math.max(0, basisSourceRect.top - nameRect.top) : 0;
-    const basisTop = baseGapPx > 0 ? nameTop + baseGapPx + (lines - 1) * lineHeight : nameTop + lines * lineHeight;
+    const baseGapPx = basisSourceRect
+      ? Math.max(0, basisSourceRect.top - nameRect.top) * GAP_SCALE_FACTOR
+      : 0;
+    const basisTop = nameTop + lines * lineHeight + lineHeight;
     basisBox.style.top = `${basisTop}px`;
 
     const basisStyleSource = basisSourceEls[0] || nameSource;
     const basisScale = basisSourceEls[0] ? getTotalScale(basisSourceEls[0]) : nameScale;
-    applyScaledTextStyle(basisBox, basisStyleSource, basisScale);
+    applyScaledTextStyle(basisBox, basisStyleSource, basisScale, FONT_SCALE_FACTOR);
 
     hideEls([nameSource, ...basisSourceEls]);
   }

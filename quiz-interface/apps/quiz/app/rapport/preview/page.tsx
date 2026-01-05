@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -14,6 +14,13 @@ import { ErrorState } from '../components/ErrorState';
 import { DiscReport } from '../types';
 import { getInsightsForProfile } from '../components/data';
 
+type DeliveryConfig = {
+  can_user_download: boolean
+  send_pdf_user: boolean
+  send_pdf_trainer: boolean
+  trainer_email: string | null
+}
+
 interface TemplateManifest {
   generatedAt: string
   templates: Array<{
@@ -26,20 +33,20 @@ interface TemplateManifest {
 const LEGACY_PRINT_ENABLED = process.env.NEXT_PUBLIC_REPORT_PRINT_LEGACY === '1';
 
 async function fetchTemplateManifest(): Promise<TemplateManifest> {
-  const res = await fetch(`/report-templates/manifest.json?v=${Date.now()}`, { 
-    cache: 'no-store' 
+  const res = await fetch(`/report-templates/manifest.json?v=${Date.now()}`, {
+    cache: 'no-store'
   })
-  
+
   if (!res.ok) {
     throw new Error(`Kon template manifest niet laden (HTTP ${res.status})`)
   }
-  
+
   const manifest = await res.json() as TemplateManifest
-  
+
   if (!manifest.templates || !Array.isArray(manifest.templates)) {
     throw new Error('Ongeldig manifest formaat')
   }
-  
+
   return manifest
 }
 
@@ -51,18 +58,18 @@ function buildTemplateSelectionPrompt(
     'Beschikbare templates (bron: Disc profielen origineel):',
     '',
   ]
-  
+
   manifest.templates.forEach((template, index) => {
     const number = index + 1
     const marker = template.profileCode === selectedProfileCode ? ' (GEKOZEN)' : ''
     lines.push(`${number}) ${template.profileCode} - ${template.sourceFolderName}${marker}`)
   })
-  
+
   lines.push('')
   lines.push(`Automatisch gekozen template voor dit rapport: ${selectedProfileCode}`)
   lines.push('')
   lines.push('Klik OK om door te gaan met printen.')
-  
+
   return lines.join('\n')
 }
 
@@ -202,6 +209,9 @@ function PreviewPageContent() {
   const [error, setError] = useState<string | null>(null);
   const [generatingToken, setGeneratingToken] = useState(false);
 
+  const [deliveryConfig, setDeliveryConfig] = useState<DeliveryConfig | null>(null)
+  const [deliveryLoading, setDeliveryLoading] = useState(true)
+
   useEffect(() => {
     const loadData = async () => {
       if (!attemptId) {
@@ -213,7 +223,7 @@ function PreviewPageContent() {
       try {
         // Fetch data from localStorage (set by quiz completion)
         const cachedData = localStorage.getItem(`quiz_result_${attemptId}`);
-        
+
         if (cachedData) {
           const parsed = JSON.parse(cachedData);
           const reportData: DiscReport = {
@@ -239,6 +249,45 @@ function PreviewPageContent() {
     loadData();
   }, [attemptId]);
 
+  useEffect(() => {
+    const loadDeliveryConfig = async () => {
+      if (!attemptId) return
+      setDeliveryLoading(true)
+      try {
+        const { supabase } = await import('@/lib/supabase')
+        const { data: sessionRes } = await supabase.auth.getSession()
+        const token = sessionRes.session?.access_token
+        if (!token) {
+          setDeliveryConfig(null)
+          return
+        }
+
+        const res = await fetch(`/api/rapport/delivery-config?attempt_id=${encodeURIComponent(attemptId)}`, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          cache: 'no-store',
+        })
+
+        if (!res.ok) {
+          setDeliveryConfig(null)
+          return
+        }
+
+        const j = (await res.json()) as DeliveryConfig
+        setDeliveryConfig(j)
+      } catch (e) {
+        console.warn('[rapport/preview] failed to load delivery config', e)
+        setDeliveryConfig(null)
+      } finally {
+        setDeliveryLoading(false)
+      }
+    }
+
+    loadDeliveryConfig()
+  }, [attemptId])
+
   const handleDownloadReport = async () => {
     if (!attemptId || !report) return;
 
@@ -254,8 +303,7 @@ function PreviewPageContent() {
         throw new Error('Niet geauthenticeerd');
       }
 
-      // Generate print token
-      const response = await fetch('/api/rapport/generate-token', {
+      const response = await fetch('/api/rapport/download-pdf', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -265,38 +313,46 @@ function PreviewPageContent() {
       });
 
       if (!response.ok) {
-        throw new Error('Kon geen print token genereren');
+        const contentType = response.headers.get('content-type') || '';
+        const errorData = contentType.includes('application/json')
+          ? await response.json().catch(() => ({} as any))
+          : ({} as any);
+
+        const requestId = (errorData as any)?.request_id;
+        const mode = (errorData as any)?.mode;
+        const statusFromBody = (errorData as any)?.status;
+        const baseMsg =
+          (errorData as any)?.error ||
+          `Kon geen PDF genereren (${response.status}). Bekijk Network tab voor details.`;
+
+        const details: string[] = [];
+        if (typeof requestId === 'string' && requestId) details.push(`request_id=${requestId}`);
+        if (typeof mode === 'string' && mode) details.push(`mode=${mode}`);
+        if (typeof statusFromBody === 'number') details.push(`upstream_status=${statusFromBody}`);
+
+        const msg = details.length > 0 ? `${baseMsg} (${details.join(', ')})` : baseMsg;
+        throw new Error(msg);
       }
 
-      const { token: printToken } = await response.json();
+      const contentDisposition = response.headers.get('content-disposition') || '';
+      const filenameMatch = contentDisposition.match(/filename="?([^";]+)"?/i);
+      const filename = filenameMatch?.[1] ? decodeURIComponent(filenameMatch[1]) : 'DISC-Rapport.pdf';
 
-       if (LEGACY_PRINT_ENABLED) {
-         const printUrl = `/rapport/print?token=${printToken}`;
-         window.location.assign(printUrl);
-         return;
-       }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
 
-      // Fetch template manifest
-      console.info('[report-template] Fetching template manifest...');
-      let manifest: TemplateManifest;
       try {
-        manifest = await fetchTemplateManifest();
-        console.info('[report-template] Loaded manifest', manifest);
-      } catch (err) {
-        console.error('[report-template] Failed to load manifest', err);
-        alert(
-          'Kon template overzicht niet laden. Controleer de browser console voor details.\n\n' +
-          (err instanceof Error ? err.message : 'Onbekende fout')
-        );
-        return;
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      } finally {
+        window.URL.revokeObjectURL(url);
       }
-
-      // Proceed directly with print flow (no popup)
-      const printUrl = `/rapport/print-html?token=${printToken}`;
-
-      await printReportInHiddenIframe(printUrl, printToken, 'handshake');
     } catch (err) {
-      console.error('Failed to print report:', err);
+      console.error('Failed to download PDF:', err);
       alert(err instanceof Error ? err.message : 'Er is een fout opgetreden. Probeer het opnieuw.');
     } finally {
       setGeneratingToken(false);
@@ -305,6 +361,9 @@ function PreviewPageContent() {
 
   if (loading) return <LoadingState />;
   if (error || !report) return <ErrorState message={error || undefined} />;
+
+  const isTrainerOnly =
+    deliveryConfig?.send_pdf_trainer === true && deliveryConfig?.send_pdf_user === false
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-20">
@@ -323,15 +382,15 @@ function PreviewPageContent() {
               </h2>
               <p className="text-green-700 text-sm leading-relaxed">
                 Je DISC profiel is succesvol berekend. Hieronder zie je een samenvatting van je resultaten.
-                Klik op de knop onderaan om je volledige rapport te printen of op te slaan als PDF.
+                Klik op de knop onderaan om je volledige rapport te downloaden.
               </p>
             </div>
           </div>
 
           <HeroSection report={report} />
-          
+
           <SummaryCard report={report} />
-          
+
           <DiscChartSection report={report} viewMode="both" />
 
           {/* Download CTA */}
@@ -348,32 +407,42 @@ function PreviewPageContent() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="text-center">
-                <p className="text-slate-600 mb-6 leading-relaxed max-w-2xl mx-auto">
-                  Je volledige DISC rapport bevat uitgebreide inzichten, tips voor communicatie,
-                  en praktische aanbevelingen. Print of sla het op als PDF om later terug te lezen.
-                </p>
-                
-                <Button
-                  onClick={handleDownloadReport}
-                  disabled={generatingToken}
-                  className="bg-[#46915f] hover:bg-[#3a7a4f] text-white h-12 px-8 text-base font-semibold shadow-lg hover:shadow-xl transition-all"
-                >
-                  {generatingToken ? (
-                    <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Rapport voorbereiden...
-                    </>
-                  ) : (
-                    <>
-                      <Download className="mr-2 h-5 w-5" />
-                      Download volledig rapport
-                    </>
-                  )}
-                </Button>
+                {isTrainerOnly ? (
+                  <p className="text-slate-700 leading-relaxed max-w-2xl mx-auto">
+                    Uw trainer heeft uw volledige DISC-profiel ontvangen. Dit profiel bevat uitgebreide inzichten,
+                    communicatietips en praktische aanbevelingen. Hierin vindt u verdere toelichting en ter ondersteuning
+                    van uw persoonlijke ontwikkeling.
+                  </p>
+                ) : (
+                  <>
+                    <p className="text-slate-600 mb-6 leading-relaxed max-w-2xl mx-auto">
+                      Je volledige DISC rapport bevat uitgebreide inzichten, tips voor communicatie,
+                      en praktische aanbevelingen. Download het om later terug te lezen. We zullen het ook in uw mail versturen.
+                    </p>
 
-                <p className="text-xs text-slate-400 mt-4">
-                  Het printvenster opent in dit tabblad. Kies &quot;Opslaan als PDF&quot; om een PDF te maken.
-                </p>
+                    <Button
+                      onClick={handleDownloadReport}
+                      disabled={generatingToken || deliveryLoading}
+                      className="bg-[#46915f] hover:bg-[#3a7a4f] text-white h-12 px-8 text-base font-semibold shadow-lg hover:shadow-xl transition-all"
+                    >
+                      {generatingToken ? (
+                        <>
+                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                          Rapport voorbereiden...
+                        </>
+                      ) : (
+                        <>
+                          <Download className="mr-2 h-5 w-5" />
+                          Download volledig rapport
+                        </>
+                      )}
+                    </Button>
+
+                    <p className="text-xs text-slate-400 mt-4">
+                      De PDF wordt automatisch gegenereerd en gedownload.
+                    </p>
+                  </>
+                )}
               </CardContent>
             </Card>
           </motion.div>
