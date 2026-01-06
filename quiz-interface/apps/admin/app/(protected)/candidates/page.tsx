@@ -41,7 +41,7 @@ function DeleteCandidateButton({ candidateId, candidateName, onDeleted }: Delete
   const [error, setError] = useState<string | null>(null)
   const [confirmOpen, setConfirmOpen] = useState(false)
 
-  const handleDelete = async () => {
+  const handleDelete = async (): Promise<boolean> => {
     try {
       setLoading(true)
       setError(null)
@@ -54,13 +54,15 @@ function DeleteCandidateButton({ candidateId, candidateName, onDeleted }: Delete
       if (!res.ok) {
         const data = await res.json()
         setError(data.error || 'Verwijdering mislukt')
-        return
+        return false
       }
 
       onDeleted()
+      return true
     } catch (e) {
       setError('Fout bij verwijdering')
       console.error(e)
+      return false
     } finally {
       setLoading(false)
     }
@@ -75,7 +77,7 @@ function DeleteCandidateButton({ candidateId, candidateName, onDeleted }: Delete
       <ConfirmDialog
         open={confirmOpen}
         title="Kandidaat verwijderen"
-        description={`Weet je zeker dat je "${candidateName}" wilt verwijderen? Dit kan niet ongedaan gemaakt worden.`}
+        description={`Weet je zeker dat je "${candidateName}" wilt verwijderen?\nDit kan niet ongedaan gemaakt worden.`}
         confirmText="Verwijderen"
         cancelText="Annuleren"
         variant="danger"
@@ -85,8 +87,8 @@ function DeleteCandidateButton({ candidateId, candidateName, onDeleted }: Delete
           setConfirmOpen(false)
         }}
         onConfirm={async () => {
-          await handleDelete()
-          setConfirmOpen(false)
+          const ok = await handleDelete()
+          if (ok) setConfirmOpen(false)
         }}
       />
       <button

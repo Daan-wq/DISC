@@ -156,9 +156,12 @@ export function RapportContent({ initialReport, isPrintMode = false }: RapportCo
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({} as any))
+        const userMessage = (errorData as any)?.user_message
         const msg =
-          (errorData as any)?.error ||
-          `Kon geen PDF genereren (${response.status}). Bekijk Network tab voor details.`
+          (typeof userMessage === 'string' && userMessage)
+            ? userMessage
+            : (errorData as any)?.error ||
+              'Het rapport kon op dit moment niet gedownload worden. Neem contact op met support; die heeft uw rapport.'
         throw new Error(msg)
       }
 
@@ -189,7 +192,10 @@ export function RapportContent({ initialReport, isPrintMode = false }: RapportCo
       setDownloadState("error")
       toast({
         title: "Fout",
-        description: err instanceof Error ? err.message : "Kon de PDF niet downloaden. Probeer het opnieuw.",
+        description:
+          err instanceof Error
+            ? err.message
+            : 'Het rapport kon op dit moment niet gedownload worden. Neem contact op met support; die heeft uw rapport.',
         variant: "destructive",
       })
       setTimeout(() => setDownloadState("idle"), 3000)

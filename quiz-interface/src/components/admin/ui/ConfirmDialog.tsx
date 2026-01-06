@@ -64,7 +64,7 @@ export function ConfirmDialog({
         </div>
 
         <div className="px-6 py-4">
-          {description ? <p className="text-sm text-slate-600">{description}</p> : null}
+          {description ? <p className="text-sm text-slate-600 whitespace-pre-line break-words">{description}</p> : null}
         </div>
 
         <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3">

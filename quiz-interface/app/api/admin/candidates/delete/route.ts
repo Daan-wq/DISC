@@ -31,7 +31,7 @@ export async function DELETE(req: NextRequest) {
     // Get candidate to find user_id
     const { data: candidate, error: candidateGetErr } = await supabaseAdmin
       .from('candidates')
-      .select('id, user_id')
+      .select('id, user_id, quiz_id')
       .eq('id', candidateId)
       .single()
 
@@ -40,39 +40,98 @@ export async function DELETE(req: NextRequest) {
     }
 
     // Delete in order of dependencies:
-    // 1. Delete answers (depends on candidate_id)
-    const { error: answersErr } = await supabaseAdmin
+    // 0) Legacy cleanup: if a results table still exists, delete results by candidate_id.
+    // Some older deployments had a results table with a FK to candidates; if we don't delete it first,
+    // the candidate delete can fail with a foreign key violation.
+    try {
+      const { error: resultsErr } = await supabaseAdmin
+        .from('results')
+        .delete()
+        .eq('candidate_id', candidateId)
+
+      if (resultsErr && (resultsErr as any)?.code !== '42P01') {
+        console.error('Failed to delete results:', resultsErr)
+        return NextResponse.json({ error: 'Failed to delete results' }, { status: 500 })
+      }
+    } catch (e: any) {
+      const msg = e?.message || String(e)
+      if (!msg.toLowerCase().includes('does not exist')) {
+        console.error('Failed to delete results (exception):', e)
+        return NextResponse.json({ error: 'Failed to delete results' }, { status: 500 })
+      }
+    }
+
+    // 1) Load attempt ids for this candidate/user (answers may be linked by attempt_id)
+    const attemptIds: string[] = []
+    if (candidate.user_id) {
+      let q = supabaseAdmin.from('quiz_attempts').select('id').eq('user_id', candidate.user_id)
+      if (candidate.quiz_id) {
+        q = q.eq('quiz_id', candidate.quiz_id)
+      }
+
+      const { data: attempts, error: attemptsSelectErr } = await q
+      if (attemptsSelectErr) {
+        console.error('Failed to fetch quiz_attempts for deletion:', attemptsSelectErr)
+        return NextResponse.json({ error: 'Failed to fetch quiz attempts' }, { status: 500 })
+      }
+
+      for (const row of attempts || []) {
+        if (row?.id) attemptIds.push(row.id)
+      }
+    }
+
+    // 2) Delete answers linked to this candidate
+    const { error: answersByCandidateErr } = await supabaseAdmin
       .from('answers')
       .delete()
       .eq('candidate_id', candidateId)
 
-    if (answersErr) {
-      console.error('Failed to delete answers:', answersErr)
+    if (answersByCandidateErr) {
+      console.error('Failed to delete answers by candidate_id:', answersByCandidateErr)
       return NextResponse.json({ error: 'Failed to delete answers' }, { status: 500 })
     }
 
-    // 2. Delete quiz_attempts (depends on user_id)
-    if (candidate.user_id) {
-      const { error: attemptsErr } = await supabaseAdmin
-        .from('quiz_attempts')
+    // 3) Delete answers linked by attempt_id (if any)
+    if (attemptIds.length > 0) {
+      const { error: answersByAttemptErr } = await supabaseAdmin
+        .from('answers')
         .delete()
-        .eq('user_id', candidate.user_id)
+        .in('attempt_id', attemptIds)
 
+      if (answersByAttemptErr) {
+        console.error('Failed to delete answers by attempt_id:', answersByAttemptErr)
+        return NextResponse.json({ error: 'Failed to delete answers' }, { status: 500 })
+      }
+    }
+
+    // 4) Delete quiz_attempts (scoped to quiz_id when available)
+    if (candidate.user_id) {
+      let q = supabaseAdmin.from('quiz_attempts').delete().eq('user_id', candidate.user_id)
+      if (candidate.quiz_id) {
+        q = q.eq('quiz_id', candidate.quiz_id)
+      }
+
+      const { error: attemptsErr } = await q
       if (attemptsErr) {
         console.error('Failed to delete quiz_attempts:', attemptsErr)
         return NextResponse.json({ error: 'Failed to delete quiz attempts' }, { status: 500 })
       }
     }
 
-    // 3. Delete candidate
-    const { error: candidateErr } = await supabaseAdmin
+    // 5) Delete candidate (and verify something was actually deleted)
+    const { data: deletedCandidate, error: candidateErr } = await supabaseAdmin
       .from('candidates')
       .delete()
       .eq('id', candidateId)
+      .select('id')
 
     if (candidateErr) {
       console.error('Failed to delete candidate:', candidateErr)
       return NextResponse.json({ error: 'Failed to delete candidate' }, { status: 500 })
+    }
+
+    if (!deletedCandidate || (Array.isArray(deletedCandidate) && deletedCandidate.length === 0)) {
+      return NextResponse.json({ error: 'Candidate not found' }, { status: 404 })
     }
 
     // Log the deletion
