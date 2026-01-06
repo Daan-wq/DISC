@@ -106,7 +106,7 @@ export default function QuizLandingPage() {
           disabled={loading}
           className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-60"
         >
-          {loading ? "Bezig…" : "Start quiz"}
+          {loading ? "Bezig..." : "Start quiz"}
         </button>
 
         <p className="text-xs text-gray-500 mt-4">

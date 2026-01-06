@@ -133,7 +133,7 @@ export default function AdminLoginPage() {
               </div>
               {error && <div className="text-sm p-3 bg-red-50 text-red-700 rounded border border-red-200">{error}</div>}
               <button type="submit" disabled={loading || (Boolean(siteKey) && !tfToken)} className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:bg-gray-400 font-medium">
-                {loading ? 'Bezig…' : 'Inloggen'}
+                {loading ? 'Bezig...' : 'Inloggen'}
               </button>
             </form>
           </>
@@ -166,7 +166,7 @@ export default function AdminLoginPage() {
               </div>
               {error && <div className="text-sm p-3 bg-red-50 text-red-700 rounded border border-red-200">{error}</div>}
               <button type="submit" disabled={loading || totpCode.length !== 6} className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:bg-gray-400 font-medium">
-                {loading ? 'Bezig…' : 'Verifiëren'}
+                {loading ? 'Bezig...' : 'Verifiëren'}
               </button>
               <button
                 type="button"

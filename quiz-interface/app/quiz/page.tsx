@@ -148,7 +148,7 @@ function QuizInner() {
       const time = new Date().toISOString()
       // Hash userId lightly to avoid leaking PII in logs (client-side non-cryptographic)
       const userId = payload.userId || 'unknown'
-      const userHash = typeof userId === 'string' ? (userId.slice(0, 8) + '…') : 'unknown'
+      const userHash = typeof userId === 'string' ? (userId.slice(0, 8) + '...') : 'unknown'
       console.error('[quiz]', event, JSON.stringify({ ...payload, time, userHash }))
     } catch {}
   }
