@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "pnpm --filter=quiz run build",
-    "build:admin": "pnpm --filter=admin run build",
+    "build:admin": "cd apps/admin && npm run build",
     "start": "next start",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "typecheck": "tsc --noEmit",
