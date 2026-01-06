@@ -996,6 +996,23 @@ function QuizInner() {
       
       const computeResult = await response.json()
       console.log('Got compute result:', computeResult)
+
+      // Cache the computed result for the preview page (used by /rapport/preview)
+      const attemptIdForPreview = typeof window !== 'undefined' ? localStorage.getItem('quizAttemptId') : null
+      if (attemptIdForPreview) {
+        try {
+          localStorage.setItem(
+            `quiz_result_${attemptIdForPreview}`,
+            JSON.stringify({
+              profileCode: computeResult.profileCode,
+              percentages: computeResult.percentages,
+              candidateName: personalData?.fullName || 'Deelnemer',
+            })
+          )
+        } catch (e) {
+          console.warn('[quiz] Failed to cache quiz result for preview:', e)
+        }
+      }
       
       // Persist the 48 A–D answers to public.answers via /api/answers
       // Send ALL 48 entries (both MOST and LEAST) to satisfy API schema
@@ -1076,10 +1093,10 @@ function QuizInner() {
         console.error('Finish flow failed:', finishErr)
       }
       
-      // Redirect to results page using attempt id
+      // Redirect to report preview page using attempt id
       const attemptIdForRedirect = typeof window !== 'undefined' ? localStorage.getItem('quizAttemptId') : null
       if (attemptIdForRedirect) {
-        router.push(`/result/${attemptIdForRedirect}`)
+        router.push(`/rapport/preview?attempt_id=${encodeURIComponent(attemptIdForRedirect)}`)
       } else {
         router.push(`/result/unknown`)
       }
@@ -1095,7 +1112,11 @@ function QuizInner() {
     return (
       <div className="min-h-screen bg-gray-50 py-6 px-3 sm:py-8 sm:px-4 md:py-12">
         <div className="max-w-md mx-auto bg-white rounded-lg shadow p-4 sm:p-6 md:p-8 text-center">
+          <div className="flex items-center justify-center mb-4">
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
+          </div>
           <h1 className="text-xl sm:text-2xl font-bold mb-4">Laden...</h1>
+          <p className="text-sm text-gray-600">Even geduld. We starten je sessie.</p>
         </div>
       </div>
     )

@@ -208,6 +208,7 @@ function PreviewPageContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [generatingToken, setGeneratingToken] = useState(false);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
 
   const [deliveryConfig, setDeliveryConfig] = useState<DeliveryConfig | null>(null)
   const [deliveryLoading, setDeliveryLoading] = useState(true)
@@ -292,6 +293,7 @@ function PreviewPageContent() {
     if (!attemptId || !report) return;
 
     setGeneratingToken(true);
+    setDownloadError(null);
 
     try {
       // Get auth token
@@ -353,7 +355,7 @@ function PreviewPageContent() {
       }
     } catch (err) {
       console.error('Failed to download PDF:', err);
-      alert(err instanceof Error ? err.message : 'Er is een fout opgetreden. Probeer het opnieuw.');
+      setDownloadError(err instanceof Error ? err.message : 'Er is een fout opgetreden. Probeer het opnieuw.');
     } finally {
       setGeneratingToken(false);
     }
@@ -437,6 +439,10 @@ function PreviewPageContent() {
                         </>
                       )}
                     </Button>
+
+                    {downloadError ? (
+                      <p className="text-sm text-red-700 mt-4">{downloadError}</p>
+                    ) : null}
 
                     <p className="text-xs text-slate-400 mt-4">
                       De PDF wordt automatisch gegenereerd en gedownload.

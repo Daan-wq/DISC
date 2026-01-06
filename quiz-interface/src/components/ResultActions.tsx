@@ -39,7 +39,7 @@ export default function ResultActions({ candidateName }: ResultActionsProps) {
       setMessage({ type: 'success', text: 'PDF succesvol gedownload' })
     } catch {
       console.error('Download failed')
-      alert('Download mislukt. Probeer het opnieuw.')
+      setMessage({ type: 'error', text: 'Download mislukt. Probeer het opnieuw.' })
     } finally {
       setPdfLoading(false)
       setTimeout(() => setMessage(null), 5000)

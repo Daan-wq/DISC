@@ -5,6 +5,7 @@ import { RefreshCw, Search, Trash2 } from "lucide-react"
 import { Card, CardContent } from '@/components/admin/ui/Card'
 import { Badge } from '@/components/admin/ui/Badge'
 import { Button } from '@/components/admin/ui/Button'
+import { ConfirmDialog } from '@/components/admin/ui/ConfirmDialog'
 import { Input, Select } from '@/components/admin/ui/Input'
 import { PageHeader } from '@/components/admin/ui/PageHeader'
 import {
@@ -38,12 +39,9 @@ interface DeleteCandidateButtonProps {
 function DeleteCandidateButton({ candidateId, candidateName, onDeleted }: DeleteCandidateButtonProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [confirmOpen, setConfirmOpen] = useState(false)
 
   const handleDelete = async () => {
-    if (!confirm(`Weet je zeker dat je "${candidateName}" wilt verwijderen? Dit kan niet ongedaan gemaakt worden.`)) {
-      return
-    }
-
     try {
       setLoading(true)
       setError(null)
@@ -73,14 +71,33 @@ function DeleteCandidateButton({ candidateId, candidateName, onDeleted }: Delete
   }
 
   return (
-    <button
-      onClick={handleDelete}
-      disabled={loading}
-      className="p-1.5 rounded-lg text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
-      title="Verwijderen"
-    >
-      <Trash2 className="h-4 w-4" />
-    </button>
+    <>
+      <ConfirmDialog
+        open={confirmOpen}
+        title="Kandidaat verwijderen"
+        description={`Weet je zeker dat je "${candidateName}" wilt verwijderen? Dit kan niet ongedaan gemaakt worden.`}
+        confirmText="Verwijderen"
+        cancelText="Annuleren"
+        variant="danger"
+        loading={loading}
+        onCancel={() => {
+          if (loading) return
+          setConfirmOpen(false)
+        }}
+        onConfirm={async () => {
+          await handleDelete()
+          setConfirmOpen(false)
+        }}
+      />
+      <button
+        onClick={() => setConfirmOpen(true)}
+        disabled={loading}
+        className="p-1.5 rounded-lg text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
+        title="Verwijderen"
+      >
+        <Trash2 className="h-4 w-4" />
+      </button>
+    </>
   )
 }
 
