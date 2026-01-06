@@ -321,16 +321,15 @@ function PreviewPageContent() {
           : ({} as any);
 
         const requestId = (errorData as any)?.request_id;
-        const mode = (errorData as any)?.mode;
-        const statusFromBody = (errorData as any)?.status;
+        const userMessage = (errorData as any)?.user_message;
         const baseMsg =
-          (errorData as any)?.error ||
-          `Kon geen PDF genereren (${response.status}). Bekijk Network tab voor details.`;
+          (typeof userMessage === 'string' && userMessage)
+            ? userMessage
+            : (errorData as any)?.error ||
+              'Het rapport kon op dit moment niet gedownload worden. Neem contact op met support; die heeft uw rapport.';
 
         const details: string[] = [];
         if (typeof requestId === 'string' && requestId) details.push(`request_id=${requestId}`);
-        if (typeof mode === 'string' && mode) details.push(`mode=${mode}`);
-        if (typeof statusFromBody === 'number') details.push(`upstream_status=${statusFromBody}`);
 
         const msg = details.length > 0 ? `${baseMsg} (${details.join(', ')})` : baseMsg;
         throw new Error(msg);
@@ -355,7 +354,11 @@ function PreviewPageContent() {
       }
     } catch (err) {
       console.error('Failed to download PDF:', err);
-      setDownloadError(err instanceof Error ? err.message : 'Er is een fout opgetreden. Probeer het opnieuw.');
+      setDownloadError(
+        err instanceof Error
+          ? err.message
+          : 'Het rapport kon op dit moment niet gedownload worden. Neem contact op met support; die heeft uw rapport.'
+      );
     } finally {
       setGeneratingToken(false);
     }
