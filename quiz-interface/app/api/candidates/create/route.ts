@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { supabase, supabaseAdmin } from '@/lib/supabase'
 import { QUIZ_ID } from '@/lib/constants'
@@ -30,11 +30,11 @@ export async function POST(req: NextRequest) {
 
     const json = await req.json().catch(() => ({}))
     const parsed = BodySchema.safeParse(json)
-
+    
     // Allow empty body (will use defaults)
     const fullName = parsed.success ? parsed.data.fullName : undefined
     const email = parsed.success ? parsed.data.email : undefined
-
+    
     console.log('[candidates/create] user:', user.id, 'fullName:', fullName)
 
     // Try insert (unique on user_id, quiz_id). If conflict, select existing.

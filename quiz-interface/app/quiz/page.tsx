@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect, Suspense, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -24,7 +24,7 @@ const statements: Statement[] = [
   { id: 10, text: "Ik ben een durfal", discOrder: ['D', 'I', 'C', 'S'] },
   { id: 11, text: "Ik ben meelevend, empathisch", discOrder: ['S', 'I', 'C', 'D'] },
   { id: 12, text: "Ik overtuig anderen met mijn charme", discOrder: ['I', 'D', 'S', 'C'] },
-  { id: 13, text: "Ik houd van nieuwe ideeÃ«n en plannen", discOrder: ['D', 'I', 'C', 'S'] },
+  { id: 13, text: "Ik houd van nieuwe ideeën en plannen", discOrder: ['D', 'I', 'C', 'S'] },
   { id: 14, text: "Ik ga conflicten uit de weg", discOrder: ['I', 'S', 'D', 'C'] },
   { id: 15, text: "Ik blijf bij mijn beslissing", discOrder: ['C', 'D', 'S', 'I'] },
   { id: 16, text: "Ik werk het liefst door tot een taak af is", discOrder: ['S', 'C', 'I', 'D'] },
@@ -50,7 +50,7 @@ const statements: Statement[] = [
   { id: 36, text: "Ik ben nauwkeurig en analytisch", discOrder: ['C', 'S', 'D', 'I'] },
   { id: 37, text: "Ik daag mezelf graag uit", discOrder: ['D', 'C', 'I', 'S'] },
   { id: 38, text: "Ik beslis nadat ik alle feiten ken", discOrder: ['C', 'S', 'D', 'I'] },
-  { id: 39, text: "Ik kan me laten beÃ¯nvloeden door andere meningen", discOrder: ['I', 'S', 'D', 'C'] },
+  { id: 39, text: "Ik kan me laten beïnvloeden door andere meningen", discOrder: ['I', 'S', 'D', 'C'] },
   { id: 40, text: "Ik doe dingen op een rustige manier", discOrder: ['S', 'C', 'I', 'D'] },
   { id: 41, text: "Ik houd van interactie met anderen", discOrder: ['I', 'D', 'S', 'C'] },
   { id: 42, text: "Ik zeg niet snel wat mijn gevoelens zijn", discOrder: ['S', 'C', 'I', 'D'] },
@@ -148,7 +148,7 @@ function QuizInner() {
       const time = new Date().toISOString()
       // Hash userId lightly to avoid leaking PII in logs (client-side non-cryptographic)
       const userId = payload.userId || 'unknown'
-      const userHash = typeof userId === 'string' ? (userId.slice(0, 8) + 'â€¦') : 'unknown'
+      const userHash = typeof userId === 'string' ? (userId.slice(0, 8) + '…') : 'unknown'
       console.error('[quiz]', event, JSON.stringify({ ...payload, time, userHash }))
     } catch {}
   }
@@ -307,7 +307,7 @@ function QuizInner() {
           })
           const j = await res.json().catch(() => ({}))
           if (res.ok && j?.candidateId) return j.candidateId as string
-
+          
           // Retry on server errors
           if (attempt < 2 && (res.status >= 500 || j?.error?.code === 'UNHANDLED')) {
             await new Promise(r => setTimeout(r, 250 * Math.pow(2, attempt)))
@@ -357,11 +357,11 @@ function QuizInner() {
         // Only proceed if authenticated
         const { data: auth } = await supabase.auth.getUser()
         if (!auth.user) return
-
+        
         // Check if we already have a valid attempt in localStorage
         const existingAttempt = typeof window !== 'undefined' ? localStorage.getItem('quizAttemptId') : null
         const existingQuizId = typeof window !== 'undefined' ? localStorage.getItem('quizId') : null
-
+        
         // If we have a stored attempt, verify it still exists in DB
         if (existingAttempt && existingQuizId) {
           console.log('[attempt] Found existing attempt in localStorage:', existingAttempt)
@@ -370,7 +370,7 @@ function QuizInner() {
             .select('id')
             .eq('id', existingAttempt)
             .maybeSingle()
-
+          
           if (!checkErr && found) {
             console.log('[attempt] Verified existing attempt still exists, reusing:', existingAttempt)
             return
@@ -388,7 +388,7 @@ function QuizInner() {
         try {
           const result = await supabase
             .from('quiz_attempts')
-            .insert({
+            .insert({ 
               quiz_id: QUIZ_ID,
               user_id: auth.user.id,
               started_at: new Date().toISOString()
@@ -404,18 +404,18 @@ function QuizInner() {
 
         if (error) {
           const code = (error as any).code
-
+          
           // For any error (including 23505 duplicate), try the API endpoint which has service role
           try {
             const { data: sessionRes } = await supabase.auth.getSession()
             const apiToken = sessionRes.session?.access_token
-
+            
             if (!apiToken) {
               console.error('[attempt] No auth token available')
               if (mounted) setNoAccess(true)
               return
             }
-
+            
             const apiRes = await fetch('/api/quiz/attempt/create', {
               method: 'POST',
               headers: {
@@ -423,7 +423,7 @@ function QuizInner() {
                 'Authorization': `Bearer ${apiToken}`
               }
             })
-
+            
             if (apiRes.ok) {
               const apiData = await apiRes.json()
               if (mounted) {
@@ -507,12 +507,12 @@ function QuizInner() {
           // Restore previous answers from raw_answers
           if (data.answers && data.answers.length > 0) {
             console.log('[progress] Raw answers from DB:', data.answers)
-
+            
             // raw_answers can be:
             // 1. Direct array: ["A", "B", "C"]
             // 2. JSONB object: { answers: ["A", "B", "C"], timestamp: "..." }
             let answersArray: string[] = []
-
+            
             if (Array.isArray(data.answers)) {
               // Format 1: direct array
               console.log('[progress] Format 1: Direct array')
@@ -524,31 +524,31 @@ function QuizInner() {
             } else {
               console.log('[progress] Unknown format:', typeof data.answers, data.answers)
             }
-
+            
             console.log('[progress] Extracted answers array:', answersArray)
-
+            
             if (answersArray.length > 0) {
               const restoredAnswers: QuizAnswer[] = []
               const seenAnswers = new Set<string>() // Track unique answers per question
-
+              
               for (let i = 0; i < answersArray.length; i++) {
                 const answer = answersArray[i]
                 // Convert letter to statement index (A=0, B=1, C=2, D=3)
                 const letterIndex = typeof answer === 'string' ? answer.charCodeAt(0) - 65 : 0
-
+                
                 // Calculate which pair this answer belongs to
-                // i=0,1 â†’ pair 0, i=2,3 â†’ pair 1, i=4,5 â†’ pair 2, etc.
+                // i=0,1 → pair 0, i=2,3 → pair 1, i=4,5 → pair 2, etc.
                 const questionPairIndex = Math.floor(i / 2)
                 const selection = i % 2 === 0 ? 'most' : 'least'
-
+                
                 // Map to statement ID (1-96)
                 // Each pair has 4 statements: (pair*4+1), (pair*4+2), (pair*4+3), (pair*4+4)
                 // Add letterIndex to get the exact statement
                 const statementId = questionPairIndex * 4 + 1 + letterIndex
-
+                
                 // Create unique key for this question (pair + type)
                 const uniqueKey = `${questionPairIndex}-${selection}`
-
+                
                 // Only add if we haven't seen this question type in this pair yet
                 if (!seenAnswers.has(uniqueKey)) {
                   restoredAnswers.push({
@@ -556,7 +556,7 @@ function QuizInner() {
                     selection
                   })
                   seenAnswers.add(uniqueKey)
-                  console.log(`[progress] Answer ${i}: letter=${answer}, pair=${questionPairIndex}, letterIndex=${letterIndex}, statementId=${statementId}, selection=${selection} âœ“`)
+                  console.log(`[progress] Answer ${i}: letter=${answer}, pair=${questionPairIndex}, letterIndex=${letterIndex}, statementId=${statementId}, selection=${selection} ✓`)
                 } else {
                   console.log(`[progress] Answer ${i}: DUPLICATE for ${uniqueKey} - SKIPPED`)
                 }
@@ -594,13 +594,13 @@ function QuizInner() {
     const saveAnswers = async () => {
       const attemptId = typeof window !== 'undefined' ? localStorage.getItem('quizAttemptId') : null
       const candidateId = typeof window !== 'undefined' ? localStorage.getItem('candidateId') : null
-
+      
       if (!attemptId || !candidateId || answers.length === 0) return
 
       // Convert answers to letters A-D
       const letters = answers.map(a => (['A','B','C','D'] as const)[((a.statementId - 1) % 4)])
       const answersHash = letters.join('')
-
+      
       // Skip if nothing changed since last save
       if (answersHash === lastSavedAnswersRef.current) {
         saveCountRef.current.skipped++
@@ -655,7 +655,7 @@ function QuizInner() {
 
       // currentQuestion is 0-indexed, but database stores 1-indexed
       const questionNumber = currentQuestion + 1
-
+      
       // Skip if nothing changed since last save
       if (questionNumber === lastSavedQuestionRef.current) {
         return
@@ -665,7 +665,7 @@ function QuizInner() {
         const { data: sessionRes } = await supabase.auth.getSession()
         const token = sessionRes.session?.access_token
         if (!token) return
-
+        
         const res = await fetch('/api/quiz/attempt/update', {
           method: 'PATCH',
           headers: {
@@ -718,9 +718,9 @@ function QuizInner() {
           saveCountRef.current.heartbeat = beatCount
         } catch {}
       }
-
+      
       await beat()
-
+      
       // Adaptive interval: 30s for first 5 beats, then 60s
       // This reduces long-session load by ~50% while maintaining activity detection
       const scheduleNext = () => {
@@ -842,37 +842,37 @@ function QuizInner() {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Don't interfere if user is typing in an input field
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
-
+      
       // Handle number keys 1-4 for answer selection
       if (['1', '2', '3', '4'].includes(e.key)) {
         e.preventDefault()
-
+        
         // Get the selected statement index (1-4)
         const selectedIndex = parseInt(e.key) - 1
-
+        
         // Get available statements for current question
         let availableStatements = statements.slice(currentQuestion * 4, currentQuestion * 4 + 4)
-
+        
         // For LEAST questions, exclude the MOST answer
         if (currentQuestion % 2 === 1) {
-          const mostAnswersInPair = answers.filter(a =>
-            a.selection === 'most' &&
-            a.statementId >= Math.floor(currentQuestion / 2) * 4 + 1 &&
+          const mostAnswersInPair = answers.filter(a => 
+            a.selection === 'most' && 
+            a.statementId >= Math.floor(currentQuestion / 2) * 4 + 1 && 
             a.statementId <= Math.floor(currentQuestion / 2) * 4 + 4
           )
-
+          
           if (mostAnswersInPair.length > 0) {
             const mostAnswerId = mostAnswersInPair[mostAnswersInPair.length - 1].statementId
             availableStatements = availableStatements.filter(stmt => stmt.id !== mostAnswerId)
           }
         }
-
+        
         // Select the statement at the given index
         if (selectedIndex < availableStatements.length) {
           handleAnswer(availableStatements[selectedIndex])
         }
       }
-
+      
       // Handle arrow keys for navigation
       if (e.key === 'ArrowLeft') {
         e.preventDefault()
@@ -882,13 +882,13 @@ function QuizInner() {
         // Move to next question if current question is answered
         const isMostQuestion = currentQuestion % 2 === 0
         const questionPairIndex = Math.floor(currentQuestion / 2)
-
-        const hasAnswer = answers.some(a =>
+        
+        const hasAnswer = answers.some(a => 
           a.selection === (isMostQuestion ? 'most' : 'least') &&
           a.statementId >= questionPairIndex * 4 + 1 &&
           a.statementId <= questionPairIndex * 4 + 4
         )
-
+        
         if (hasAnswer && currentQuestion < 47) {
           setCurrentQuestion(currentQuestion + 1)
         }
@@ -896,7 +896,7 @@ function QuizInner() {
 
       }
     }
-
+    
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [currentQuestion, answers])
@@ -904,29 +904,29 @@ function QuizInner() {
   const handleAnswer = (statement: Statement) => {
     const isMostQuestion = currentQuestion % 2 === 0
     const questionPairIndex = Math.floor(currentQuestion / 2)
-
+    
     console.log('[handleAnswer] Question:', currentQuestion, 'Type:', isMostQuestion ? 'MOST' : 'LEAST')
     console.log('[handleAnswer] Question pair index:', questionPairIndex)
     console.log('[handleAnswer] Selected statement:', statement.id, statement.text)
-
+    
     // Create answer object for this question
     const answerObj: QuizAnswer = {
       statementId: statement.id,
       selection: isMostQuestion ? 'most' : 'least'
     }
-
+    
     // Find if there's already an answer for this question type in this pair
     // MOST questions: even indices (0, 2, 4, ...)
     // LEAST questions: odd indices (1, 3, 5, ...)
-    const existingIndex = answers.findIndex(a =>
+    const existingIndex = answers.findIndex(a => 
       a.selection === (isMostQuestion ? 'most' : 'least') &&
       // Check if it's in the same pair by looking at statement ID range
       a.statementId >= questionPairIndex * 4 + 1 &&
       a.statementId <= questionPairIndex * 4 + 4
     )
-
+    
     let newAnswers: QuizAnswer[]
-
+    
     if (existingIndex >= 0) {
       // Update existing answer for this question type in this pair
       newAnswers = [...answers]
@@ -937,9 +937,9 @@ function QuizInner() {
       newAnswers = [...answers, answerObj]
       console.log('[handleAnswer] Added new answer, total:', newAnswers.length, 'New answers:', newAnswers)
     }
-
+    
     setAnswers(newAnswers)
-
+    
     // Move to next question
     if (currentQuestion < 47) {
       console.log('[handleAnswer] Moving to next question:', currentQuestion + 1)
@@ -954,7 +954,7 @@ function QuizInner() {
 
   const handleBack = () => {
     if (currentQuestion === 0) return
-
+    
     // Simply go back one question
     // Answers are already saved, so no need to remove them
     setCurrentQuestion(currentQuestion - 1)
@@ -962,7 +962,7 @@ function QuizInner() {
 
   const submitQuiz = async (finalAnswers: QuizAnswer[]) => {
     console.log('submitQuiz called with candidateId:', candidateId)
-
+    
     if (!candidateId) {
       logError('submit_missing_candidate', { quizId: QUIZ_ID })
       setFatalDetails({ code: 'NO_CANDIDATE', message: 'Kandidaat ontbreekt' })
@@ -970,12 +970,12 @@ function QuizInner() {
       setIsSubmitting(false)
       return
     }
-
+    
     setIsSubmitting(true)
-
+    
     try {
       console.log('Calling /api/compute...')
-
+      
       // Call compute API with auth header for ownership validation
       const { data: sessionRes } = await supabase.auth.getSession()
       const token = sessionRes.session?.access_token
@@ -993,11 +993,11 @@ function QuizInner() {
         console.error('Compute API failed:', response.status, errorText)
         throw new Error('Failed to compute results')
       }
-
+      
       const computeResult = await response.json()
       console.log('Got compute result:', computeResult)
-
-      // Persist the 48 Aâ€“D answers to public.answers via /api/answers
+      
+      // Persist the 48 A–D answers to public.answers via /api/answers
       // Send ALL 48 entries (both MOST and LEAST) to satisfy API schema
       try {
         const { data: sessionRes } = await supabase.auth.getSession()
@@ -1027,7 +1027,7 @@ function QuizInner() {
 
         if (token && attemptId) {
           console.log('Calling /api/quiz/finish...')
-
+          
           // Prepare placeholder data from computed results
           const placeholderData = {
             candidate: { full_name: personalData?.fullName || 'Deelnemer' },
@@ -1044,9 +1044,9 @@ function QuizInner() {
               response_c: computeResult.percentages.response.C
             }
           }
-
+          
           console.log('Finish request payload:', { attempt_id: attemptId, placeholderData })
-
+          
           const finishResponse = await fetch('/api/quiz/finish', {
             method: 'POST',
             headers: {
@@ -1058,15 +1058,15 @@ function QuizInner() {
               placeholderData
             })
           })
-
+          
           console.log('Finish response status:', finishResponse.status)
-
+          
           if (!finishResponse.ok) {
             const errorText = await finishResponse.text()
             console.error('Finish API failed:', finishResponse.status, errorText)
             throw new Error('Finish API failed')
           }
-
+          
           const finishResult = await finishResponse.json()
           console.log('Finish API success:', finishResult)
         } else {
@@ -1075,7 +1075,7 @@ function QuizInner() {
       } catch (finishErr) {
         console.error('Finish flow failed:', finishErr)
       }
-
+      
       // Redirect to results page using attempt id
       const attemptIdForRedirect = typeof window !== 'undefined' ? localStorage.getItem('quizAttemptId') : null
       if (attemptIdForRedirect) {
@@ -1095,7 +1095,7 @@ function QuizInner() {
     return (
       <div className="min-h-screen bg-gray-50 py-6 px-3 sm:py-8 sm:px-4 md:py-12">
         <div className="max-w-md mx-auto bg-white rounded-lg shadow p-4 sm:p-6 md:p-8 text-center">
-          <h1 className="text-xl sm:text-2xl font-bold mb-4">Ladenâ€¦</h1>
+          <h1 className="text-xl sm:text-2xl font-bold mb-4">Laden…</h1>
         </div>
       </div>
     )
@@ -1119,7 +1119,7 @@ function QuizInner() {
       setRetryKey((k) => k + 1)
     }
     return (
-      <ErrorWall
+      <ErrorWall 
         message="We konden je quiz-gegevens niet initialiseren. Probeer het opnieuw of ga terug naar de start."
         details={fatalDetails}
         onRetry={retry}
@@ -1154,37 +1154,37 @@ function QuizInner() {
   const questionPairIndex = Math.floor(currentQuestion / 2)
   const isMostQuestion = currentQuestion % 2 === 0
   const questionStatements = statements.slice(questionPairIndex * 4, questionPairIndex * 4 + 4)
-
+  
   // Debug logging
   console.log('[render] currentQuestion:', currentQuestion, 'isMostQuestion:', isMostQuestion)
   console.log('[render] questionPairIndex:', questionPairIndex)
   console.log('[render] answers array length:', answers.length)
   console.log('[render] answers:', answers)
-
+  
   // For LEAST questions, exclude the previously selected MOST answer
   let availableStatements = questionStatements
   let mostAnswerObj: QuizAnswer | undefined = undefined
-
+  
   if (!isMostQuestion && currentQuestion > 0) {
     // On LEAST question, the MOST answer is at the previous index
     // Since answers are stored in order, we need to find the answer for the previous question
     // Previous question index = currentQuestion - 1
     // But we need to find it in the answers array by matching the statement ID range
-
+    
     console.log('[render] LEAST question - looking for MOST answer')
-
+    
     // Method 1: Direct index lookup (MOST answer should be at currentQuestion - 1)
     // But answers array might not have all questions answered yet
     // So we search for the most recent MOST answer in this pair
-
-    const mostAnswersInPair = answers.filter(a =>
-      a.selection === 'most' &&
-      a.statementId >= questionPairIndex * 4 + 1 &&
+    
+    const mostAnswersInPair = answers.filter(a => 
+      a.selection === 'most' && 
+      a.statementId >= questionPairIndex * 4 + 1 && 
       a.statementId <= questionPairIndex * 4 + 4
     )
-
+    
     console.log('[render] MOST answers in this pair:', mostAnswersInPair)
-
+    
     if (mostAnswersInPair.length > 0) {
       // Get the last MOST answer in this pair
       mostAnswerObj = mostAnswersInPair[mostAnswersInPair.length - 1]
@@ -1221,9 +1221,9 @@ function QuizInner() {
       <div className="max-w-2xl mx-auto">
         <div className="bg-white rounded-lg shadow p-4 sm:p-6 md:p-8">
           <Progress current={currentQuestion + 1} total={48} />
-
+          
           <h2 className="text-base sm:text-lg md:text-xl font-semibold mb-4 sm:mb-6">
-            {isMostQuestion
+            {isMostQuestion 
               ? 'Welke uitspraak past het MEEST bij jou?'
               : 'Welke uitspraak past het MINST bij jou?'}
           </h2>
@@ -1235,15 +1235,15 @@ function QuizInner() {
               // 1. Statement ID matches
               // 2. Selection type (most/least) matches current question
               // 3. Statement is in the current pair
-              const isSelected = answers.some(a =>
+              const isSelected = answers.some(a => 
                 a.statementId === statement.id &&
                 a.selection === (isMostQuestion ? 'most' : 'least') &&
                 a.statementId >= questionPairIndex * 4 + 1 &&
                 a.statementId <= questionPairIndex * 4 + 4
               )
-
+              
               console.log(`[render] Statement ${statement.id}: isSelected=${isSelected}, selection=${isMostQuestion ? 'most' : 'least'}`)
-
+              
               return (
                 <button
                   key={statement.id}
@@ -1297,7 +1297,7 @@ export default function QuizPage() {
         fallback={
           <div className="min-h-screen bg-gray-50 py-6 px-3 sm:py-8 sm:px-4 md:py-12">
             <div className="max-w-md mx-auto bg-white rounded-lg shadow p-4 sm:p-6 md:p-8 text-center">
-              <h1 className="text-xl sm:text-2xl font-bold mb-4">Ladenâ€¦</h1>
+              <h1 className="text-xl sm:text-2xl font-bold mb-4">Laden…</h1>
             </div>
           </div>
         }

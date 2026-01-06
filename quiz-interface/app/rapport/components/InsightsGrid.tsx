@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React from 'react';
 import { motion } from 'framer-motion';
@@ -113,7 +113,7 @@ export function InsightsGrid({ report }: InsightsGridProps) {
               ) : (
                 // Fallback content if empty
                 <li className="text-slate-600 text-sm leading-relaxed">
-                  Je brengt unieke kwaliteiten mee die bijdragen aan de teamdynamiek.
+                  Je brengt unieke kwaliteiten mee die bijdragen aan de teamdynamiek. 
                   In het volledige rapport lees je meer over je specifieke rol en bijdrage.
                 </li>
               )}

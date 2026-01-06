@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 
 export const runtime = 'nodejs'
@@ -7,12 +7,12 @@ export const dynamic = 'force-dynamic'
 export async function GET(req: NextRequest) {
   try {
     console.log('[attempt/get] START')
-
+    
     if (!supabaseAdmin) {
       console.error('[attempt/get] supabaseAdmin is null - SUPABASE_SERVICE_ROLE_KEY not set')
       return NextResponse.json({ error: 'Server not configured' }, { status: 500 })
     }
-
+    
     const authHeader = req.headers.get('authorization') || ''
     const token = authHeader.toLowerCase().startsWith('bearer ')
       ? authHeader.slice(7).trim()
@@ -25,12 +25,12 @@ export async function GET(req: NextRequest) {
 
     console.log('[attempt/get] Verifying token...')
     const { data: userRes, error: userErr } = await supabaseAdmin.auth.getUser(token)
-
+    
     if (userErr) {
       console.error('[attempt/get] error verifying token:', userErr)
       return NextResponse.json({ error: 'Token verification failed' }, { status: 401 })
     }
-
+    
     const user = userRes?.user
 
     if (!user) {

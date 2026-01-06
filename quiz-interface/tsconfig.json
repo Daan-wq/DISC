@@ -46,13 +46,15 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    ".next\\dev/types/**/*.ts",
+    ".next\\dev/types/**/*.ts",
+    ".next/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",
     "supabase/functions/**",
     "supabase/sql/**",
-    "analysis/**",
-    "apps/quiz/scripts/report/**"
+    "analysis/**"
   ]
 }

@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 
 // Host isolation configuration
 // Include Vercel domains for deployment
@@ -77,7 +77,7 @@ export function middleware(req: NextRequest) {
       response.headers.set('x-request-id', requestId)
       return response
     }
-
+    
     console.warn(`[middleware] Blocked quiz path on admin host: ${host}${pathname}`)
     const adminLoginUrl = new URL('/login', req.url)
     const response = NextResponse.redirect(adminLoginUrl)

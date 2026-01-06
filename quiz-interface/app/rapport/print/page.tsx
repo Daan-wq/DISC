@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -22,7 +22,7 @@ const fetchReportByCode = async (code: string | null): Promise<DiscReport> => {
 
   // Validate code format roughly
   const validCode = code.toUpperCase() as ProfileCode;
-
+  
   return {
     profileCode: validCode,
     natuurlijkeStijl: { D: 78, I: 54, S: 28, C: 15 },
@@ -36,7 +36,7 @@ const fetchReportByCode = async (code: string | null): Promise<DiscReport> => {
 export default function PrintPage() {
   const searchParams = useSearchParams();
   const code = searchParams.get('code');
-
+  
   const [report, setReport] = useState<DiscReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -47,7 +47,7 @@ export default function PrintPage() {
         setLoading(true);
         const data = await fetchReportByCode(code);
         setReport(data);
-
+        
         // Auto-print when data is ready
         setTimeout(() => {
           window.print();
@@ -94,7 +94,7 @@ export default function PrintPage() {
     <div className="min-h-screen bg-white p-8 max-w-5xl mx-auto">
       <div className="mb-4 text-center print:hidden">
         <p className="text-sm text-slate-500 mb-2">Het printvenster opent automatisch...</p>
-        <button
+        <button 
           onClick={() => window.print()}
           className="text-[#2F6B4F] underline text-sm font-medium"
         >
@@ -103,21 +103,21 @@ export default function PrintPage() {
       </div>
 
       <HeroSection report={report} />
-
+      
       <div className="mb-8">
         <SummaryCard report={report} />
       </div>
-
+      
       <div className="mb-8 break-inside-avoid">
         <DiscChartSection report={report} viewMode="both" />
       </div>
-
+      
       <div className="break-before-page">
         <InsightsGrid report={report} />
       </div>
-
+      
       <div className="mt-12 pt-8 border-t border-slate-200 text-center text-xs text-slate-400">
-        Rapport gegenereerd op {new Date().toLocaleDateString('nl-NL')} â€¢ Vertrouwelijk â€¢ The Lean Communication
+        Rapport gegenereerd op {new Date().toLocaleDateString('nl-NL')} • Vertrouwelijk • The Lean Communication
       </div>
     </div>
   );

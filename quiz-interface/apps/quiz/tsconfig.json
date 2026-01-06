@@ -50,8 +50,6 @@
     ".next/dev/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules",
-    "scripts/**",
-    "assets/**"
+    "node_modules"
   ]
 }

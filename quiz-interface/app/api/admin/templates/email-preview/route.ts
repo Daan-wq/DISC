@@ -4,8 +4,7 @@ import { generateEmailHtml, generateEmailText } from '@/server/email/mailer'
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await getAdminSession()
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (!getAdminSession()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     const { searchParams } = new URL(req.url)
     const name = searchParams.get('name') || 'Voorbeeld'
     const company = process.env.COMPANY_NAME || 'The Lean Communication'

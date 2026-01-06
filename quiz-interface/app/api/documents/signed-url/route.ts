@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { supabase, supabaseAdmin } from '@/lib/supabase'
 
@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Sign failed', details: signed.error.message }, { status: 500 })
     }
 
-    return NextResponse.json({
+    return NextResponse.json({ 
       signed_url: signed.data?.signedUrl,
       pdf_filename: attempt.pdf_filename || 'DISC-Rapport.pdf'
     })

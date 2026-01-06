@@ -4,8 +4,7 @@ import { supabaseAdmin } from '@/lib/supabase'
 
 export async function GET(_req: NextRequest) {
   try {
-    const session = await getAdminSession()
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (!getAdminSession()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     if (!supabaseAdmin) return NextResponse.json({ error: 'Server not configured' }, { status: 500 })
 
     const threshold = new Date(Date.now() - 60_000).toISOString()

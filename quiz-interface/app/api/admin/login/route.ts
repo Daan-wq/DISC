@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import bcrypt from 'bcryptjs'
 import { createSessionCookie } from '@/server/admin/session'
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     // Check IP whitelist (if configured)
     const ipWhitelist = (process.env.ADMIN_IP_WHITELIST || '').split(',').map(ip => ip.trim()).filter(Boolean)
     const isWhitelisted = ipWhitelist.length > 0 && ipWhitelist.includes(clientIp)
-
+    
     if (ipWhitelist.length > 0 && !isWhitelisted) {
       console.warn(`[login] IP not whitelisted: ${clientIp}`)
       await logEvent('admin_login_blocked', 'unknown', { reason: 'ip_not_whitelisted', ip: clientIp })
@@ -88,10 +88,10 @@ export async function POST(req: NextRequest) {
     const secret = process.env.TURNSTILE_SECRET_KEY || ''
     const isLocalhost = clientIp === '::1' || clientIp === '127.0.0.1' || clientIp === 'localhost'
     const isDevelopment = process.env.NODE_ENV === 'development'
-
+    
     // Skip Turnstile verification on localhost in development OR during 2FA step
     const skipTurnstile = is2FAStep || (isDevelopment && (isLocalhost || clientIp === 'unknown'))
-
+    
     if (!skipTurnstile && !secret) {
       return NextResponse.json({ error: 'Turnstile not configured' }, { status: 500 })
     }
@@ -100,7 +100,7 @@ export async function POST(req: NextRequest) {
       if (!turnstileToken || turnstileToken.length < 10) {
         return NextResponse.json({ error: 'Captcha token missing', code: 'captcha_token_missing' }, { status: 400 })
       }
-
+      
       const ip = req.headers.get('x-forwarded-for') || undefined
       const sitekey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || process.env.TURNSTILE_SITE_KEY || ''
       const form = new URLSearchParams()

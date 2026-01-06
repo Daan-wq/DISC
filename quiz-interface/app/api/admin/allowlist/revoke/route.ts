@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getAdminSession } from '@/server/admin/session'
 import { supabaseAdmin } from '@/lib/supabase'
@@ -13,14 +13,14 @@ export async function POST(req: NextRequest) {
   try {
     const session = await getAdminSession()
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
+    
     // CSRF validation
     const csrfError = validateCsrf(req)
     if (csrfError) {
       console.warn('[allowlist/revoke] CSRF validation failed:', csrfError)
       return NextResponse.json({ error: 'Invalid request origin' }, { status: 403 })
     }
-
+    
     if (!supabaseAdmin) return NextResponse.json({ error: 'Server not configured' }, { status: 500 })
 
     const json = await req.json().catch(() => null)

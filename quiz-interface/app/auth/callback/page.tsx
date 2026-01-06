@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useEffect, useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -15,7 +15,7 @@ function AuthCallbackInner() {
     // Check for Supabase errors in URL hash (e.g., #error=access_denied&error_code=otp_expired)
     const hashParams = new URLSearchParams(window.location.hash.substring(1))
     const errorCode = hashParams.get('error_code')
-
+    
     if (errorCode === 'otp_expired' || errorCode === 'access_denied') {
       console.log('Auth error:', errorCode)
       setError(true)
@@ -25,7 +25,7 @@ function AuthCallbackInner() {
     const handleRedirect = (session: unknown) => {
       if (redirected) return
       redirected = true
-
+      
       if (session) {
         const redirect = params.get("redirect") || "/quiz"
         console.log('Auth callback: redirecting to', redirect)
@@ -39,7 +39,7 @@ function AuthCallbackInner() {
     // Note: Clock skew warnings from Supabase Auth are non-blocking and can be ignored
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth state change:', event, !!session)
-
+      
       if (event === 'SIGNED_IN' && session) {
         handleRedirect(session)
       }
@@ -48,7 +48,7 @@ function AuthCallbackInner() {
     // Also check current session immediately
     supabase.auth.getSession().then(({ data: { session } }) => {
       console.log('Initial session check:', !!session)
-
+      
       if (session) {
         handleRedirect(session)
       } else {
@@ -93,8 +93,8 @@ function AuthCallbackInner() {
           </div>
           <p className="text-gray-600 mb-6">
             De inloglink is verlopen. Vraag een nieuwe link aan door opnieuw in te loggen, of neem{" "}
-            <a
-              href="https://tlcprofielen.nl/contact/"
+            <a 
+              href="https://tlcprofielen.nl/contact/" 
               target="_blank"
               rel="noopener noreferrer"
               className="text-blue-600 underline hover:text-blue-800"
@@ -120,7 +120,7 @@ function AuthCallbackInner() {
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-md mx-auto bg-white rounded-lg shadow p-8 text-center">
-        <h1 className="text-2xl font-bold mb-4">Bezig met inloggenâ€¦</h1>
+        <h1 className="text-2xl font-bold mb-4">Bezig met inloggen…</h1>
         <p className="text-gray-600">Een moment geduld alstublieft.</p>
       </div>
     </div>
@@ -132,7 +132,7 @@ export default function AuthCallbackPage() {
     <Suspense fallback={
       <div className="min-h-screen bg-gray-50 py-12 px-4">
         <div className="max-w-md mx-auto bg-white rounded-lg shadow p-8 text-center">
-          <h1 className="text-2xl font-bold mb-4">Bezig met inloggenâ€¦</h1>
+          <h1 className="text-2xl font-bold mb-4">Bezig met inloggen…</h1>
           <p className="text-gray-600">Een moment geduld alstublieft.</p>
         </div>
       </div>

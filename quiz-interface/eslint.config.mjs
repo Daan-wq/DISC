@@ -1,4 +1,4 @@
-﻿import js from "@eslint/js";
+import js from "@eslint/js";
 import tseslint from "typescript-eslint";
 
 export default [
@@ -10,21 +10,17 @@ export default [
       ".next/**",
       "apps/**/node_modules/**",
       "apps/**/.next/**",
-      "apps/quiz/src/**",
-      "apps/quiz/public/report-templates/**",
       "**/*.d.ts",
       "supabase/**",
       "scripts/**/*.js",
       "Profile rapport templates/**",
-      "test-data/**",
     ],
   },
   {
     files: ["**/*.ts", "**/*.tsx"],
     rules: {
-      "no-unused-vars": "off",
       "@typescript-eslint/no-explicit-any": "warn",
-      "@typescript-eslint/no-unused-vars": ["warn", {
+      "@typescript-eslint/no-unused-vars": ["warn", { 
         "argsIgnorePattern": "^_",
         "varsIgnorePattern": "^_"
       }],

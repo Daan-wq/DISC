@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { supabase, supabaseAdmin } from '@/lib/supabase'
 
@@ -13,11 +13,11 @@ export const dynamic = 'force-dynamic'
 export async function PATCH(req: NextRequest) {
   try {
     console.log('[attempt/update] START')
-
+    
     if (!supabaseAdmin) {
       return NextResponse.json({ error: 'Server not configured' }, { status: 500 })
     }
-
+    
     const authHeader = req.headers.get('authorization') || ''
     const token = authHeader.toLowerCase().startsWith('bearer ')
       ? authHeader.slice(7).trim()
@@ -36,11 +36,11 @@ export async function PATCH(req: NextRequest) {
 
     const body = await req.json()
     const parsed = BodySchema.safeParse(body)
-
+    
     if (!parsed.success) {
       return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
     }
-
+    
     const { attemptId, currentQuestion } = parsed.data
 
     console.log('[attempt/update] user:', user.id, 'attempt:', attemptId, 'question:', currentQuestion)

@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useEffect, useState, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -33,7 +33,7 @@ const fetchReport = async (id: string | null): Promise<DiscReport> => {
 
   // Mock response based on ID or random
   const profileCode: ProfileCode = (['DI', 'IS', 'SC', 'CD'][Math.floor(Math.random() * 4)] as ProfileCode);
-
+  
   return {
     profileCode: profileCode,
     natuurlijkeStijl: { D: 78, I: 54, S: 28, C: 15 },
@@ -47,7 +47,7 @@ const fetchReport = async (id: string | null): Promise<DiscReport> => {
 export default function RapportPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
-
+  
   // URL State
   const reportId = searchParams.get('id');
   const initialView = (searchParams.get('view') as 'both' | 'natural' | 'response') || 'both';
@@ -72,9 +72,9 @@ export default function RapportPage() {
         setLoading(true);
         // In production, this would use the actual ID to fetch data
         // For demo/prototype, we just use the ID existence check
-        const data = await fetchReport(reportId || 'demo');
+        const data = await fetchReport(reportId || 'demo'); 
         setReport(data);
-
+        
         // Track view event
         console.log('event: report_viewed', { code: data.profileCode });
       } catch (err) {
@@ -153,33 +153,33 @@ export default function RapportPage() {
             transition={{ duration: 0.5 }}
           >
             <HeroSection report={report} />
-
+            
             <SummaryCard report={report} />
-
+            
             <div ref={scoresRef} className="print-break-inside-avoid">
-              <DiscChartSection
-                report={report}
+              <DiscChartSection 
+                report={report} 
                 viewMode={viewMode}
                 onViewModeChange={handleViewModeChange}
               />
             </div>
-
+            
             <div ref={insightsRef} className="print-break-before">
               <InsightsGrid report={report} />
             </div>
-
+            
             <div ref={pdfRef} className="no-print">
               <DownloadCTA report={report} />
             </div>
-
+            
             <TrustFooter />
           </motion.div>
         </AnimatePresence>
       </main>
-
+      
       {/* Print Footer (only visible in print) */}
       <div className="hidden print:block fixed bottom-0 left-0 w-full text-center text-xs text-slate-400 p-4">
-        Rapport gegenereerd op {new Date().toLocaleDateString('nl-NL')} â€¢ Vertrouwelijk
+        Rapport gegenereerd op {new Date().toLocaleDateString('nl-NL')} • Vertrouwelijk
       </div>
     </div>
   );

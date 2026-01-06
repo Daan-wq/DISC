@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { supabase, supabaseAdmin } from '@/lib/supabase'
 import { generateReportPdf } from '@/lib/report'
@@ -52,7 +52,7 @@ const BodySchema = z.object({
 export async function POST(req: NextRequest) {
   const timings: Timings = { t_start: Date.now() }
   const requestId = req.headers.get('x-request-id') || randomUUID().slice(0, 8)
-
+  
   // Helper to reset processing state on error
   const resetProcessingState = async (attemptId: string, error: string, errorCode: string) => {
     try {
@@ -66,12 +66,12 @@ export async function POST(req: NextRequest) {
       console.error(`[finish][${requestId}] Failed to reset processing state:`, resetErr)
     }
   }
-
+  
   let attempt_id: string | undefined
-
+  
   try {
     console.log(`=== /api/quiz/finish START [${requestId}] ===${process.env.VERCEL_REGION ? ` region=${process.env.VERCEL_REGION}` : ''}`)
-
+    
     if (!supabaseAdmin) {
       console.error('[finish] supabaseAdmin is null')
       return NextResponse.json({ error: 'Server not configured (no service role)' }, { status: 500 })
@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
       ? authHeader.slice(7).trim()
       : null
     console.log('[finish] token present:', !!token)
-
+    
     if (!token) {
       console.error('[finish] No authorization token')
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
     const { data: userRes } = await supabase.auth.getUser(token)
     const user = userRes?.user
     console.log('[finish] authenticated user:', user?.id)
-
+    
     if (!user) {
       console.error('[finish] User not found from token')
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -99,7 +99,7 @@ export async function POST(req: NextRequest) {
 
     const json = await req.json()
     console.log('[finish] request body keys:', Object.keys(json))
-
+    
     const parsed = BodySchema.safeParse(json)
     if (!parsed.success) {
       console.error('[finish] validation failed:', parsed.error.format())
@@ -120,9 +120,9 @@ export async function POST(req: NextRequest) {
       .select('id, user_id, quiz_id, finished_at, pdf_path, pdf_filename, pdf_status, processing_started_at, email_status, email_sent_at')
       .eq('id', attempt_id)
       .maybeSingle()
-
+    
     console.log('[finish] attempt lookup - error:', attemptErr?.message, 'found:', !!attempt, 'pdf_status:', attempt?.pdf_status)
-
+    
     if (attemptErr || !attempt) {
       console.error('[finish] Attempt not found:', { attemptErr: attemptErr?.message, attempt_id })
       return NextResponse.json({ error: 'Attempt not found' }, { status: 404 })
@@ -134,16 +134,16 @@ export async function POST(req: NextRequest) {
     // IDEMPOTENCY: If PDF already exists (pdf_status = 'done'), handle email if needed
     if (attempt.pdf_status === 'done' && attempt.pdf_path) {
       console.log('[finish] PDF already exists, checking email status')
-
+      
       // Check if email was already sent for this attempt
       const { data: attemptWithEmail } = await supabaseAdmin
         .from('quiz_attempts')
         .select('email_status, email_sent_at')
         .eq('id', attempt_id)
         .single()
-
+      
       const emailAlreadySent = attemptWithEmail?.email_status === 'sent' || attemptWithEmail?.email_sent_at
-
+      
       if (emailAlreadySent) {
         console.log('[finish] PDF exists AND email already sent - returning cached result')
         return NextResponse.json({
@@ -154,14 +154,14 @@ export async function POST(req: NextRequest) {
           email_status: 'already_sent'
         })
       }
-
+      
       // PDF exists but email NOT sent - need to send email now
       console.log('[finish] PDF exists but email NOT sent - sending email now')
-
+      
       // Download PDF from storage to attach to email
       const bucket = supabaseAdmin.storage.from('quiz-docs')
       const { data: pdfData, error: downloadErr } = await bucket.download(attempt.pdf_path)
-
+      
       if (downloadErr || !pdfData) {
         console.error('[finish] Failed to download cached PDF for email:', downloadErr)
         return NextResponse.json({
@@ -173,21 +173,21 @@ export async function POST(req: NextRequest) {
           email_error: 'Could not retrieve PDF for email'
         })
       }
-
+      
       // Convert Blob to Buffer
       const pdfBuffer = Buffer.from(await pdfData.arrayBuffer())
       const pdfFilename = attempt.pdf_filename || 'DISC-rapport.pdf'
       const displayName = user.email?.split('@')[0] || 'user'
-
+      
       // Send email for cached PDF
       const toEmail = user.email || ''
       let emailSent = false
       let emailError: string | null = null
-
+      
       try {
         const year = new Date().getFullYear()
         const company = process.env.COMPANY_NAME || 'The Lean Communication'
-
+        
         // Check allowlist delivery toggles
         const emailNormalized = toEmail.toLowerCase().trim()
         const { data: allow } = await supabaseAdmin
@@ -195,18 +195,18 @@ export async function POST(req: NextRequest) {
           .select('trainer_email, send_pdf_user, send_pdf_trainer, status')
           .eq('email_normalized', emailNormalized)
           .maybeSingle()
-
+        
         const sendUser = allow?.send_pdf_user !== false
         const sendTrainer = !!(allow?.send_pdf_trainer && allow?.trainer_email)
         const trainerEmail = (allow?.trainer_email || '').trim()
-
+        
         const recipients: string[] = []
         if (sendUser) recipients.push(toEmail)
         if (sendTrainer) recipients.push(trainerEmail)
         if (recipients.length === 0) recipients.push(toEmail)
-
+        
         console.log('[finish] Sending cached PDF email to:', recipients)
-
+        
         for (const rcpt of recipients) {
           await sendRapportEmail({
             to: rcpt,
@@ -224,10 +224,10 @@ export async function POST(req: NextRequest) {
             })
           } catch {}
         }
-
+        
         emailSent = true
         console.log('[finish] Cached PDF email sent successfully')
-
+        
         // Update allowlist status
         await supabaseAdmin
           .from('allowlist')
@@ -247,7 +247,7 @@ export async function POST(req: NextRequest) {
           })
         } catch {}
       }
-
+      
       // Update attempt with email status
       try {
         await supabaseAdmin
@@ -261,7 +261,7 @@ export async function POST(req: NextRequest) {
       } catch (updateErr) {
         console.error('[finish] Failed to update email status:', updateErr)
       }
-
+      
       return NextResponse.json({
         ok: true,
         storage_path: attempt.pdf_path,
@@ -279,16 +279,16 @@ export async function POST(req: NextRequest) {
     const processingToken = randomUUID()
     const now = new Date()
     const staleCutoff = new Date(now.getTime() - PROCESSING_TTL_MINUTES * 60 * 1000).toISOString()
-
+    
     console.log('[finish] Attempting to claim processing lock, token:', processingToken.slice(0, 8))
-
+    
     // Use raw SQL for complex OR condition with TTL check
     const { data: claimResult, error: claimError } = await supabaseAdmin.rpc('claim_pdf_processing', {
       p_attempt_id: attempt_id,
       p_processing_token: processingToken,
       p_stale_cutoff: staleCutoff
     }).maybeSingle()
-
+    
     // Fallback if RPC doesn't exist: try simple update
     let claimed = (claimResult as { claimed?: boolean })?.claimed === true
     if (claimError?.message?.includes('function') || claimError?.code === '42883') {
@@ -311,14 +311,14 @@ export async function POST(req: NextRequest) {
     if (!claimed) {
       // Could not claim - either done or another request is processing
       console.log('[finish] Could not claim lock, checking current state')
-
+      
       // Re-fetch to see current state
       const { data: current } = await supabaseAdmin
         .from('quiz_attempts')
         .select('pdf_path, pdf_filename, pdf_status, processing_started_at')
         .eq('id', attempt_id)
         .single()
-
+      
       if (current?.pdf_status === 'done' && current?.pdf_path) {
         // Already done by another request
         return NextResponse.json({
@@ -328,23 +328,23 @@ export async function POST(req: NextRequest) {
           cached: true
         })
       }
-
+      
       if (current?.pdf_status === 'processing') {
         // Another request is actively processing
         const startedAt = current.processing_started_at ? new Date(current.processing_started_at) : now
         const elapsedSec = Math.round((now.getTime() - startedAt.getTime()) / 1000)
         console.log('[finish] Another request is processing, elapsed:', elapsedSec, 's')
-
+        
         return NextResponse.json(
           { error: 'Processing in progress', retry_after: Math.max(30, PROCESSING_TTL_MINUTES * 60 - elapsedSec) },
           { status: 202, headers: { 'Retry-After': '30' } }
         )
       }
-
+      
       // Unknown state - return error
       return NextResponse.json({ error: 'Could not start processing' }, { status: 500 })
     }
-
+    
     timings.t_claim = Date.now()
     console.log(`[finish][${requestId}] Successfully claimed processing lock in ${timings.t_claim - timings.t_start}ms`)
 
@@ -353,7 +353,7 @@ export async function POST(req: NextRequest) {
     const finalPD = providedPD || null
 
     profileCode = (finalPD?.results?.profile_code as string) || 'D'
-
+    
     // Detecteer afwijkende patronen in natuurlijke scores
     let hasAlert = false
     if (finalPD?.results) {
@@ -365,10 +365,10 @@ export async function POST(req: NextRequest) {
       ]
       // Alert als ALLE scores onder de 50% zijn (te laag)
       const allBelow50 = naturalScores.every(score => score < 50)
-
+      
       // Alert als ALLE scores op of boven de 50% zijn (te hoog/vlak)
       const allAboveOrEqual50 = naturalScores.every(score => score >= 50)
-
+      
       // Trigger alert bij beide patronen
       hasAlert = allBelow50 || allAboveOrEqual50
     }
@@ -378,7 +378,7 @@ export async function POST(req: NextRequest) {
       const fullName = finalPD?.candidate?.full_name || 'Gebruiker'
       const dateText = finalPD?.meta?.dateISO || finalPD?.results?.created_at || new Date().toISOString()
       const styleLabel = finalPD?.meta?.stijlLabel || profileCode
-
+      
       pdfBuffer = await generateReportPdf({
         profileCode,
         fullName,
@@ -437,7 +437,7 @@ export async function POST(req: NextRequest) {
     // Consolidated schema: store PDF metadata, alert flag, and profile code on the attempt
     // Set expiry to 180 days from now
     const expiresAt = new Date(now.getTime() + 180 * 24 * 60 * 60 * 1000).toISOString()
-
+    
     const { error: updateErr } = await supabaseAdmin
       .from('quiz_attempts')
       .update({
@@ -448,12 +448,12 @@ export async function POST(req: NextRequest) {
         alert: hasAlert,
       })
       .eq('id', attempt_id)
-
+    
     if (updateErr) {
       console.error('[finish] Failed to update attempt with PDF metadata:', updateErr)
       return NextResponse.json({ error: 'Failed to save PDF metadata', details: updateErr.message }, { status: 500 })
     }
-
+    
     console.log('[finish] PDF metadata saved successfully')
 
     // Create notification if alert was triggered (unusual score pattern)
@@ -464,14 +464,14 @@ export async function POST(req: NextRequest) {
             ? 'alle scores onder 50%'
             : 'alle scores op of boven 50%'
         ) : 'onbekend patroon'
-
+        
         await supabaseAdmin.from('notifications').insert({
           severity: 'warning',
           source: 'quiz',
           message: `Afwijkend scorepatroon gedetecteerd: ${alertType}`,
-          meta: {
-            attempt_id,
-            quiz_id,
+          meta: { 
+            attempt_id, 
+            quiz_id, 
             user_id: user.id,
             user_email: user.email,
             candidate_name: finalPD?.candidate?.full_name || null,
@@ -493,7 +493,7 @@ export async function POST(req: NextRequest) {
     const toEmail = user.email || ''
     let emailSent = false
     let emailError: string | null = null
-
+    
     try {
       const year = new Date().getFullYear()
       const company = process.env.COMPANY_NAME || 'The Lean Communication'
@@ -588,7 +588,7 @@ export async function POST(req: NextRequest) {
 
     timings.t_email = Date.now()
     timings.t_total = timings.t_email - timings.t_start
-
+    
     console.log(`[finish][${requestId}] SUCCESS - email_sent: ${emailSent}, timings: claim=${timings.t_claim! - timings.t_start}ms render=${timings.t_render! - timings.t_claim!}ms upload=${timings.t_upload! - timings.t_render!}ms email=${timings.t_email - timings.t_upload!}ms total=${timings.t_total}ms`)
     console.log(`=== /api/quiz/finish END (SUCCESS) [${requestId}] ===`)
     return NextResponse.json({ ok: true, storage_path: storagePath, pdf_filename: pdfFilename, timings })
@@ -596,12 +596,12 @@ export async function POST(req: NextRequest) {
     const elapsed = Date.now() - timings.t_start
     console.error(`[finish][${requestId}] EXCEPTION after ${elapsed}ms:`, e?.message || String(e))
     console.error(`[finish][${requestId}] Stack:`, e?.stack)
-
+    
     // On error: reset processing state so it can be retried
     if (attempt_id) {
       await resetProcessingState(attempt_id, e?.message || String(e), 'UNHANDLED_ERROR')
     }
-
+    
     console.log(`=== /api/quiz/finish END (ERROR) [${requestId}] after ${elapsed}ms ===`)
     return NextResponse.json({ error: 'UNHANDLED_ERROR', details: e?.message || String(e), elapsed_ms: elapsed }, { status: 500 })
   }

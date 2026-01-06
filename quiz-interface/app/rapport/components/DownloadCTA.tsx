@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState } from 'react';
 import { Download, Printer, ExternalLink } from 'lucide-react';
@@ -21,17 +21,17 @@ export function DownloadCTA({ report }: DownloadCTAProps) {
 
     try {
       setDownloadState('preparing');
-
+      
       // Artificial delay to simulate "preparing" state and allow UI to update
       await new Promise(resolve => setTimeout(resolve, 800));
-
+      
       // Wait for fonts to be ready (production safeguard)
       if (document.fonts && document.fonts.ready) {
         await document.fonts.ready;
       }
 
       setDownloadState('opening-print');
-
+      
       // Slight delay before opening print dialog so user sees the state change
       setTimeout(() => {
         window.print();
@@ -87,7 +87,7 @@ export function DownloadCTA({ report }: DownloadCTAProps) {
             )}
             {downloadState === 'preparing' && (
               <>
-                <span className="animate-spin mr-2">â³</span>
+                <span className="animate-spin mr-2">⏳</span>
                 Rapport voorbereiden...
               </>
             )}

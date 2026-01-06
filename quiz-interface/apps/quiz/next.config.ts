@@ -6,23 +6,20 @@ const isDev = process.env.NODE_ENV === 'development'
 
 dotenvConfig({ path: path.resolve(__dirname, '../../.env.local') })
 
-const devCSP = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co https://challenges.cloudflare.com; frame-src 'self' https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self';"
+const devCSP = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self';"
 
-const prodCSP = "default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co https://challenges.cloudflare.com; frame-src 'self' https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self';"
+const prodCSP = "default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self';"
 
 const nextConfig: NextConfig = {
   experimental: {
     externalDir: true,
-    lockDistDir: false,
   },
   serverExternalPackages: ['@react-pdf/renderer'],
   outputFileTracingIncludes: {
     '/api/**': ['./assets/report/**', './assets/vendor/**'],
   },
   allowedDevOrigins: ['localhost', '127.0.0.1'],
-  turbopack: {
-    root: path.resolve(__dirname, '..', '..'),
-  },
+  turbopack: {},
   webpack: (config) => {
     config.resolve.alias.canvas = false
     config.resolve.alias.encoding = false

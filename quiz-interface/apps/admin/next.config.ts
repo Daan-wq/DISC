@@ -13,13 +13,10 @@ const prodCSP = "default-src 'self'; script-src 'self' 'unsafe-inline' https://c
 const nextConfig: NextConfig = {
   experimental: {
     externalDir: true,
-    lockDistDir: false,
   },
   serverExternalPackages: ['@react-pdf/renderer'],
   allowedDevOrigins: ['localhost', '127.0.0.1'],
-  turbopack: {
-    root: path.resolve(__dirname, '..', '..'),
-  },
+  turbopack: {},
   webpack: (config) => {
     config.resolve.alias.canvas = false
     config.resolve.alias.encoding = false

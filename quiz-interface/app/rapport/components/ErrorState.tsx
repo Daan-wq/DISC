@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React from 'react';
 import { AlertCircle, ArrowLeft } from 'lucide-react';
@@ -11,10 +11,10 @@ interface ErrorStateProps {
   onRetry?: () => void;
 }
 
-export function ErrorState({
-  title = "Er ging iets mis",
+export function ErrorState({ 
+  title = "Er ging iets mis", 
   message = "We konden je rapport niet laden. Mogelijk is de link verlopen of ongeldig.",
-  onRetry
+  onRetry 
 }: ErrorStateProps) {
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center p-4">
@@ -27,27 +27,27 @@ export function ErrorState({
         <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6 relative z-10">
           <AlertCircle className="w-8 h-8 text-red-500" />
         </div>
-
+        
         <h2 className="text-xl font-bold text-[#1A1A1A] mb-3 relative z-10">
           {title}
         </h2>
-
+        
         <p className="text-slate-600 mb-8 relative z-10 leading-relaxed">
           {message}
         </p>
-
+        
         <div className="flex flex-col gap-3 relative z-10">
           {onRetry && (
-            <Button
-              onClick={onRetry}
+            <Button 
+              onClick={onRetry} 
               className="bg-[#2F6B4F] hover:bg-[#25543D] text-white w-full"
             >
               Probeer opnieuw
             </Button>
           )}
-
-          <Button
-            variant="outline"
+          
+          <Button 
+            variant="outline" 
             className="w-full border-[#E6E6E6] text-slate-600 hover:bg-slate-50"
             onClick={() => window.location.href = '/'}
           >

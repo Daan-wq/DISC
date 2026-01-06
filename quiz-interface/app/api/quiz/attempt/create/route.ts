@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { supabase, supabaseAdmin } from '@/lib/supabase'
 import { QUIZ_ID } from '@/lib/constants'
 
@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic'
 export async function POST(req: NextRequest) {
   try {
     console.log('[attempt/create] START')
-
+    
     if (!supabaseAdmin) {
       return NextResponse.json({ error: 'Server not configured' }, { status: 500 })
     }
@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
 
     if (error) {
       console.error('[attempt/create] error:', error)
-
+      
       // If unique violation, fetch existing
       if ((error as any).code === '23505') {
         console.log('[attempt/create] unique violation - fetching existing attempt')
@@ -54,12 +54,12 @@ export async function POST(req: NextRequest) {
           .eq('user_id', user.id)
           .eq('quiz_id', QUIZ_ID)
           .maybeSingle()
-
+        
         if (fetchErr) {
           console.error('[attempt/create] failed to fetch existing:', fetchErr)
           return NextResponse.json({ error: 'Failed to fetch existing attempt' }, { status: 500 })
         }
-
+        
         if (found) {
           console.log('[attempt/create] found existing:', found.id)
           return NextResponse.json({ id: found.id, quiz_id: found.quiz_id })

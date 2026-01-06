@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { getAdminSession } from '@/server/admin/session'
 
@@ -61,10 +61,10 @@ export async function GET(req: NextRequest) {
     // Fetch answers for all candidates
     const candidateIds = Array.from(candidateMap.values()).map((c: any) => c.id).filter(Boolean)
     console.log('[debug] candidateIds:', candidateIds)
-
+    
     let answersData: any[] = []
     let answersError: any = null
-
+    
     if (candidateIds.length > 0) {
       const result = await supabaseAdmin
         .from('answers')
@@ -100,7 +100,7 @@ export async function GET(req: NextRequest) {
       }
     })
 
-    return NextResponse.json({
+    return NextResponse.json({ 
       attempts: result,
       debug: {
         attemptCount: attempts?.length,

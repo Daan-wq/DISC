@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useState, Suspense, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
@@ -55,9 +55,9 @@ function LoginInner() {
 
   async function requestMagicLink(e: React.FormEvent) {
     e.preventDefault()
-
+    
     // Prevent double submission
-
+    
     setError(null)
     setIsSubmitting(true)
 
@@ -77,8 +77,8 @@ function LoginInner() {
       const res = await fetch('/api/auth/request-magic-link', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: normalized,
+        body: JSON.stringify({ 
+          email: normalized, 
           redirectTo,
           first_name: firstName.trim(),
           last_name: lastName.trim()
@@ -200,8 +200,8 @@ function LoginInner() {
               )}
             </div>
           )}
-          <button
-            type="submit"
+          <button 
+            type="submit" 
             disabled={isSubmitting || cooldownSeconds > 0}
             className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
@@ -218,7 +218,7 @@ export default function LoginPage() {
     <Suspense fallback={
       <div className="min-h-screen bg-gray-50 py-12 px-4">
         <div className="max-w-md mx-auto bg-white rounded-lg shadow p-8 text-center">
-          <h1 className="text-2xl font-bold mb-4">Bezig met ladenâ€¦</h1>
+          <h1 className="text-2xl font-bold mb-4">Bezig met laden…</h1>
         </div>
       </div>
     }>

@@ -1,11 +1,11 @@
-﻿import type { Metadata } from 'next'
+import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 
 import './globals.css'
 import '../styles/tokens.css'
 import Footer from '@/components/site/footer'
 
-const inter = Inter({
+const inter = Inter({ 
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-inter'

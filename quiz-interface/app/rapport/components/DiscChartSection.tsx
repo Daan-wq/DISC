@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useMemo } from 'react';
 import {
@@ -32,8 +32,8 @@ const CustomTooltip = ({ active, payload, label }: any) => {
         <p className="font-bold text-[#1A1A1A] mb-1">{`Stijl ${label}`}</p>
         {payload.map((entry: any, index: number) => (
           <div key={index} className="flex items-center gap-2 mb-1 last:mb-0">
-            <div
-              className="w-3 h-3 rounded-sm"
+            <div 
+              className="w-3 h-3 rounded-sm" 
               style={{ backgroundColor: entry.color }}
             />
             <span className="text-slate-600">
@@ -49,7 +49,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
 export function DiscChartSection({ report, viewMode = 'both', onViewModeChange }: DiscChartSectionProps) {
   const [internalViewMode, setInternalViewMode] = useState<'both' | 'natural' | 'response'>('both');
-
+  
   // Use controlled mode if prop is provided, otherwise internal state
   const currentViewMode = onViewModeChange ? viewMode : internalViewMode;
   const handleViewChange = (mode: 'both' | 'natural' | 'response') => {
@@ -80,7 +80,7 @@ export function DiscChartSection({ report, viewMode = 'both', onViewModeChange }
       if (item.Natuurlijk > maxNatural.value) {
         maxNatural = { trait: item.name, value: item.Natuurlijk };
       }
-
+      
       // Biggest difference
       const diff = Math.abs(item.Natuurlijk - item.Respons);
       if (diff > maxDiff.value) {
@@ -111,7 +111,7 @@ export function DiscChartSection({ report, viewMode = 'both', onViewModeChange }
         <CardHeader className="pb-2">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <CardTitle className="text-xl font-semibold text-[#1A1A1A]">Jouw Scores</CardTitle>
-
+            
             {/* View Toggle */}
             <div className="flex p-1 bg-slate-100 rounded-lg">
               <button
@@ -159,15 +159,15 @@ export function DiscChartSection({ report, viewMode = 'both', onViewModeChange }
                 barGap={8}
               >
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E6E6E6" />
-                <XAxis
-                  dataKey="name"
-                  tick={{ fill: '#666', fontSize: 14, fontWeight: 600 }}
+                <XAxis 
+                  dataKey="name" 
+                  tick={{ fill: '#666', fontSize: 14, fontWeight: 600 }} 
                   axisLine={{ stroke: '#E6E6E6' }}
                   tickLine={false}
                 />
-                <YAxis
-                  domain={[0, 100]}
-                  tick={{ fill: '#999', fontSize: 12 }}
+                <YAxis 
+                  domain={[0, 100]} 
+                  tick={{ fill: '#999', fontSize: 12 }} 
                   axisLine={false}
                   tickLine={false}
                   tickCount={6}
@@ -175,22 +175,22 @@ export function DiscChartSection({ report, viewMode = 'both', onViewModeChange }
                 <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(0,0,0,0.03)' }} />
                 <Legend wrapperStyle={{ paddingTop: '20px' }} />
                 <ReferenceLine y={50} stroke="#cbd5e1" strokeDasharray="3 3" />
-
+                
                 {(currentViewMode === 'both' || currentViewMode === 'natural') && (
-                  <Bar
-                    dataKey="Natuurlijk"
-                    fill={COLORS.natural}
-                    radius={[4, 4, 0, 0]}
+                  <Bar 
+                    dataKey="Natuurlijk" 
+                    fill={COLORS.natural} 
+                    radius={[4, 4, 0, 0]} 
                     animationDuration={1000}
                     name="Natuurlijke Stijl"
                   />
                 )}
-
+                
                 {(currentViewMode === 'both' || currentViewMode === 'response') && (
-                  <Bar
-                    dataKey="Respons"
-                    fill={COLORS.response}
-                    radius={[4, 4, 0, 0]}
+                  <Bar 
+                    dataKey="Respons" 
+                    fill={COLORS.response} 
+                    radius={[4, 4, 0, 0]} 
                     animationDuration={1000}
                     animationBegin={200}
                     name="Respons Stijl"

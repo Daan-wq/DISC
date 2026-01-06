@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { supabase, supabaseAdmin } from '@/lib/supabase'
 
@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
     const requestOrigin = req.headers.get('origin') || req.headers.get('referer')?.split('/').slice(0, 3).join('/')
     const envBaseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL
     const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production'
-
+    
     // In production, prefer request origin, then env. Never fall back to localhost.
     // In development, allow localhost fallback.
     let baseUrl: string
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
     } else {
       baseUrl = requestOrigin || envBaseUrl || 'http://localhost:3000'
     }
-
+    
     console.log('[magic-link] Using baseUrl:', baseUrl, 'Origin:', requestOrigin, 'Env:', envBaseUrl)
 
     const email = parsed.data.email.trim().toLowerCase()
@@ -110,7 +110,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ sent: false, reason: 'NO_ACCESS' }, { status: 200 })
     }
 
-    // Allowed â†’ send magic link using anon client
+    // Allowed → send magic link using anon client
     // baseUrl is already determined above from request origin or env vars
     // If redirectTo not provided, build default and carry names
     if (!redirectTo) {
@@ -145,20 +145,20 @@ export async function POST(req: NextRequest) {
 
     if (sendErr) {
       console.error('request-magic-link send error:', sendErr.message)
-
+      
       // Check if it's a rate limit error from Supabase
       const errorMsg = sendErr.message?.toLowerCase() || ''
       if (errorMsg.includes('rate limit') || errorMsg.includes('too many') || errorMsg.includes('after')) {
         // Extract seconds from error message if possible
         const match = sendErr.message?.match(/(\d+)\s*seconds?/i)
         const seconds = match ? parseInt(match[1]) : 60
-        return NextResponse.json({
-          sent: false,
+        return NextResponse.json({ 
+          sent: false, 
           reason: 'SUPABASE_RATE_LIMIT',
           retryAfterSeconds: seconds
         }, { status: 200 })
       }
-
+      
       return NextResponse.json({ sent: false, reason: 'SEND_FAILED' }, { status: 200 })
     }
 
@@ -167,17 +167,17 @@ export async function POST(req: NextRequest) {
     // since signInWithOtp just sends the link, doesn't create session yet
     const fullName = `${firstName} ${lastName}`.trim() || email.split('@')[0]
     const QUIZ_ID = '00000000-0000-0000-0000-000000000001'
-
+    
     try {
       // Get user via admin API using listUsers with filter
       const { data: { users }, error: listErr } = await supabaseAdmin.auth.admin.listUsers()
-
+      
       if (listErr) {
         console.error('Failed to list users:', listErr.message)
       } else {
         // Find user by email
         const authUser = users?.find(u => u.email?.toLowerCase() === email.toLowerCase())
-
+        
         if (authUser) {
           // User exists, create candidate
           const { error: insertErr } = await supabaseAdmin

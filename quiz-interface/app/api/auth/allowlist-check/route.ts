@@ -112,3 +112,4 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ eligible: false }, { status: 200 })
   }
 }
+

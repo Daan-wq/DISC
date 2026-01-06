@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React from 'react';
 import { ShieldCheck, Lock } from 'lucide-react';
@@ -9,9 +9,9 @@ export function TrustFooter() {
       <div className="flex flex-col md:flex-row items-center justify-between gap-6 text-sm text-slate-500">
         <div className="flex items-center gap-2">
           <Lock className="w-4 h-4 text-[#2F6B4F]" />
-          <span>Je resultaten zijn privÃ©. De PDF wordt lokaal voorbereid.</span>
+          <span>Je resultaten zijn privé. De PDF wordt lokaal voorbereid.</span>
         </div>
-
+        
         <div className="flex items-center gap-6">
           <a href="#" className="hover:text-[#2F6B4F] transition-colors">Privacybeleid</a>
           <a href="#" className="hover:text-[#2F6B4F] transition-colors">Algemene Voorwaarden</a>
@@ -21,7 +21,7 @@ export function TrustFooter() {
           </div>
         </div>
       </div>
-
+      
       <div className="text-center mt-8 text-xs text-slate-400">
         &copy; {new Date().getFullYear()} The Lean Communication. Alle rechten voorbehouden.
       </div>

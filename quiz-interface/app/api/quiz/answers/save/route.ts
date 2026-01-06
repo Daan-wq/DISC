@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { supabase, supabaseAdmin } from '@/lib/supabase'
 
@@ -24,9 +24,9 @@ export async function POST(req: NextRequest) {
 
     if (!token) {
       console.warn('[answers/save] 401: No bearer token provided')
-      return NextResponse.json({
-        error: 'Unauthorized',
-        reason: authHeader ? 'INVALID_AUTH_FORMAT' : 'NO_AUTH_HEADER'
+      return NextResponse.json({ 
+        error: 'Unauthorized', 
+        reason: authHeader ? 'INVALID_AUTH_FORMAT' : 'NO_AUTH_HEADER' 
       }, { status: 401 })
     }
 
@@ -35,9 +35,9 @@ export async function POST(req: NextRequest) {
 
     if (!user) {
       console.warn('[answers/save] 401: Token validation failed -', authError?.message || 'no user')
-      return NextResponse.json({
-        error: 'Unauthorized',
-        reason: authError?.message?.includes('expired') ? 'TOKEN_EXPIRED' : 'INVALID_TOKEN'
+      return NextResponse.json({ 
+        error: 'Unauthorized', 
+        reason: authError?.message?.includes('expired') ? 'TOKEN_EXPIRED' : 'INVALID_TOKEN' 
       }, { status: 401 })
     }
 

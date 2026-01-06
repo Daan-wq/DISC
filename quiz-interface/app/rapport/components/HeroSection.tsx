@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState } from 'react';
 import { Copy, Check } from 'lucide-react';
@@ -52,10 +52,10 @@ export function HeroSection({ report }: HeroSectionProps) {
             <div>
               <div className="flex items-center gap-2 text-sm font-medium text-slate-500 mb-2">
                 <span>Rapport van {report.candidateName || 'Kandidaat'}</span>
-                <span>â€¢</span>
+                <span>•</span>
                 <span>{formatDate(report.assessmentDate)}</span>
               </div>
-
+              
               <h1 className="text-3xl md:text-4xl font-semibold text-[#1A1A1A] tracking-tight">
                 Jouw DISC Profiel
               </h1>
@@ -63,7 +63,7 @@ export function HeroSection({ report }: HeroSectionProps) {
 
             <div className="flex items-center gap-4">
               <div className="relative group">
-                <div
+                <div 
                   className="flex items-center gap-3 bg-white border border-[#E6E6E6] rounded-2xl px-6 py-4 shadow-sm hover:shadow-md transition-all transform hover:-translate-y-0.5 cursor-pointer"
                   onClick={handleCopyProfileCode}
                 >
@@ -74,17 +74,17 @@ export function HeroSection({ report }: HeroSectionProps) {
                     </span>
                   </div>
                   <div className="h-10 w-px bg-slate-200 mx-1"></div>
-                  <button
+                  <button 
                     className="p-2 rounded-full hover:bg-slate-50 text-slate-400 hover:text-[#2F6B4F] transition-colors focus:outline-none focus:ring-2 focus:ring-[#2F6B4F] focus:ring-offset-2"
                     aria-label="Kopieer profielcode"
                   >
                     {copied ? <Check className="w-5 h-5 text-green-600" /> : <Copy className="w-5 h-5" />}
                   </button>
                 </div>
-
+                
                 {/* Toast Notification */}
                 {copied && (
-                  <motion.div
+                  <motion.div 
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0 }}
