@@ -1,7 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "installCommand": "cd ../.. && npm install --legacy-peer-deps",
-  "buildCommand": "cd ../.. && npm run build:admin",
+  "installCommand": "cd ../.. && pnpm install --no-frozen-lockfile",
+  "buildCommand": "cd ../.. && pnpm --filter=admin run build",
   "outputDirectory": ".next",
   "framework": "nextjs"
 }
