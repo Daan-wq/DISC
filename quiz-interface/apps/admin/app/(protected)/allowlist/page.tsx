@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from 'react'
-import { Plus, Search, Upload, RefreshCw, RotateCcw, XCircle, AlertTriangle } from 'lucide-react'
+import { Plus, Search, Upload, RefreshCw, RotateCcw, Trash2, AlertTriangle } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/admin/ui/Card'
 import { Badge } from '@/components/admin/ui/Badge'
 import { Button } from '@/components/admin/ui/Button'
@@ -157,6 +157,10 @@ export default function AdminAllowlistPage() {
   }
 
   async function doAction(kind: 'reset' | 'revoke', email: string) {
+    if (kind === 'revoke') {
+      const ok = confirm(`Weet je zeker dat je toegang wilt intrekken voor "${email}"? Dit kan niet ongedaan gemaakt worden.`)
+      if (!ok) return
+    }
     setBusy(true)
     setMsg(null)
     try {
@@ -472,7 +476,7 @@ export default function AdminAllowlistPage() {
                       className="p-1.5 rounded-lg text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors"
                       title="Intrekken"
                     >
-                      <XCircle className="h-4 w-4" />
+                      <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
                 </TableCell>

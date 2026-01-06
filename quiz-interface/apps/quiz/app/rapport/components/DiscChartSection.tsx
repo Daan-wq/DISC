@@ -179,7 +179,6 @@ export function DiscChartSection({ report, viewMode = 'both', onViewModeChange }
                     isAnimationActive
                     animationDuration={900}
                     animationBegin={200}
-                    zIndex={350}
                   />
                 )}
               </BarChart>
