@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { Copy, Check } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { SparrowIcon } from './SparrowIcon';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { DiscReport } from '../types';
@@ -37,12 +36,7 @@ export function HeroSection({ report }: HeroSectionProps) {
 
   return (
     <section className="relative overflow-hidden mb-8">
-      {/* Sparrow Icon Background */}
-      <div className="absolute top-0 right-0 w-64 h-64 -mt-10 -mr-10 pointer-events-none select-none z-0">
-        <SparrowIcon className="w-full h-full text-[#2F6B4F]" opacity={0.08} />
-      </div>
-
-      <div className="relative z-10">
+      <div>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -69,13 +63,13 @@ export function HeroSection({ report }: HeroSectionProps) {
                 >
                   <div className="flex flex-col">
                     <span className="text-xs uppercase tracking-wider text-slate-500 font-medium">Profielcode</span>
-                    <span className="text-4xl md:text-5xl font-bold text-[#2F6B4F] leading-none">
+                    <span className="text-4xl md:text-5xl font-bold text-[#46915f] leading-none">
                       {report.profileCode}
                     </span>
                   </div>
                   <div className="h-10 w-px bg-slate-200 mx-1"></div>
                   <button 
-                    className="p-2 rounded-full hover:bg-slate-50 text-slate-400 hover:text-[#2F6B4F] transition-colors focus:outline-none focus:ring-2 focus:ring-[#2F6B4F] focus:ring-offset-2"
+                    className="p-2 rounded-full hover:bg-slate-50 text-slate-400 hover:text-[#46915f] transition-colors focus:outline-none focus:ring-2 focus:ring-[#46915f] focus:ring-offset-2"
                     aria-label="Kopieer profielcode"
                   >
                     {copied ? <Check className="w-5 h-5 text-green-600" /> : <Copy className="w-5 h-5" />}

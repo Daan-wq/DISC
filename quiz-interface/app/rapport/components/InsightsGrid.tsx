@@ -45,7 +45,7 @@ export function InsightsGrid({ report }: InsightsGridProps) {
         <Card className="h-full border-[#E6E6E6] shadow-sm hover:shadow-md transition-shadow">
           <CardHeader className="pb-3">
             <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center mb-2">
-              <Target className="w-5 h-5 text-[#2F6B4F]" />
+              <Target className="w-5 h-5 text-[#46915f]" />
             </div>
             <CardTitle className="text-lg text-[#1A1A1A]">Krachten</CardTitle>
           </CardHeader>

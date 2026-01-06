@@ -1095,7 +1095,7 @@ function QuizInner() {
     return (
       <div className="min-h-screen bg-gray-50 py-6 px-3 sm:py-8 sm:px-4 md:py-12">
         <div className="max-w-md mx-auto bg-white rounded-lg shadow p-4 sm:p-6 md:p-8 text-center">
-          <h1 className="text-xl sm:text-2xl font-bold mb-4">Laden…</h1>
+          <h1 className="text-xl sm:text-2xl font-bold mb-4">Laden...</h1>
         </div>
       </div>
     )
@@ -1297,7 +1297,7 @@ export default function QuizPage() {
         fallback={
           <div className="min-h-screen bg-gray-50 py-6 px-3 sm:py-8 sm:px-4 md:py-12">
             <div className="max-w-md mx-auto bg-white rounded-lg shadow p-4 sm:p-6 md:p-8 text-center">
-              <h1 className="text-xl sm:text-2xl font-bold mb-4">Laden…</h1>
+              <h1 className="text-xl sm:text-2xl font-bold mb-4">Laden...</h1>
             </div>
           </div>
         }

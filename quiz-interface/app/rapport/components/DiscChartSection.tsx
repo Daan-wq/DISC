@@ -1,16 +1,16 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useMemo } from 'react';
 import {
   BarChart,
   Bar,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   Legend,
   ResponsiveContainer,
-  ReferenceLine,
   Cell
 } from 'recharts';
 import { motion } from 'framer-motion';
@@ -32,8 +32,8 @@ const CustomTooltip = ({ active, payload, label }: any) => {
         <p className="font-bold text-[#1A1A1A] mb-1">{`Stijl ${label}`}</p>
         {payload.map((entry: any, index: number) => (
           <div key={index} className="flex items-center gap-2 mb-1 last:mb-0">
-            <div 
-              className="w-3 h-3 rounded-sm" 
+            <div
+              className="w-3 h-3 rounded-sm"
               style={{ backgroundColor: entry.color }}
             />
             <span className="text-slate-600">
@@ -47,9 +47,17 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
+const ResponseDot = (props: any) => {
+  const { cx, cy, payload } = props || {}
+  if (typeof cx !== 'number' || typeof cy !== 'number') return null
+
+  const fill = payload?.color || '#334155'
+  return <circle cx={cx} cy={cy} r={4} fill={fill} stroke="#ffffff" strokeWidth={1} />
+}
+
 export function DiscChartSection({ report, viewMode = 'both', onViewModeChange }: DiscChartSectionProps) {
   const [internalViewMode, setInternalViewMode] = useState<'both' | 'natural' | 'response'>('both');
-  
+
   // Use controlled mode if prop is provided, otherwise internal state
   const currentViewMode = onViewModeChange ? viewMode : internalViewMode;
   const handleViewChange = (mode: 'both' | 'natural' | 'response') => {
@@ -60,6 +68,14 @@ export function DiscChartSection({ report, viewMode = 'both', onViewModeChange }
     }
   };
 
+  // DISC color mapping per letter
+  const DISC_COLORS: Record<string, string> = {
+    D: '#cc151b', // Red
+    I: '#ffcb04', // Yellow
+    S: '#029939', // Green
+    C: '#2665ad', // Blue
+  };
+
   // Prepare data for Recharts
   const data = useMemo(() => {
     const traits = ['D', 'I', 'S', 'C'];
@@ -67,36 +83,13 @@ export function DiscChartSection({ report, viewMode = 'both', onViewModeChange }
       name: trait,
       Natuurlijk: Math.max(0, Math.min(100, report.natuurlijkeStijl[trait as keyof typeof report.natuurlijkeStijl])),
       Respons: Math.max(0, Math.min(100, report.responsStijl[trait as keyof typeof report.responsStijl])),
+      color: DISC_COLORS[trait],
     }));
   }, [report]);
 
-  // Calculate insights
-  const insights = useMemo(() => {
-    let maxNatural = { trait: '', value: -1 };
-    let maxDiff = { trait: '', value: -1, nat: 0, res: 0 };
 
-    data.forEach(item => {
-      // Highest natural trait
-      if (item.Natuurlijk > maxNatural.value) {
-        maxNatural = { trait: item.name, value: item.Natuurlijk };
-      }
-      
-      // Biggest difference
-      const diff = Math.abs(item.Natuurlijk - item.Respons);
-      if (diff > maxDiff.value) {
-        maxDiff = { trait: item.name, value: diff, nat: item.Natuurlijk, res: item.Respons };
-      }
-    });
 
-    return { maxNatural, maxDiff };
-  }, [data]);
-
-  const COLORS = {
-    natural: '#2F6B4F', // Primary Green
-    response: '#A0C4B4', // Lighter Green/Teal for contrast
-  };
-
-  const activeButtonStyle = "bg-[#E7F3ED] text-[#2F6B4F] border-[#2F6B4F] font-medium ring-1 ring-[#2F6B4F]";
+  const activeButtonStyle = "bg-[#E7F3ED] text-[#46915f] border-[#46915f] font-medium ring-1 ring-[#46915f]";
   const inactiveButtonStyle = "bg-white text-slate-600 border-slate-200 hover:bg-slate-50";
 
   return (
@@ -111,7 +104,7 @@ export function DiscChartSection({ report, viewMode = 'both', onViewModeChange }
         <CardHeader className="pb-2">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <CardTitle className="text-xl font-semibold text-[#1A1A1A]">Jouw Scores</CardTitle>
-            
+
             {/* View Toggle */}
             <div className="flex p-1 bg-slate-100 rounded-lg">
               <button
@@ -137,21 +130,7 @@ export function DiscChartSection({ report, viewMode = 'both', onViewModeChange }
         </CardHeader>
 
         <CardContent>
-          {/* Mini-summary chips */}
-          <div className="flex flex-wrap gap-3 mb-6">
-            <div className="bg-[#E7F3ED] border border-[#2F6B4F]/20 rounded-lg px-3 py-2 text-sm text-[#2F6B4F]">
-              <span className="font-semibold block text-xs uppercase tracking-wider opacity-80">Hoogste Natuurlijk</span>
-              <span className="font-bold">{insights.maxNatural.trait} ({Math.round(insights.maxNatural.value)}%)</span>
-            </div>
-            {insights.maxDiff.value > 10 && (
-              <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-sm text-amber-800">
-                <span className="font-semibold block text-xs uppercase tracking-wider opacity-80">Grootste Verschil</span>
-                <span className="font-bold">{insights.maxDiff.trait} ({Math.round(insights.maxDiff.nat)}% vs {Math.round(insights.maxDiff.res)}%)</span>
-              </div>
-            )}
-          </div>
-
-          <div className="h-[300px] w-full mt-4" role="img" aria-label="Staafdiagram met jouw DISC scores">
+          <div className="h-[300px] w-full" role="img" aria-label="Staafdiagram met jouw DISC scores">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={data}
@@ -159,41 +138,48 @@ export function DiscChartSection({ report, viewMode = 'both', onViewModeChange }
                 barGap={8}
               >
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E6E6E6" />
-                <XAxis 
-                  dataKey="name" 
-                  tick={{ fill: '#666', fontSize: 14, fontWeight: 600 }} 
+                <XAxis
+                  dataKey="name"
+                  tick={{ fill: '#666', fontSize: 14, fontWeight: 600 }}
                   axisLine={{ stroke: '#E6E6E6' }}
                   tickLine={false}
                 />
-                <YAxis 
-                  domain={[0, 100]} 
-                  tick={{ fill: '#999', fontSize: 12 }} 
+                <YAxis
+                  domain={[0, 100]}
+                  tick={{ fill: '#999', fontSize: 12 }}
                   axisLine={false}
                   tickLine={false}
                   tickCount={6}
                 />
                 <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(0,0,0,0.03)' }} />
                 <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                <ReferenceLine y={50} stroke="#cbd5e1" strokeDasharray="3 3" />
-                
+
                 {(currentViewMode === 'both' || currentViewMode === 'natural') && (
-                  <Bar 
-                    dataKey="Natuurlijk" 
-                    fill={COLORS.natural} 
-                    radius={[4, 4, 0, 0]} 
+                  <Bar
+                    dataKey="Natuurlijk"
+                    radius={[4, 4, 0, 0]}
                     animationDuration={1000}
                     name="Natuurlijke Stijl"
-                  />
+                  >
+                    {data.map((entry, index) => (
+                      <Cell key={`cell-nat-${index}`} fill={entry.color} />
+                    ))}
+                  </Bar>
                 )}
-                
+
                 {(currentViewMode === 'both' || currentViewMode === 'response') && (
-                  <Bar 
-                    dataKey="Respons" 
-                    fill={COLORS.response} 
-                    radius={[4, 4, 0, 0]} 
-                    animationDuration={1000}
-                    animationBegin={200}
+                  <Line
+                    type="monotone"
+                    dataKey="Respons"
                     name="Respons Stijl"
+                    stroke="#334155"
+                    strokeWidth={3}
+                    dot={<ResponseDot />}
+                    activeDot={{ r: 6 }}
+                    isAnimationActive
+                    animationDuration={900}
+                    animationBegin={200}
+                    zIndex={350}
                   />
                 )}
               </BarChart>
@@ -203,7 +189,7 @@ export function DiscChartSection({ report, viewMode = 'both', onViewModeChange }
           <div className="mt-4 text-center">
              <p className="text-xs text-slate-400 italic">
                * Scores zijn indicatief en gebaseerd op je antwoorden op {new Date(report.assessmentDate).toLocaleDateString()}.
-               <br/>Meer context vind je in het volledige rapport.
+               <br/>Meer uitleg vind je in het volledige rapport.
              </p>
           </div>
         </CardContent>
