@@ -10,12 +10,14 @@ import {
   LayoutDashboard,
   ListChecks,
   LogOut,
+  MessageSquare,
   Menu,
   Settings,
   Shield,
   Users,
   X,
 } from 'lucide-react'
+
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { type ComponentType, type ReactNode, useCallback, useEffect, useState } from 'react'
@@ -52,6 +54,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: '/activity', label: 'Live Activiteit', Icon: Activity },
       { href: '/events', label: 'Logboek', Icon: ListChecks },
       { href: '/notifications', label: 'Meldingen', Icon: Bell },
+      { href: '/feedback', label: 'Feedback', Icon: MessageSquare },
     ],
   },
 ]

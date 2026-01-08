@@ -30,16 +30,23 @@ export async function POST(req: NextRequest) {
     const email = parsed.data.email.trim().toLowerCase()
     const quizId = parsed.data.quiz_id ?? null
 
-    const { error: upErr } = await supabaseAdmin
+    let query = supabaseAdmin
       .from('allowlist')
-      .update({ status: 'revoked' })
+      .delete({ count: 'exact' })
       .eq('email_normalized', email)
-      .is('quiz_id', quizId)
-      .in('status', ['pending','claimed'])
-    if (upErr) return NextResponse.json({ error: 'DB error' }, { status: 500 })
 
-    await audit('allowlist_revoke', { email, quiz_id: quizId })
-    return NextResponse.json({ ok: true })
+    // If quiz_id is provided, delete only for that quiz. If omitted/null, delete all rows for this email.
+    if (quizId) {
+      query = query.eq('quiz_id', quizId)
+    }
+
+    const { data: deletedRows, error: delErr, count } = await query.select('id')
+    if (delErr) return NextResponse.json({ error: 'DB error' }, { status: 500 })
+
+    const deleted = (deletedRows?.length ?? count ?? 0) as number
+
+    await audit('allowlist_revoke', { email, quiz_id: quizId, deleted })
+    return NextResponse.json({ ok: true, deleted })
   } catch (e) {
     return NextResponse.json({ error: 'Unhandled' }, { status: 500 })
   }

@@ -48,13 +48,13 @@ function generatePercentagesForProfile(profileCode: string) {
 }
 
 async function generateAllProfiles() {
-  console.log('🚀 Starting PDF generation for all DISC profiles...\n')
+  console.log('Starting PDF generation for all DISC profiles...\n')
   
   // 1. Create output directory
   const outputDir = path.join(process.cwd(), 'output', 'all-profiles')
   if (!fs.existsSync(outputDir)) {
     fs.mkdirSync(outputDir, { recursive: true })
-    console.log(`✅ Created output directory: ${outputDir}\n`)
+    console.log(`Created output directory: ${outputDir}\n`)
   }
   
   // 2. Template base path (adjust if needed)
@@ -64,7 +64,7 @@ async function generateAllProfiles() {
   const results: { profile: string; success: boolean; error?: string }[] = []
   
   for (const profileCode of ALL_PROFILES) {
-    console.log(`📄 Generating ${profileCode} profile...`)
+    console.log(`Generating ${profileCode} profile...`)
     
     try {
       // Create test data for this profile
@@ -117,47 +117,47 @@ async function generateAllProfiles() {
       const filepath = path.join(outputDir, filename)
       fs.writeFileSync(filepath, pdfBuffer)
       
-      console.log(`   ✅ Saved: ${filename}`)
-      console.log(`   📊 Percentages: D=${percentages.D}%, I=${percentages.I}%, S=${percentages.S}%, C=${percentages.C}%\n`)
+      console.log(`   Saved: ${filename}`)
+      console.log(`   Percentages: D=${percentages.D}%, I=${percentages.I}%, S=${percentages.S}%, C=${percentages.C}%\n`)
       
       results.push({ profile: profileCode, success: true })
     } catch (error: any) {
-      console.error(`   ❌ Failed: ${error.message}\n`)
+      console.error(`   Failed: ${error.message}\n`)
       results.push({ profile: profileCode, success: false, error: error.message })
     }
   }
   
   // 4. Summary
   console.log('\n' + '='.repeat(60))
-  console.log('📊 GENERATION SUMMARY')
+  console.log('GENERATION SUMMARY')
   console.log('='.repeat(60))
   
   const successful = results.filter(r => r.success)
   const failed = results.filter(r => !r.success)
   
-  console.log(`✅ Successful: ${successful.length}/${ALL_PROFILES.length}`)
+  console.log(`Successful: ${successful.length}/${ALL_PROFILES.length}`)
   if (successful.length > 0) {
     console.log(`   Profiles: ${successful.map(r => r.profile).join(', ')}`)
   }
   
   if (failed.length > 0) {
-    console.log(`\n❌ Failed: ${failed.length}/${ALL_PROFILES.length}`)
+    console.log(`\nFailed: ${failed.length}/${ALL_PROFILES.length}`)
     failed.forEach(r => {
       console.log(`   - ${r.profile}: ${r.error}`)
     })
   }
   
-  console.log(`\n📁 Output directory: ${outputDir}`)
+  console.log(`\nOutput directory: ${outputDir}`)
   console.log('='.repeat(60))
 }
 
 // Run the script
 generateAllProfiles()
   .then(() => {
-    console.log('\n✨ All done!')
+    console.log('\nAll done')
     process.exit(0)
   })
   .catch((error) => {
-    console.error('\n💥 Fatal error:', error)
+    console.error('\nFatal error:', error)
     process.exit(1)
   })

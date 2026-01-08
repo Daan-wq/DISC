@@ -11,7 +11,7 @@ import path from 'path'
 const profileCode = process.argv[2]?.toUpperCase()
 
 if (!profileCode) {
-  console.error('❌ Error: Please provide a profile code')
+  console.error('Error: Please provide a profile code')
   console.error('Usage: tsx scripts/generate-single-profile.ts <PROFILE_CODE>')
   console.error('Example: tsx scripts/generate-single-profile.ts D')
   console.error('\nValid codes: D, I, S, C, DI, DC, DS, ID, IC, IS, CD, CI, CS, SD, SI, SC')
@@ -21,7 +21,7 @@ if (!profileCode) {
 const VALID_PROFILES = ['D', 'I', 'S', 'C', 'DI', 'DC', 'DS', 'ID', 'IC', 'IS', 'CD', 'CI', 'CS', 'SD', 'SI', 'SC']
 
 if (!VALID_PROFILES.includes(profileCode)) {
-  console.error(`❌ Error: Invalid profile code "${profileCode}"`)
+  console.error(`Error: Invalid profile code "${profileCode}"`)
   console.error(`Valid codes: ${VALID_PROFILES.join(', ')}`)
   process.exit(1)
 }
@@ -59,7 +59,7 @@ function generatePercentagesForProfile(code: string) {
 }
 
 async function generateSingleProfile() {
-  console.log(`\n🚀 Generating ${profileCode} profile PDF...`)
+  console.log(`\nGenerating ${profileCode} profile PDF...`)
   console.log('=' .repeat(60))
   
   try {
@@ -67,16 +67,16 @@ async function generateSingleProfile() {
     const outputDir = path.join(process.cwd(), 'output', 'all-profiles')
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir, { recursive: true })
-      console.log(`✅ Created output directory: ${outputDir}`)
+      console.log(`Created output directory: ${outputDir}`)
     }
     
     // 2. Template base path
     const templateBasePath = path.join(process.cwd(), 'Profile rapport templates')
-    console.log(`📁 Template base path: ${templateBasePath}`)
+    console.log(`Template base path: ${templateBasePath}`)
     
     // 3. Generate test data
     const percentages = generatePercentagesForProfile(profileCode)
-    console.log(`📊 Generated percentages:`)
+    console.log('Generated percentages:')
     console.log(`   D: ${percentages.D}%`)
     console.log(`   I: ${percentages.I}%`)
     console.log(`   S: ${percentages.S}%`)
@@ -116,7 +116,7 @@ async function generateSingleProfile() {
       },
     }
     
-    console.log('\n📝 Generating PDF...')
+    console.log('\nGenerating PDF...')
     
     // 4. Generate the PDF using Node-only generator
     const pdfBuffer = await generateReportPdf({
@@ -132,14 +132,14 @@ async function generateSingleProfile() {
     const filepath = path.join(outputDir, filename)
     fs.writeFileSync(filepath, pdfBuffer)
     
-    console.log(`\n✅ SUCCESS!`)
-    console.log(`📄 File saved: ${filename}`)
-    console.log(`📁 Full path: ${filepath}`)
-    console.log(`💾 File size: ${(pdfBuffer.length / 1024).toFixed(2)} KB`)
+    console.log(`\nSUCCESS`)
+    console.log(`File saved: ${filename}`)
+    console.log(`Full path: ${filepath}`)
+    console.log(`File size: ${(pdfBuffer.length / 1024).toFixed(2)} KB`)
     console.log('=' .repeat(60))
     
   } catch (error: any) {
-    console.error(`\n❌ GENERATION FAILED`)
+    console.error(`\nGENERATION FAILED`)
     console.error('=' .repeat(60))
     console.error(`Error Type: ${error.constructor.name}`)
     console.error(`Error Message: ${error.message}`)
@@ -150,7 +150,7 @@ async function generateSingleProfile() {
     }
     
     console.error('=' .repeat(60))
-    console.error(`\n🔍 ERROR ANALYSIS:`)
+    console.error(`\nERROR ANALYSIS:`)
     
     if (error.message.includes('__name is not defined')) {
       console.error(`\nThe "__name is not defined" error typically means:`)
@@ -173,6 +173,6 @@ generateSingleProfile()
     process.exit(0)
   })
   .catch((error) => {
-    console.error('\n💥 Unexpected error:', error)
+    console.error('\nUnexpected error:', error)
     process.exit(1)
   })

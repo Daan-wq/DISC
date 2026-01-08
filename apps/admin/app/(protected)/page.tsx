@@ -40,7 +40,7 @@ export default function AdminOverviewPage() {
     <div className="space-y-8">
       <PageHeader
         title="Dashboard"
-        description="Overzicht van je DISC Quiz applicatie"
+        description="Overzicht van je DISC-vragenlijst applicatie"
       />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

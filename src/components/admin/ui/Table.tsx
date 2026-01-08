@@ -2,6 +2,7 @@
 
 import { cn } from '@/lib/utils'
 import type { ReactNode, ThHTMLAttributes, TdHTMLAttributes } from 'react'
+import { Spinner } from '@/components/ui/Spinner'
 
 interface TableProps {
   children: ReactNode
@@ -157,16 +158,12 @@ interface TableLoadingProps {
 
 export function TableLoading({ colSpan, rows = 5 }: TableLoadingProps) {
   return (
-    <>
-      {Array.from({ length: rows }).map((_, i) => (
-        <tr key={i}>
-          {Array.from({ length: colSpan }).map((_, j) => (
-            <td key={j} className="px-4 py-3">
-              <div className="h-4 bg-slate-200 rounded animate-pulse" />
-            </td>
-          ))}
-        </tr>
-      ))}
-    </>
+    <tr>
+      <td colSpan={colSpan} className="px-4 py-12 text-center">
+        <div className="flex items-center justify-center">
+          <Spinner className="h-6 w-6 text-slate-400" />
+        </div>
+      </td>
+    </tr>
   )
 }

@@ -37,7 +37,7 @@ const templates = [
     file: 'magic_link.html',
     subjectKey: 'mailer_subjects_magic_link',
     contentKey: 'mailer_templates_magic_link_content',
-    subject: 'Je Magic Link voor TLC Profielen'
+    subject: 'Je inloglink voor TLC Profielen'
   },
   {
     file: 'recovery.html',

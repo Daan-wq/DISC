@@ -45,9 +45,9 @@ export default function QuizLandingPage() {
         // Friendly messages
         const code = (error as any).code
         if (code === "23505") {
-          setError("Je hebt deze quiz al gestart. Je kunt niet opnieuw beginnen.")
+          setError("Je hebt deze vragenlijst al gestart. Je kunt niet opnieuw beginnen.")
         } else if (code === "PGRST302") {
-          setError("Geen toegang voor deze quiz (niet op de lijst of verlopen).")
+          setError("Geen toegang voor deze vragenlijst (niet op de lijst of verlopen).")
         } else if (code === "PGRST301") {
           setError("Inloggen vereist. Ga naar de inlogpagina.")
         } else {
@@ -75,7 +75,7 @@ export default function QuizLandingPage() {
     return (
       <div className="min-h-screen bg-gray-50 py-12 px-4">
         <div className="max-w-md mx-auto bg-white rounded-lg shadow p-8 text-center">
-          <h1 className="text-2xl font-bold mb-4">Bezig met laden…</h1>
+          <h1 className="text-2xl font-bold mb-4">Bezig met laden...</h1>
         </div>
       </div>
     )
@@ -84,8 +84,8 @@ export default function QuizLandingPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-md mx-auto bg-white rounded-lg shadow p-8">
-        <h1 className="text-2xl font-bold mb-2">Start de quiz</h1>
-        <p className="text-gray-600 mb-6">Toegang wordt in de database gecontroleerd. Je kunt de quiz maar één keer starten.</p>
+        <h1 className="text-2xl font-bold mb-2">Start de vragenlijst</h1>
+        <p className="text-gray-600 mb-6">Toegang wordt in de database gecontroleerd. Je kunt de vragenlijst maar één keer starten.</p>
 
         <div className="mb-4 text-sm text-gray-500">
           {userEmail ? (
@@ -106,7 +106,7 @@ export default function QuizLandingPage() {
           disabled={loading}
           className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-60"
         >
-          {loading ? "Bezig…" : "Start quiz"}
+          {loading ? "Bezig..." : "Start vragenlijst"}
         </button>
 
         <p className="text-xs text-gray-500 mt-4">

@@ -20,7 +20,7 @@ async function embedConfig() {
   try {
     // Read the JSON config
     if (!fs.existsSync(CONFIG_SOURCE)) {
-      console.error(`❌ Config file not found: ${CONFIG_SOURCE}`)
+      console.error(`Config file not found: ${CONFIG_SOURCE}`)
       process.exit(1)
     }
 
@@ -53,10 +53,10 @@ export function getEmbeddedConfig(): ExcelConfig {
 
     // Write the TypeScript file
     fs.writeFileSync(CONFIG_DEST, tsContent, 'utf-8')
-    console.log(`✅ Embedded config written to: ${CONFIG_DEST}`)
+    console.log(`Embedded config written to: ${CONFIG_DEST}`)
     console.log(`   Config size: ${Math.round(configJson.length / 1024)}KB`)
   } catch (error) {
-    console.error('❌ Failed to embed config:', error)
+    console.error('Failed to embed config:', error)
     process.exit(1)
   }
 }

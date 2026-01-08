@@ -54,6 +54,30 @@ export async function POST(req: NextRequest) {
 
     await audit('allowlist_upsert', { email_normalized, quiz_id: data.quiz_id ?? null })
 
+    // Ensure auth user exists so login can always use the inloglink email (no signup confirmation)
+    try {
+      const { error: createErr } = await supabaseAdmin.auth.admin.createUser({
+        email: data.email,
+        email_confirm: true,
+      })
+
+      if (createErr) {
+        const status = (createErr as any)?.status
+        if (status !== 422) {
+          console.warn('[allowlist/upsert] Failed to ensure auth user exists', {
+            email: data.email,
+            message: (createErr as any)?.message || String(createErr),
+            status,
+          })
+        }
+      }
+    } catch (e) {
+      console.warn('[allowlist/upsert] Failed to ensure auth user exists (exception)', {
+        email: data.email,
+        error: (e as any)?.message || String(e),
+      })
+    }
+
     // Send invitation email automatically
     try {
       // IMPORTANT: Always use QUIZ_SITE_URL env var for quiz invitations
@@ -66,9 +90,9 @@ export async function POST(req: NextRequest) {
         fullName: data.full_name,
         quizUrl: `${quizSiteUrl}/login`
       })
-      console.log(`✅ Invitation email sent to ${data.email}`)
+      console.log(`Invitation email sent to ${data.email}`)
     } catch (emailError) {
-      console.error('⚠️ Failed to send invitation email:', emailError)
+      console.error('Failed to send invitation email:', emailError)
       // Don't fail the request if email fails - allowlist entry was still created
     }
 

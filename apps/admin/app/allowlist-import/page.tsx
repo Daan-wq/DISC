@@ -85,7 +85,7 @@ export default function AllowlistImportPage() {
           disabled={loading || rows.length === 0}
           className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-60"
         >
-          {loading ? 'Bezig…' : 'Importeren'}
+          {loading ? 'Bezig...' : 'Importeren'}
         </button>
       </div>
     </div>

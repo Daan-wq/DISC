@@ -1,7 +1,7 @@
 'use client'
 
 import { cn } from '@/lib/utils'
-import { Loader2 } from 'lucide-react'
+import { Spinner } from '@/components/ui/Spinner'
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
 import { forwardRef } from 'react'
 
@@ -69,7 +69,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         {loading ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
+          <Spinner />
         ) : (
           <>
             {leftIcon && <span className="shrink-0">{leftIcon}</span>}

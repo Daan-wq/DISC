@@ -1,0 +1,2114 @@
+{
+  "D": {
+    "targetProfile": "D",
+    "actualProfile": "D",
+    "percentages": {
+      "D": 99,
+      "I": 34,
+      "S": 0,
+      "C": 41
+    },
+    "answers": [
+      {
+        "q": 1,
+        "most": 2,
+        "least": 1
+      },
+      {
+        "q": 2,
+        "most": 5,
+        "least": 8
+      },
+      {
+        "q": 3,
+        "most": 9,
+        "least": 11
+      },
+      {
+        "q": 4,
+        "most": 14,
+        "least": 16
+      },
+      {
+        "q": 5,
+        "most": 18,
+        "least": 20
+      },
+      {
+        "q": 6,
+        "most": 24,
+        "least": 22
+      },
+      {
+        "q": 7,
+        "most": 25,
+        "least": 26
+      },
+      {
+        "q": 8,
+        "most": 32,
+        "least": 31
+      },
+      {
+        "q": 9,
+        "most": 36,
+        "least": 34
+      },
+      {
+        "q": 10,
+        "most": 38,
+        "least": 40
+      },
+      {
+        "q": 11,
+        "most": 41,
+        "least": 42
+      },
+      {
+        "q": 12,
+        "most": 47,
+        "least": 48
+      },
+      {
+        "q": 13,
+        "most": 52,
+        "least": 51
+      },
+      {
+        "q": 14,
+        "most": 53,
+        "least": 56
+      },
+      {
+        "q": 15,
+        "most": 59,
+        "least": 57
+      },
+      {
+        "q": 16,
+        "most": 61,
+        "least": 62
+      },
+      {
+        "q": 17,
+        "most": 66,
+        "least": 68
+      },
+      {
+        "q": 18,
+        "most": 69,
+        "least": 70
+      },
+      {
+        "q": 19,
+        "most": 73,
+        "least": 76
+      },
+      {
+        "q": 20,
+        "most": 79,
+        "least": 78
+      },
+      {
+        "q": 21,
+        "most": 84,
+        "least": 82
+      },
+      {
+        "q": 22,
+        "most": 85,
+        "least": 88
+      },
+      {
+        "q": 23,
+        "most": 91,
+        "least": 92
+      },
+      {
+        "q": 24,
+        "most": 95,
+        "least": 94
+      }
+    ]
+  },
+  "I": {
+    "targetProfile": "I",
+    "actualProfile": "I",
+    "percentages": {
+      "D": 44,
+      "I": 97,
+      "S": 44,
+      "C": 41
+    },
+    "answers": [
+      {
+        "q": 1,
+        "most": 4,
+        "least": 2
+      },
+      {
+        "q": 2,
+        "most": 7,
+        "least": 6
+      },
+      {
+        "q": 3,
+        "most": 11,
+        "least": 10
+      },
+      {
+        "q": 4,
+        "most": 13,
+        "least": 16
+      },
+      {
+        "q": 5,
+        "most": 20,
+        "least": 17
+      },
+      {
+        "q": 6,
+        "most": 23,
+        "least": 24
+      },
+      {
+        "q": 7,
+        "most": 25,
+        "least": 27
+      },
+      {
+        "q": 8,
+        "most": 31,
+        "least": 30
+      },
+      {
+        "q": 9,
+        "most": 33,
+        "least": 36
+      },
+      {
+        "q": 10,
+        "most": 40,
+        "least": 38
+      },
+      {
+        "q": 11,
+        "most": 41,
+        "least": 43
+      },
+      {
+        "q": 12,
+        "most": 48,
+        "least": 47
+      },
+      {
+        "q": 13,
+        "most": 49,
+        "least": 52
+      },
+      {
+        "q": 14,
+        "most": 55,
+        "least": 53
+      },
+      {
+        "q": 15,
+        "most": 58,
+        "least": 59
+      },
+      {
+        "q": 16,
+        "most": 61,
+        "least": 63
+      },
+      {
+        "q": 17,
+        "most": 65,
+        "least": 67
+      },
+      {
+        "q": 18,
+        "most": 69,
+        "least": 71
+      },
+      {
+        "q": 19,
+        "most": 76,
+        "least": 73
+      },
+      {
+        "q": 20,
+        "most": 78,
+        "least": 79
+      },
+      {
+        "q": 21,
+        "most": 83,
+        "least": 84
+      },
+      {
+        "q": 22,
+        "most": 87,
+        "least": 86
+      },
+      {
+        "q": 23,
+        "most": 90,
+        "least": 91
+      },
+      {
+        "q": 24,
+        "most": 94,
+        "least": 93
+      }
+    ]
+  },
+  "S": {
+    "targetProfile": "S",
+    "actualProfile": "S",
+    "percentages": {
+      "D": 0,
+      "I": 34,
+      "S": 99,
+      "C": 41
+    },
+    "answers": [
+      {
+        "q": 1,
+        "most": 2,
+        "least": 4
+      },
+      {
+        "q": 2,
+        "most": 5,
+        "least": 7
+      },
+      {
+        "q": 3,
+        "most": 9,
+        "least": 10
+      },
+      {
+        "q": 4,
+        "most": 15,
+        "least": 13
+      },
+      {
+        "q": 5,
+        "most": 17,
+        "least": 19
+      },
+      {
+        "q": 6,
+        "most": 23,
+        "least": 21
+      },
+      {
+        "q": 7,
+        "most": 28,
+        "least": 27
+      },
+      {
+        "q": 8,
+        "most": 30,
+        "least": 29
+      },
+      {
+        "q": 9,
+        "most": 33,
+        "least": 35
+      },
+      {
+        "q": 10,
+        "most": 38,
+        "least": 37
+      },
+      {
+        "q": 11,
+        "most": 41,
+        "least": 44
+      },
+      {
+        "q": 12,
+        "most": 45,
+        "least": 46
+      },
+      {
+        "q": 13,
+        "most": 50,
+        "least": 49
+      },
+      {
+        "q": 14,
+        "most": 53,
+        "least": 54
+      },
+      {
+        "q": 15,
+        "most": 60,
+        "least": 58
+      },
+      {
+        "q": 16,
+        "most": 63,
+        "least": 64
+      },
+      {
+        "q": 17,
+        "most": 67,
+        "least": 65
+      },
+      {
+        "q": 18,
+        "most": 69,
+        "least": 72
+      },
+      {
+        "q": 19,
+        "most": 73,
+        "least": 74
+      },
+      {
+        "q": 20,
+        "most": 80,
+        "least": 77
+      },
+      {
+        "q": 21,
+        "most": 81,
+        "least": 83
+      },
+      {
+        "q": 22,
+        "most": 85,
+        "least": 87
+      },
+      {
+        "q": 23,
+        "most": 90,
+        "least": 89
+      },
+      {
+        "q": 24,
+        "most": 94,
+        "least": 93
+      }
+    ]
+  },
+  "C": {
+    "targetProfile": "C",
+    "actualProfile": "C",
+    "percentages": {
+      "D": 47,
+      "I": 34,
+      "S": 44,
+      "C": 99
+    },
+    "answers": [
+      {
+        "q": 1,
+        "most": 3,
+        "least": 2
+      },
+      {
+        "q": 2,
+        "most": 7,
+        "least": 5
+      },
+      {
+        "q": 3,
+        "most": 10,
+        "least": 12
+      },
+      {
+        "q": 4,
+        "most": 13,
+        "least": 14
+      },
+      {
+        "q": 5,
+        "most": 17,
+        "least": 18
+      },
+      {
+        "q": 6,
+        "most": 24,
+        "least": 23
+      },
+      {
+        "q": 7,
+        "most": 27,
+        "least": 28
+      },
+      {
+        "q": 8,
+        "most": 31,
+        "least": 30
+      },
+      {
+        "q": 9,
+        "most": 35,
+        "least": 36
+      },
+      {
+        "q": 10,
+        "most": 40,
+        "least": 39
+      },
+      {
+        "q": 11,
+        "most": 44,
+        "least": 41
+      },
+      {
+        "q": 12,
+        "most": 47,
+        "least": 46
+      },
+      {
+        "q": 13,
+        "most": 52,
+        "least": 50
+      },
+      {
+        "q": 14,
+        "most": 53,
+        "least": 56
+      },
+      {
+        "q": 15,
+        "most": 59,
+        "least": 60
+      },
+      {
+        "q": 16,
+        "most": 62,
+        "least": 61
+      },
+      {
+        "q": 17,
+        "most": 68,
+        "least": 66
+      },
+      {
+        "q": 18,
+        "most": 69,
+        "least": 71
+      },
+      {
+        "q": 19,
+        "most": 74,
+        "least": 75
+      },
+      {
+        "q": 20,
+        "most": 78,
+        "least": 77
+      },
+      {
+        "q": 21,
+        "most": 84,
+        "least": 82
+      },
+      {
+        "q": 22,
+        "most": 85,
+        "least": 88
+      },
+      {
+        "q": 23,
+        "most": 90,
+        "least": 91
+      },
+      {
+        "q": 24,
+        "most": 95,
+        "least": 96
+      }
+    ]
+  },
+  "DI": {
+    "targetProfile": "DI",
+    "actualProfile": "DI",
+    "percentages": {
+      "D": 99,
+      "I": 84,
+      "S": 0,
+      "C": 16
+    },
+    "answers": [
+      {
+        "q": 1,
+        "most": 3,
+        "least": 1
+      },
+      {
+        "q": 2,
+        "most": 8,
+        "least": 6
+      },
+      {
+        "q": 3,
+        "most": 9,
+        "least": 11
+      },
+      {
+        "q": 4,
+        "most": 15,
+        "least": 16
+      },
+      {
+        "q": 5,
+        "most": 18,
+        "least": 20
+      },
+      {
+        "q": 6,
+        "most": 22,
+        "least": 24
+      },
+      {
+        "q": 7,
+        "most": 25,
+        "least": 26
+      },
+      {
+        "q": 8,
+        "most": 31,
+        "least": 32
+      },
+      {
+        "q": 9,
+        "most": 36,
+        "least": 34
+      },
+      {
+        "q": 10,
+        "most": 38,
+        "least": 40
+      },
+      {
+        "q": 11,
+        "most": 43,
+        "least": 42
+      },
+      {
+        "q": 12,
+        "most": 48,
+        "least": 47
+      },
+      {
+        "q": 13,
+        "most": 51,
+        "least": 52
+      },
+      {
+        "q": 14,
+        "most": 53,
+        "least": 56
+      },
+      {
+        "q": 15,
+        "most": 57,
+        "least": 59
+      },
+      {
+        "q": 16,
+        "most": 63,
+        "least": 62
+      },
+      {
+        "q": 17,
+        "most": 66,
+        "least": 68
+      },
+      {
+        "q": 18,
+        "most": 69,
+        "least": 70
+      },
+      {
+        "q": 19,
+        "most": 73,
+        "least": 76
+      },
+      {
+        "q": 20,
+        "most": 78,
+        "least": 79
+      },
+      {
+        "q": 21,
+        "most": 84,
+        "least": 82
+      },
+      {
+        "q": 22,
+        "most": 88,
+        "least": 86
+      },
+      {
+        "q": 23,
+        "most": 90,
+        "least": 92
+      },
+      {
+        "q": 24,
+        "most": 96,
+        "least": 94
+      }
+    ]
+  },
+  "DC": {
+    "targetProfile": "DC",
+    "actualProfile": "DC",
+    "percentages": {
+      "D": 99,
+      "I": 19,
+      "S": 0,
+      "C": 72
+    },
+    "answers": [
+      {
+        "q": 1,
+        "most": 2,
+        "least": 1
+      },
+      {
+        "q": 2,
+        "most": 5,
+        "least": 8
+      },
+      {
+        "q": 3,
+        "most": 12,
+        "least": 11
+      },
+      {
+        "q": 4,
+        "most": 16,
+        "least": 14
+      },
+      {
+        "q": 5,
+        "most": 17,
+        "least": 20
+      },
+      {
+        "q": 6,
+        "most": 23,
+        "least": 22
+      },
+      {
+        "q": 7,
+        "most": 28,
+        "least": 26
+      },
+      {
+        "q": 8,
+        "most": 30,
+        "least": 31
+      },
+      {
+        "q": 9,
+        "most": 33,
+        "least": 34
+      },
+      {
+        "q": 10,
+        "most": 40,
+        "least": 39
+      },
+      {
+        "q": 11,
+        "most": 41,
+        "least": 42
+      },
+      {
+        "q": 12,
+        "most": 45,
+        "least": 48
+      },
+      {
+        "q": 13,
+        "most": 50,
+        "least": 51
+      },
+      {
+        "q": 14,
+        "most": 56,
+        "least": 55
+      },
+      {
+        "q": 15,
+        "most": 60,
+        "least": 57
+      },
+      {
+        "q": 16,
+        "most": 61,
+        "least": 62
+      },
+      {
+        "q": 17,
+        "most": 67,
+        "least": 68
+      },
+      {
+        "q": 18,
+        "most": 71,
+        "least": 70
+      },
+      {
+        "q": 19,
+        "most": 75,
+        "least": 76
+      },
+      {
+        "q": 20,
+        "most": 80,
+        "least": 78
+      },
+      {
+        "q": 21,
+        "most": 81,
+        "least": 82
+      },
+      {
+        "q": 22,
+        "most": 85,
+        "least": 88
+      },
+      {
+        "q": 23,
+        "most": 92,
+        "least": 91
+      },
+      {
+        "q": 24,
+        "most": 94,
+        "least": 95
+      }
+    ]
+  },
+  "DS": {
+    "targetProfile": "DS",
+    "actualProfile": "DS",
+    "percentages": {
+      "D": 94,
+      "I": 41,
+      "S": 50,
+      "C": 41
+    },
+    "answers": [
+      {
+        "q": 1,
+        "most": 1,
+        "least": 4
+      },
+      {
+        "q": 2,
+        "most": 7,
+        "least": 8
+      },
+      {
+        "q": 3,
+        "most": 9,
+        "least": 11
+      },
+      {
+        "q": 4,
+        "most": 16,
+        "least": 15
+      },
+      {
+        "q": 5,
+        "most": 19,
+        "least": 20
+      },
+      {
+        "q": 6,
+        "most": 22,
+        "least": 21
+      },
+      {
+        "q": 7,
+        "most": 25,
+        "least": 26
+      },
+      {
+        "q": 8,
+        "most": 32,
+        "least": 29
+      },
+      {
+        "q": 9,
+        "most": 36,
+        "least": 35
+      },
+      {
+        "q": 10,
+        "most": 39,
+        "least": 37
+      },
+      {
+        "q": 11,
+        "most": 43,
+        "least": 41
+      },
+      {
+        "q": 12,
+        "most": 48,
+        "least": 46
+      },
+      {
+        "q": 13,
+        "most": 52,
+        "least": 51
+      },
+      {
+        "q": 14,
+        "most": 54,
+        "least": 56
+      },
+      {
+        "q": 15,
+        "most": 58,
+        "least": 57
+      },
+      {
+        "q": 16,
+        "most": 61,
+        "least": 62
+      },
+      {
+        "q": 17,
+        "most": 65,
+        "least": 68
+      },
+      {
+        "q": 18,
+        "most": 71,
+        "least": 70
+      },
+      {
+        "q": 19,
+        "most": 75,
+        "least": 76
+      },
+      {
+        "q": 20,
+        "most": 77,
+        "least": 78
+      },
+      {
+        "q": 21,
+        "most": 81,
+        "least": 82
+      },
+      {
+        "q": 22,
+        "most": 86,
+        "least": 88
+      },
+      {
+        "q": 23,
+        "most": 91,
+        "least": 92
+      },
+      {
+        "q": 24,
+        "most": 94,
+        "least": 93
+      }
+    ]
+  },
+  "ID": {
+    "targetProfile": "ID",
+    "actualProfile": "ID",
+    "percentages": {
+      "D": 91,
+      "I": 99,
+      "S": 9,
+      "C": 6
+    },
+    "answers": [
+      {
+        "q": 1,
+        "most": 3,
+        "least": 1
+      },
+      {
+        "q": 2,
+        "most": 8,
+        "least": 6
+      },
+      {
+        "q": 3,
+        "most": 11,
+        "least": 9
+      },
+      {
+        "q": 4,
+        "most": 15,
+        "least": 16
+      },
+      {
+        "q": 5,
+        "most": 20,
+        "least": 18
+      },
+      {
+        "q": 6,
+        "most": 22,
+        "least": 24
+      },
+      {
+        "q": 7,
+        "most": 26,
+        "least": 25
+      },
+      {
+        "q": 8,
+        "most": 31,
+        "least": 32
+      },
+      {
+        "q": 9,
+        "most": 36,
+        "least": 34
+      },
+      {
+        "q": 10,
+        "most": 40,
+        "least": 38
+      },
+      {
+        "q": 11,
+        "most": 43,
+        "least": 42
+      },
+      {
+        "q": 12,
+        "most": 48,
+        "least": 47
+      },
+      {
+        "q": 13,
+        "most": 51,
+        "least": 52
+      },
+      {
+        "q": 14,
+        "most": 56,
+        "least": 53
+      },
+      {
+        "q": 15,
+        "most": 57,
+        "least": 59
+      },
+      {
+        "q": 16,
+        "most": 63,
+        "least": 62
+      },
+      {
+        "q": 17,
+        "most": 68,
+        "least": 66
+      },
+      {
+        "q": 18,
+        "most": 70,
+        "least": 69
+      },
+      {
+        "q": 19,
+        "most": 76,
+        "least": 73
+      },
+      {
+        "q": 20,
+        "most": 78,
+        "least": 79
+      },
+      {
+        "q": 21,
+        "most": 84,
+        "least": 82
+      },
+      {
+        "q": 22,
+        "most": 88,
+        "least": 86
+      },
+      {
+        "q": 23,
+        "most": 90,
+        "least": 92
+      },
+      {
+        "q": 24,
+        "most": 96,
+        "least": 94
+      }
+    ]
+  },
+  "IC": {
+    "targetProfile": "IC",
+    "actualProfile": "IC",
+    "percentages": {
+      "D": 41,
+      "I": 88,
+      "S": 47,
+      "C": 50
+    },
+    "answers": [
+      {
+        "q": 1,
+        "most": 4,
+        "least": 3
+      },
+      {
+        "q": 2,
+        "most": 8,
+        "least": 7
+      },
+      {
+        "q": 3,
+        "most": 11,
+        "least": 9
+      },
+      {
+        "q": 4,
+        "most": 13,
+        "least": 14
+      },
+      {
+        "q": 5,
+        "most": 17,
+        "least": 18
+      },
+      {
+        "q": 6,
+        "most": 22,
+        "least": 24
+      },
+      {
+        "q": 7,
+        "most": 28,
+        "least": 25
+      },
+      {
+        "q": 8,
+        "most": 32,
+        "least": 30
+      },
+      {
+        "q": 9,
+        "most": 35,
+        "least": 34
+      },
+      {
+        "q": 10,
+        "most": 39,
+        "least": 38
+      },
+      {
+        "q": 11,
+        "most": 44,
+        "least": 43
+      },
+      {
+        "q": 12,
+        "most": 45,
+        "least": 46
+      },
+      {
+        "q": 13,
+        "most": 52,
+        "least": 50
+      },
+      {
+        "q": 14,
+        "most": 54,
+        "least": 55
+      },
+      {
+        "q": 15,
+        "most": 57,
+        "least": 59
+      },
+      {
+        "q": 16,
+        "most": 62,
+        "least": 63
+      },
+      {
+        "q": 17,
+        "most": 66,
+        "least": 67
+      },
+      {
+        "q": 18,
+        "most": 70,
+        "least": 71
+      },
+      {
+        "q": 19,
+        "most": 76,
+        "least": 73
+      },
+      {
+        "q": 20,
+        "most": 78,
+        "least": 79
+      },
+      {
+        "q": 21,
+        "most": 83,
+        "least": 84
+      },
+      {
+        "q": 22,
+        "most": 86,
+        "least": 87
+      },
+      {
+        "q": 23,
+        "most": 90,
+        "least": 91
+      },
+      {
+        "q": 24,
+        "most": 93,
+        "least": 96
+      }
+    ]
+  },
+  "IS": {
+    "targetProfile": "IS",
+    "actualProfile": "IS",
+    "percentages": {
+      "D": 19,
+      "I": 99,
+      "S": 88,
+      "C": 0
+    },
+    "answers": [
+      {
+        "q": 1,
+        "most": 4,
+        "least": 3
+      },
+      {
+        "q": 2,
+        "most": 6,
+        "least": 7
+      },
+      {
+        "q": 3,
+        "most": 10,
+        "least": 9
+      },
+      {
+        "q": 4,
+        "most": 13,
+        "least": 15
+      },
+      {
+        "q": 5,
+        "most": 19,
+        "least": 18
+      },
+      {
+        "q": 6,
+        "most": 24,
+        "least": 21
+      },
+      {
+        "q": 7,
+        "most": 25,
+        "least": 27
+      },
+      {
+        "q": 8,
+        "most": 32,
+        "least": 29
+      },
+      {
+        "q": 9,
+        "most": 36,
+        "least": 35
+      },
+      {
+        "q": 10,
+        "most": 38,
+        "least": 37
+      },
+      {
+        "q": 11,
+        "most": 44,
+        "least": 43
+      },
+      {
+        "q": 12,
+        "most": 46,
+        "least": 47
+      },
+      {
+        "q": 13,
+        "most": 49,
+        "least": 52
+      },
+      {
+        "q": 14,
+        "most": 53,
+        "least": 54
+      },
+      {
+        "q": 15,
+        "most": 58,
+        "least": 59
+      },
+      {
+        "q": 16,
+        "most": 64,
+        "least": 63
+      },
+      {
+        "q": 17,
+        "most": 66,
+        "least": 65
+      },
+      {
+        "q": 18,
+        "most": 72,
+        "least": 69
+      },
+      {
+        "q": 19,
+        "most": 74,
+        "least": 73
+      },
+      {
+        "q": 20,
+        "most": 79,
+        "least": 77
+      },
+      {
+        "q": 21,
+        "most": 83,
+        "least": 84
+      },
+      {
+        "q": 22,
+        "most": 87,
+        "least": 86
+      },
+      {
+        "q": 23,
+        "most": 89,
+        "least": 90
+      },
+      {
+        "q": 24,
+        "most": 96,
+        "least": 93
+      }
+    ]
+  },
+  "SD": {
+    "targetProfile": "SD",
+    "actualProfile": "SD",
+    "percentages": {
+      "D": 50,
+      "I": 38,
+      "S": 99,
+      "C": 38
+    },
+    "answers": [
+      {
+        "q": 1,
+        "most": 4,
+        "least": 1
+      },
+      {
+        "q": 2,
+        "most": 8,
+        "least": 7
+      },
+      {
+        "q": 3,
+        "most": 11,
+        "least": 10
+      },
+      {
+        "q": 4,
+        "most": 16,
+        "least": 13
+      },
+      {
+        "q": 5,
+        "most": 20,
+        "least": 19
+      },
+      {
+        "q": 6,
+        "most": 22,
+        "least": 21
+      },
+      {
+        "q": 7,
+        "most": 27,
+        "least": 26
+      },
+      {
+        "q": 8,
+        "most": 31,
+        "least": 29
+      },
+      {
+        "q": 9,
+        "most": 35,
+        "least": 34
+      },
+      {
+        "q": 10,
+        "most": 40,
+        "least": 37
+      },
+      {
+        "q": 11,
+        "most": 44,
+        "least": 42
+      },
+      {
+        "q": 12,
+        "most": 48,
+        "least": 46
+      },
+      {
+        "q": 13,
+        "most": 51,
+        "least": 49
+      },
+      {
+        "q": 14,
+        "most": 56,
+        "least": 54
+      },
+      {
+        "q": 15,
+        "most": 58,
+        "least": 57
+      },
+      {
+        "q": 16,
+        "most": 64,
+        "least": 62
+      },
+      {
+        "q": 17,
+        "most": 68,
+        "least": 65
+      },
+      {
+        "q": 18,
+        "most": 72,
+        "least": 70
+      },
+      {
+        "q": 19,
+        "most": 76,
+        "least": 74
+      },
+      {
+        "q": 20,
+        "most": 78,
+        "least": 77
+      },
+      {
+        "q": 21,
+        "most": 83,
+        "least": 82
+      },
+      {
+        "q": 22,
+        "most": 88,
+        "least": 87
+      },
+      {
+        "q": 23,
+        "most": 92,
+        "least": 89
+      },
+      {
+        "q": 24,
+        "most": 94,
+        "least": 93
+      }
+    ]
+  },
+  "SI": {
+    "targetProfile": "SI",
+    "actualProfile": "SI",
+    "percentages": {
+      "D": 6,
+      "I": 94,
+      "S": 99,
+      "C": 13
+    },
+    "answers": [
+      {
+        "q": 1,
+        "most": 4,
+        "least": 3
+      },
+      {
+        "q": 2,
+        "most": 6,
+        "least": 7
+      },
+      {
+        "q": 3,
+        "most": 10,
+        "least": 9
+      },
+      {
+        "q": 4,
+        "most": 13,
+        "least": 15
+      },
+      {
+        "q": 5,
+        "most": 19,
+        "least": 18
+      },
+      {
+        "q": 6,
+        "most": 24,
+        "least": 21
+      },
+      {
+        "q": 7,
+        "most": 25,
+        "least": 27
+      },
+      {
+        "q": 8,
+        "most": 32,
+        "least": 29
+      },
+      {
+        "q": 9,
+        "most": 36,
+        "least": 35
+      },
+      {
+        "q": 10,
+        "most": 38,
+        "least": 37
+      },
+      {
+        "q": 11,
+        "most": 44,
+        "least": 43
+      },
+      {
+        "q": 12,
+        "most": 47,
+        "least": 46
+      },
+      {
+        "q": 13,
+        "most": 52,
+        "least": 49
+      },
+      {
+        "q": 14,
+        "most": 53,
+        "least": 54
+      },
+      {
+        "q": 15,
+        "most": 59,
+        "least": 58
+      },
+      {
+        "q": 16,
+        "most": 64,
+        "least": 63
+      },
+      {
+        "q": 17,
+        "most": 66,
+        "least": 65
+      },
+      {
+        "q": 18,
+        "most": 72,
+        "least": 69
+      },
+      {
+        "q": 19,
+        "most": 74,
+        "least": 73
+      },
+      {
+        "q": 20,
+        "most": 79,
+        "least": 77
+      },
+      {
+        "q": 21,
+        "most": 84,
+        "least": 83
+      },
+      {
+        "q": 22,
+        "most": 87,
+        "least": 86
+      },
+      {
+        "q": 23,
+        "most": 89,
+        "least": 90
+      },
+      {
+        "q": 24,
+        "most": 96,
+        "least": 93
+      }
+    ]
+  },
+  "SC": {
+    "targetProfile": "SC",
+    "actualProfile": "SC",
+    "percentages": {
+      "D": 25,
+      "I": 41,
+      "S": 99,
+      "C": 50
+    },
+    "answers": [
+      {
+        "q": 1,
+        "most": 2,
+        "least": 4
+      },
+      {
+        "q": 2,
+        "most": 5,
+        "least": 8
+      },
+      {
+        "q": 3,
+        "most": 11,
+        "least": 10
+      },
+      {
+        "q": 4,
+        "most": 15,
+        "least": 13
+      },
+      {
+        "q": 5,
+        "most": 20,
+        "least": 19
+      },
+      {
+        "q": 6,
+        "most": 24,
+        "least": 21
+      },
+      {
+        "q": 7,
+        "most": 25,
+        "least": 26
+      },
+      {
+        "q": 8,
+        "most": 30,
+        "least": 29
+      },
+      {
+        "q": 9,
+        "most": 33,
+        "least": 35
+      },
+      {
+        "q": 10,
+        "most": 39,
+        "least": 40
+      },
+      {
+        "q": 11,
+        "most": 43,
+        "least": 44
+      },
+      {
+        "q": 12,
+        "most": 45,
+        "least": 48
+      },
+      {
+        "q": 13,
+        "most": 51,
+        "least": 50
+      },
+      {
+        "q": 14,
+        "most": 55,
+        "least": 54
+      },
+      {
+        "q": 15,
+        "most": 58,
+        "least": 60
+      },
+      {
+        "q": 16,
+        "most": 62,
+        "least": 63
+      },
+      {
+        "q": 17,
+        "most": 66,
+        "least": 67
+      },
+      {
+        "q": 18,
+        "most": 71,
+        "least": 72
+      },
+      {
+        "q": 19,
+        "most": 75,
+        "least": 74
+      },
+      {
+        "q": 20,
+        "most": 79,
+        "least": 77
+      },
+      {
+        "q": 21,
+        "most": 82,
+        "least": 83
+      },
+      {
+        "q": 22,
+        "most": 85,
+        "least": 87
+      },
+      {
+        "q": 23,
+        "most": 89,
+        "least": 90
+      },
+      {
+        "q": 24,
+        "most": 95,
+        "least": 93
+      }
+    ]
+  },
+  "CD": {
+    "targetProfile": "CD",
+    "actualProfile": "CD",
+    "percentages": {
+      "D": 94,
+      "I": 3,
+      "S": 16,
+      "C": 99
+    },
+    "answers": [
+      {
+        "q": 1,
+        "most": 2,
+        "least": 1
+      },
+      {
+        "q": 2,
+        "most": 8,
+        "least": 5
+      },
+      {
+        "q": 3,
+        "most": 12,
+        "least": 11
+      },
+      {
+        "q": 4,
+        "most": 16,
+        "least": 14
+      },
+      {
+        "q": 5,
+        "most": 20,
+        "least": 17
+      },
+      {
+        "q": 6,
+        "most": 23,
+        "least": 22
+      },
+      {
+        "q": 7,
+        "most": 28,
+        "least": 26
+      },
+      {
+        "q": 8,
+        "most": 30,
+        "least": 31
+      },
+      {
+        "q": 9,
+        "most": 34,
+        "least": 33
+      },
+      {
+        "q": 10,
+        "most": 40,
+        "least": 39
+      },
+      {
+        "q": 11,
+        "most": 42,
+        "least": 41
+      },
+      {
+        "q": 12,
+        "most": 45,
+        "least": 48
+      },
+      {
+        "q": 13,
+        "most": 50,
+        "least": 51
+      },
+      {
+        "q": 14,
+        "most": 56,
+        "least": 55
+      },
+      {
+        "q": 15,
+        "most": 60,
+        "least": 57
+      },
+      {
+        "q": 16,
+        "most": 62,
+        "least": 61
+      },
+      {
+        "q": 17,
+        "most": 68,
+        "least": 67
+      },
+      {
+        "q": 18,
+        "most": 71,
+        "least": 70
+      },
+      {
+        "q": 19,
+        "most": 75,
+        "least": 76
+      },
+      {
+        "q": 20,
+        "most": 80,
+        "least": 78
+      },
+      {
+        "q": 21,
+        "most": 82,
+        "least": 81
+      },
+      {
+        "q": 22,
+        "most": 88,
+        "least": 85
+      },
+      {
+        "q": 23,
+        "most": 92,
+        "least": 91
+      },
+      {
+        "q": 24,
+        "most": 94,
+        "least": 95
+      }
+    ]
+  },
+  "CI": {
+    "targetProfile": "CI",
+    "actualProfile": "CI",
+    "percentages": {
+      "D": 34,
+      "I": 63,
+      "S": 41,
+      "C": 88
+    },
+    "answers": [
+      {
+        "q": 1,
+        "most": 3,
+        "least": 2
+      },
+      {
+        "q": 2,
+        "most": 6,
+        "least": 5
+      },
+      {
+        "q": 3,
+        "most": 12,
+        "least": 9
+      },
+      {
+        "q": 4,
+        "most": 15,
+        "least": 14
+      },
+      {
+        "q": 5,
+        "most": 18,
+        "least": 17
+      },
+      {
+        "q": 6,
+        "most": 24,
+        "least": 23
+      },
+      {
+        "q": 7,
+        "most": 28,
+        "least": 25
+      },
+      {
+        "q": 8,
+        "most": 32,
+        "least": 30
+      },
+      {
+        "q": 9,
+        "most": 36,
+        "least": 33
+      },
+      {
+        "q": 10,
+        "most": 39,
+        "least": 38
+      },
+      {
+        "q": 11,
+        "most": 43,
+        "least": 41
+      },
+      {
+        "q": 12,
+        "most": 47,
+        "least": 45
+      },
+      {
+        "q": 13,
+        "most": 52,
+        "least": 50
+      },
+      {
+        "q": 14,
+        "most": 55,
+        "least": 53
+      },
+      {
+        "q": 15,
+        "most": 60,
+        "least": 59
+      },
+      {
+        "q": 16,
+        "most": 63,
+        "least": 61
+      },
+      {
+        "q": 17,
+        "most": 67,
+        "least": 66
+      },
+      {
+        "q": 18,
+        "most": 71,
+        "least": 69
+      },
+      {
+        "q": 19,
+        "most": 75,
+        "least": 73
+      },
+      {
+        "q": 20,
+        "most": 80,
+        "least": 79
+      },
+      {
+        "q": 21,
+        "most": 84,
+        "least": 81
+      },
+      {
+        "q": 22,
+        "most": 86,
+        "least": 85
+      },
+      {
+        "q": 23,
+        "most": 91,
+        "least": 90
+      },
+      {
+        "q": 24,
+        "most": 96,
+        "least": 95
+      }
+    ]
+  },
+  "CS": {
+    "targetProfile": "CS",
+    "actualProfile": "CS",
+    "percentages": {
+      "D": 3,
+      "I": 9,
+      "S": 99,
+      "C": 99
+    },
+    "answers": [
+      {
+        "q": 1,
+        "most": 4,
+        "least": 2
+      },
+      {
+        "q": 2,
+        "most": 7,
+        "least": 5
+      },
+      {
+        "q": 3,
+        "most": 12,
+        "least": 10
+      },
+      {
+        "q": 4,
+        "most": 14,
+        "least": 13
+      },
+      {
+        "q": 5,
+        "most": 19,
+        "least": 17
+      },
+      {
+        "q": 6,
+        "most": 21,
+        "least": 23
+      },
+      {
+        "q": 7,
+        "most": 27,
+        "least": 28
+      },
+      {
+        "q": 8,
+        "most": 29,
+        "least": 30
+      },
+      {
+        "q": 9,
+        "most": 35,
+        "least": 33
+      },
+      {
+        "q": 10,
+        "most": 39,
+        "least": 37
+      },
+      {
+        "q": 11,
+        "most": 44,
+        "least": 41
+      },
+      {
+        "q": 12,
+        "most": 46,
+        "least": 45
+      },
+      {
+        "q": 13,
+        "most": 50,
+        "least": 49
+      },
+      {
+        "q": 14,
+        "most": 55,
+        "least": 54
+      },
+      {
+        "q": 15,
+        "most": 60,
+        "least": 58
+      },
+      {
+        "q": 16,
+        "most": 61,
+        "least": 64
+      },
+      {
+        "q": 17,
+        "most": 65,
+        "least": 67
+      },
+      {
+        "q": 18,
+        "most": 72,
+        "least": 71
+      },
+      {
+        "q": 19,
+        "most": 75,
+        "least": 74
+      },
+      {
+        "q": 20,
+        "most": 77,
+        "least": 80
+      },
+      {
+        "q": 21,
+        "most": 83,
+        "least": 81
+      },
+      {
+        "q": 22,
+        "most": 85,
+        "least": 87
+      },
+      {
+        "q": 23,
+        "most": 91,
+        "least": 89
+      },
+      {
+        "q": 24,
+        "most": 95,
+        "least": 93
+      }
+    ]
+  }
+}

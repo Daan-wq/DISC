@@ -7,7 +7,7 @@ const ADMIN_HOSTS = (process.env.ADMIN_HOSTS || 'admin.tlcprofielen.nl,disc-admi
 
 // Paths that should only be accessible on specific hosts
 const ADMIN_PATHS = ['/admin', '/api/admin']
-const QUIZ_PATHS = ['/quiz', '/api/quiz', '/api/answers', '/api/candidates', '/api/auth', '/api/documents', '/login', '/auth', '/result', '/no-access']
+const QUIZ_PATHS = ['/quiz', '/api/quiz', '/api/answers', '/api/candidates', '/api/auth', '/api/documents', '/api/feedback', '/login', '/auth', '/result', '/no-access']
 
 // Paths that are allowed on ALL hosts (debug, health checks, etc.)
 const PUBLIC_API_PATHS = ['/api/debug', '/api/public', '/api/compute']

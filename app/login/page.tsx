@@ -17,9 +17,14 @@ function toProperCase(str: string): string {
     .join('')
 }
 
+function normalizeTussenvoegsel(str: string): string {
+  return str.toLowerCase().replace(/\s+/g, ' ')
+}
+
 function LoginInner() {
   const [email, setEmail] = useState("")
   const [firstName, setFirstName] = useState("")
+  const [tussenvoegsel, setTussenvoegsel] = useState("")
   const [lastName, setLastName] = useState("")
   const [sent, setSent] = useState(false)
   const [sentEmail, setSentEmail] = useState("")
@@ -81,6 +86,7 @@ function LoginInner() {
           email: normalized, 
           redirectTo,
           first_name: firstName.trim(),
+          tussenvoegsel: tussenvoegsel.trim() || undefined,
           last_name: lastName.trim()
         })
       })
@@ -115,8 +121,8 @@ function LoginInner() {
     return (
       <div className="min-h-screen bg-gray-50 py-12 px-4">
         <div className="max-w-md mx-auto bg-white rounded-lg shadow p-8 text-center">
-          <h1 className="text-2xl font-bold mb-4 text-yellow-600">Quiz in onderhoud</h1>
-          <p className="text-gray-700">Deze quiz is momenteel tijdelijk in onderhoud. Kom later terug.</p>
+          <h1 className="text-2xl font-bold mb-4 text-yellow-600">Vragenlijst in onderhoud</h1>
+          <p className="text-gray-700">Deze vragenlijst is momenteel tijdelijk in onderhoud. Kom later terug.</p>
         </div>
       </div>
     )
@@ -139,7 +145,7 @@ function LoginInner() {
       <div className="max-w-md mx-auto bg-white rounded-lg shadow p-8">
         <h1 className="text-2xl font-bold mb-6">Inloggen</h1>
         <form onSubmit={requestMagicLink} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium mb-2">Voornaam</label>
               <input
@@ -151,6 +157,19 @@ function LoginInner() {
                 onChange={(e) => setFirstName(toProperCase(e.target.value))}
                 className="w-full px-3 py-2 border rounded-md"
                 required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Tussenvoegsel</label>
+              <input
+                id="tussenvoegsel"
+                type="text"
+                name="tussenvoegsel"
+                autoComplete="additional-name"
+                value={tussenvoegsel}
+                onChange={(e) => setTussenvoegsel(normalizeTussenvoegsel(e.target.value))}
+                className="w-full px-3 py-2 border rounded-md lowercase"
+                placeholder="van der"
               />
             </div>
             <div>
@@ -184,7 +203,7 @@ function LoginInner() {
             <div className="p-2 bg-red-100 text-red-700 rounded text-sm">
               {error === 'NO_ACCESS' ? (
                 <span>
-                  Je e-mailadres staat (nog) niet op de toegangslijst voor deze quiz. Neem{' '}
+                  Je e-mailadres staat (nog) niet op de toegangslijst voor deze vragenlijst. Neem{' '}
                   <a
                     href="https://tlcprofielen.nl/contact/"
                     target="_blank"
@@ -218,7 +237,7 @@ export default function LoginPage() {
     <Suspense fallback={
       <div className="min-h-screen bg-gray-50 py-12 px-4">
         <div className="max-w-md mx-auto bg-white rounded-lg shadow p-8 text-center">
-          <h1 className="text-2xl font-bold mb-4">Bezig met laden…</h1>
+          <h1 className="text-2xl font-bold mb-4">Bezig met laden...</h1>
         </div>
       </div>
     }>

@@ -164,7 +164,7 @@ export async function sendAllowlistEmail(options: {
   const mailOptions = {
     from: process.env.FROM_EMAIL || 'noreply@tlcprofielen.nl',
     to: options.to,
-    subject: 'Je bent uitgenodigd voor de DISC Quiz',
+    subject: 'Je bent uitgenodigd voor de DISC-vragenlijst',
     html,
     text
   }
@@ -198,7 +198,7 @@ function generateAllowlistEmailHtml(data: { name: string; quizUrl: string; compa
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>Uitnodiging DISC Quiz</title>
+  <title>Uitnodiging DISC-vragenlijst</title>
   <style type="text/css">
     body { margin: 0; padding: 0; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
     table { border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
@@ -226,10 +226,10 @@ function generateAllowlistEmailHtml(data: { name: string; quizUrl: string; compa
                 Beste ${data.name},
               </p>
               <p style="color: ${textMuted}; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
-                Je bent uitgenodigd om de DISC persoonlijkheidstest te doen. Deze test helpt je inzicht te krijgen in je communicatiestijl en gedragspatronen.
+                Je bent uitgenodigd om de DISC-vragenlijst te doen. Deze vragenlijst helpt je inzicht te krijgen in je communicatiestijl en gedragspatronen.
               </p>
               <p style="color: ${textMuted}; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
-                Klik op de knop hieronder om te beginnen met de quiz:
+                Klik op de knop hieronder om te beginnen met de vragenlijst:
               </p>
             </td>
           </tr>
@@ -237,7 +237,7 @@ function generateAllowlistEmailHtml(data: { name: string; quizUrl: string; compa
           <!-- Button -->
           <tr>
             <td align="center" style="padding: 0 40px 40px 40px;">
-              <a href="${data.quizUrl}" style="display: inline-block; padding: 14px 40px; background-color: ${buttonBg}; color: ${buttonText}; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: bold;">Start de DISC Quiz</a>
+              <a href="${data.quizUrl}" style="display: inline-block; padding: 14px 40px; background-color: ${buttonBg}; color: ${buttonText}; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: bold;">Start de DISC-vragenlijst</a>
             </td>
           </tr>
           
@@ -277,9 +277,9 @@ function generateAllowlistEmailText(data: { name: string; quizUrl: string; compa
   return [
     `Beste ${data.name},`,
     '',
-    'Je bent uitgenodigd om de DISC persoonlijkheidstest te doen. Deze test helpt je inzicht te krijgen in je communicatiestijl en gedragspatronen.',
+    'Je bent uitgenodigd om de DISC-vragenlijst te doen. Deze vragenlijst helpt je inzicht te krijgen in je communicatiestijl en gedragspatronen.',
     '',
-    'Klik op de link hieronder om te beginnen met de quiz:',
+    'Klik op de link hieronder om te beginnen met de vragenlijst:',
     data.quizUrl,
     '',
     `© ${data.year} ${data.company}. Alle rechten voorbehouden.`

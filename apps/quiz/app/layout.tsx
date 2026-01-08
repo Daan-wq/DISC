@@ -12,8 +12,8 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'DISC Profile Quiz',
-  description: 'Professional DISC personality assessment',
+  title: 'DISC-vragenlijst',
+  description: 'Professionele DISC-vragenlijst',
 }
 
 export default function RootLayout({

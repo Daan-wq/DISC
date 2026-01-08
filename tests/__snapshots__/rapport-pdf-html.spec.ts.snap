@@ -1,0 +1,33 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`rapport-pdf: renderProfileHtml regression > HTML snapshot hash (short name) - C 1`] = `"0ce881b4919660a8c54e6bc397d33a970448a5dee5549f269d554ad675a8f49e"`;
+
+exports[`rapport-pdf: renderProfileHtml regression > HTML snapshot hash (short name) - CD 1`] = `"1cc286407f164f2f5cc486f847b34f0783741bae97e4418f10b9077866f4e971"`;
+
+exports[`rapport-pdf: renderProfileHtml regression > HTML snapshot hash (short name) - CI 1`] = `"0c2e981eb7c272e8532fd5d7332061ee7404cbf214051ff03661cc732f95505f"`;
+
+exports[`rapport-pdf: renderProfileHtml regression > HTML snapshot hash (short name) - CS 1`] = `"c16342f9cdb0269008850c04c8f71950a07a10afa2ce7d48e87b91e38b2d3f35"`;
+
+exports[`rapport-pdf: renderProfileHtml regression > HTML snapshot hash (short name) - D 1`] = `"2e26c75f8c9090415f1223bf57df1234cd34f923917a1a6217c0b3d7bb141def"`;
+
+exports[`rapport-pdf: renderProfileHtml regression > HTML snapshot hash (short name) - DC 1`] = `"d858dad5bd1bfda183a793bd0d04949d74bf1cf30df9196cf27a254bbaf6dcb8"`;
+
+exports[`rapport-pdf: renderProfileHtml regression > HTML snapshot hash (short name) - DI 1`] = `"55f033016b0a5ef61f8e08f9043c1b8c9445e8f31cad2bf6106c797ebcef00ad"`;
+
+exports[`rapport-pdf: renderProfileHtml regression > HTML snapshot hash (short name) - DS 1`] = `"225df83bfa377084a2a88ea498874bd85fe4a102f4b526333e23477178c055c5"`;
+
+exports[`rapport-pdf: renderProfileHtml regression > HTML snapshot hash (short name) - I 1`] = `"07804c776841886d8400e978a4b1ee522d19326ebe80a2484c559aaf2c12e030"`;
+
+exports[`rapport-pdf: renderProfileHtml regression > HTML snapshot hash (short name) - IC 1`] = `"9648f8030067da7c519a16ad27039948281866ddae2ea2414aca025a3620e6c3"`;
+
+exports[`rapport-pdf: renderProfileHtml regression > HTML snapshot hash (short name) - ID 1`] = `"36e21efdecf890e84e19f1f39204bc880c9100e6cba681f4be96a3a43ea25f34"`;
+
+exports[`rapport-pdf: renderProfileHtml regression > HTML snapshot hash (short name) - IS 1`] = `"3b8c3b2349e50f446b524d7cf9a5deda2d14d4c67e94646755a76c7f3e935128"`;
+
+exports[`rapport-pdf: renderProfileHtml regression > HTML snapshot hash (short name) - S 1`] = `"7e41c01e4319b1dbbdbd24001cb50b5dc02c21a80c6dec60a7603982b8293929"`;
+
+exports[`rapport-pdf: renderProfileHtml regression > HTML snapshot hash (short name) - SC 1`] = `"0eba0f2c630c2bb93e2ec5eff82795ba31e12c49132e00bbe70921f06e75dc78"`;
+
+exports[`rapport-pdf: renderProfileHtml regression > HTML snapshot hash (short name) - SD 1`] = `"7012a9ac1b533829093e73805131690ef02dde22061c7d5d54aea585d1fe7355"`;
+
+exports[`rapport-pdf: renderProfileHtml regression > HTML snapshot hash (short name) - SI 1`] = `"52b898106e9172b9aac112f8e7efc409ac62da6877cebc380676688a5d47d145"`;

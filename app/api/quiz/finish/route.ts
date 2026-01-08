@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { supabase, supabaseAdmin } from '@/lib/supabase'
-import { generateReportPdf } from '@/lib/report'
 import { sendRapportEmail, generateEmailHtml, generateEmailText } from '@/server/email/mailer'
-import { buildPdfStoragePath, buildPdfFilename, findUniqueStoragePath } from '@/lib/utils/slugify'
 import { QUIZ_ID } from '@/lib/constants'
 import { randomUUID } from 'crypto'
 
@@ -16,6 +14,35 @@ export const maxDuration = 30
 
 // Processing lock TTL in minutes (stale locks older than this can be reclaimed)
 const PROCESSING_TTL_MINUTES = 5
+
+async function generatePdfIntoStorageViaApi2Pdf(args: {
+  origin: string
+  token: string
+  requestId: string
+  attemptId: string
+}): Promise<void> {
+  const res = await fetch(`${args.origin}/api/rapport/download-pdf`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${args.token}`,
+      'x-request-id': args.requestId,
+    },
+    body: JSON.stringify({ attempt_id: args.attemptId, use_cache: false }),
+  })
+
+  if (!res.ok) {
+    const contentType = res.headers.get('content-type') || ''
+    const details = contentType.includes('application/json')
+      ? await res.json().catch(() => ({} as any))
+      : { error: await res.text().catch(() => '') }
+    const msg =
+      typeof (details as any)?.error === 'string' && (details as any).error
+        ? (details as any).error
+        : `PDF generation failed (HTTP ${res.status})`
+    throw new Error(msg)
+  }
+}
 
 // Timing helper
 interface Timings {
@@ -374,87 +401,91 @@ export async function POST(req: NextRequest) {
     }
     let pdfBuffer: Buffer
     try {
-      // Use Node-only PDF generator (no Chromium required)
-      const fullName = finalPD?.candidate?.full_name || 'Gebruiker'
-      const dateText = finalPD?.meta?.dateISO || finalPD?.results?.created_at || new Date().toISOString()
-      const styleLabel = finalPD?.meta?.stijlLabel || profileCode
-      
-      pdfBuffer = await generateReportPdf({
-        profileCode,
-        fullName,
-        date: dateText,
-        styleLabel,
-        discData: {
-          natural: {
-            D: Math.round(finalPD?.results?.natural_d || 0),
-            I: Math.round(finalPD?.results?.natural_i || 0),
-            S: Math.round(finalPD?.results?.natural_s || 0),
-            C: Math.round(finalPD?.results?.natural_c || 0),
-          },
-          response: {
-            D: Math.round(finalPD?.results?.response_d || 0),
-            I: Math.round(finalPD?.results?.response_i || 0),
-            S: Math.round(finalPD?.results?.response_s || 0),
-            C: Math.round(finalPD?.results?.response_c || 0),
-          },
-        },
+      // Persist minimal result payload so /api/rapport/download-pdf can render without depending on answers.payload
+      if (finalPD?.results) {
+        try {
+          await supabaseAdmin
+            .from('quiz_attempts')
+            .update({
+              result_payload: {
+                profileCode,
+                percentages: {
+                  natural: {
+                    D: Math.round(finalPD.results.natural_d || 0),
+                    I: Math.round(finalPD.results.natural_i || 0),
+                    S: Math.round(finalPD.results.natural_s || 0),
+                    C: Math.round(finalPD.results.natural_c || 0),
+                  },
+                  response: {
+                    D: Math.round(finalPD.results.response_d || 0),
+                    I: Math.round(finalPD.results.response_i || 0),
+                    S: Math.round(finalPD.results.response_s || 0),
+                    C: Math.round(finalPD.results.response_c || 0),
+                  },
+                },
+              },
+            })
+            .eq('id', attempt_id)
+            .eq('user_id', user.id)
+        } catch (persistErr) {
+          console.warn('[finish] Failed to persist result_payload for download-pdf (continuing):', persistErr)
+        }
+      }
+
+      await generatePdfIntoStorageViaApi2Pdf({
+        origin: req.nextUrl.origin,
+        token,
+        requestId,
+        attemptId: attempt_id,
       })
       timings.t_render = Date.now()
-      console.log(`[finish][${requestId}] PDF rendered in ${timings.t_render - (timings.t_claim || timings.t_start)}ms, size: ${pdfBuffer.length} bytes`)
     } catch (renderErr: any) {
-      console.error(`[finish][${requestId}] PDF render failed:`, renderErr?.message)
+      console.error(`[finish][${requestId}] PDF generation via api2pdf failed:`, renderErr?.message)
       await resetProcessingState(attempt_id, renderErr?.message || 'Unknown render error', 'PDF_RENDER_FAILED')
       return NextResponse.json({ error: 'PDF_RENDER_FAILED', details: renderErr?.message }, { status: 500 })
     }
 
-    // Build readable storage path with user name
-    const displayName = finalPD?.candidate?.full_name || (user.email?.split('@')[0] || 'user')
-    const baseStoragePath = buildPdfStoragePath(user.id, quiz_id, displayName)
-    const pdfFilename = buildPdfFilename(displayName)
+    // Re-load attempt PDF metadata written by /api/rapport/download-pdf
+    const { data: attemptPdf, error: attemptPdfErr } = await supabaseAdmin
+      .from('quiz_attempts')
+      .select('pdf_path, pdf_filename, pdf_created_at, pdf_expires_at')
+      .eq('id', attempt_id)
+      .maybeSingle()
 
-    // Find unique path (handles collisions by appending -1, -2, etc.)
-    const bucket = supabaseAdmin.storage.from('quiz-docs')
-    const storagePath = await findUniqueStoragePath(baseStoragePath, async (path) => {
-      const { data } = await bucket.list(path.substring(0, path.lastIndexOf('/')), {
-        search: path.substring(path.lastIndexOf('/') + 1)
-      })
-      return (data && data.length > 0) || false
-    })
-
-    // Upload to storage (private bucket)
-    const { error: upErr } = await bucket.upload(storagePath, pdfBuffer, {
-      contentType: 'application/pdf',
-      upsert: false, // Never upsert since we found unique path
-    })
-    if (upErr) {
-      console.error(`[finish][${requestId}] Upload failed:`, upErr.message)
-      await resetProcessingState(attempt_id, upErr.message, 'UPLOAD_FAILED')
-      return NextResponse.json({ error: 'UPLOAD_FAILED', details: upErr.message }, { status: 500 })
+    if (attemptPdfErr || !attemptPdf?.pdf_path) {
+      const msg = attemptPdfErr?.message || 'Missing pdf_path after generation'
+      console.error('[finish] PDF metadata missing after generation:', msg)
+      await resetProcessingState(attempt_id, msg, 'PDF_METADATA_MISSING')
+      return NextResponse.json({ error: 'PDF_METADATA_MISSING', details: msg }, { status: 500 })
     }
-    timings.t_upload = Date.now()
-    console.log(`[finish][${requestId}] PDF uploaded in ${timings.t_upload - (timings.t_render || timings.t_start)}ms to ${storagePath}`)
 
-    // Consolidated schema: store PDF metadata, alert flag, and profile code on the attempt
-    // Set expiry to 180 days from now
-    const expiresAt = new Date(now.getTime() + 180 * 24 * 60 * 60 * 1000).toISOString()
-    
+    // Always download the stored PDF for emailing (single source of truth)
+    const bucket = supabaseAdmin.storage.from('quiz-docs')
+    const { data: pdfData, error: downloadErr } = await bucket.download(attemptPdf.pdf_path)
+    if (downloadErr || !pdfData) {
+      const msg = downloadErr?.message || 'Could not download PDF from storage'
+      console.error('[finish] Failed to download stored PDF for email:', msg)
+      await resetProcessingState(attempt_id, msg, 'PDF_DOWNLOAD_FAILED')
+      return NextResponse.json({ error: 'PDF_DOWNLOAD_FAILED', details: msg }, { status: 500 })
+    }
+
+    pdfBuffer = Buffer.from(await pdfData.arrayBuffer())
+    timings.t_upload = Date.now()
+
+    const pdfFilename = attemptPdf.pdf_filename || 'DISC-rapport.pdf'
+
+    // Update attempt with alert flag (other pdf fields are managed by download-pdf)
     const { error: updateErr } = await supabaseAdmin
       .from('quiz_attempts')
       .update({
-        pdf_path: storagePath,
-        pdf_filename: pdfFilename,
-        pdf_created_at: now.toISOString(),
-        pdf_expires_at: expiresAt,
         alert: hasAlert,
       })
       .eq('id', attempt_id)
-    
+
     if (updateErr) {
-      console.error('[finish] Failed to update attempt with PDF metadata:', updateErr)
-      return NextResponse.json({ error: 'Failed to save PDF metadata', details: updateErr.message }, { status: 500 })
+      console.error('[finish] Failed to update attempt alert flag:', updateErr)
+      return NextResponse.json({ error: 'Failed to save alert flag', details: updateErr.message }, { status: 500 })
     }
-    
-    console.log('[finish] PDF metadata saved successfully')
 
     // Create notification if alert was triggered (unusual score pattern)
     if (hasAlert) {
@@ -518,6 +549,8 @@ export async function POST(req: NextRequest) {
       }
 
       // Send individually to recipients and record notifications
+      const displayName = finalPD?.candidate?.full_name || (user.email?.split('@')[0] || 'user')
+
       for (const rcpt of recipients) {
         await sendRapportEmail({
           to: rcpt,
@@ -591,7 +624,7 @@ export async function POST(req: NextRequest) {
     
     console.log(`[finish][${requestId}] SUCCESS - email_sent: ${emailSent}, timings: claim=${timings.t_claim! - timings.t_start}ms render=${timings.t_render! - timings.t_claim!}ms upload=${timings.t_upload! - timings.t_render!}ms email=${timings.t_email - timings.t_upload!}ms total=${timings.t_total}ms`)
     console.log(`=== /api/quiz/finish END (SUCCESS) [${requestId}] ===`)
-    return NextResponse.json({ ok: true, storage_path: storagePath, pdf_filename: pdfFilename, timings })
+    return NextResponse.json({ ok: true, storage_path: attemptPdf.pdf_path, pdf_filename: pdfFilename, timings })
   } catch (e: any) {
     const elapsed = Date.now() - timings.t_start
     console.error(`[finish][${requestId}] EXCEPTION after ${elapsed}ms:`, e?.message || String(e))

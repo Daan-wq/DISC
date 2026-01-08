@@ -17,11 +17,12 @@ import os from 'os'
 import { discoverTemplates, TemplateProfile } from './template-discovery'
 
 // Dynamic imports for build-time dependencies
-let puppeteer: typeof import('puppeteer')
+let puppeteer: any
 let PDFDocument: typeof import('pdf-lib').PDFDocument
 
 async function loadDependencies() {
-  puppeteer = await import('puppeteer')
+  const puppeteerModule = await import('puppeteer')
+  puppeteer = puppeteerModule.default
   const pdfLib = await import('pdf-lib')
   PDFDocument = pdfLib.PDFDocument
 }
@@ -168,16 +169,20 @@ async function generateBasePdfForProfile(
       await page.goto(fileUrl, { waitUntil: 'load', timeout: 30000 })
 
       // Wait for fonts to be loaded before rendering
-      await page.evaluate(() => document.fonts.ready)
+      await page.evaluate(() => {
+        const d = (globalThis as any).document
+        return d?.fonts?.ready
+      })
 
       // Get actual content dimensions BEFORE CSS injection
       const contentBoxBefore = await page.evaluate(() => {
-        const body = document.body
+        const d = (globalThis as any).document
+        const body = d?.body
         return {
-          width: body.offsetWidth,
-          height: body.offsetHeight,
-          scrollWidth: body.scrollWidth,
-          scrollHeight: body.scrollHeight
+          width: body?.offsetWidth ?? 0,
+          height: body?.offsetHeight ?? 0,
+          scrollWidth: body?.scrollWidth ?? 0,
+          scrollHeight: body?.scrollHeight ?? 0
         }
       })
       console.log(`  [${htmlFile}] Content box BEFORE: ${contentBoxBefore.width}×${contentBoxBefore.height}px`)
@@ -215,12 +220,13 @@ async function generateBasePdfForProfile(
 
       // Get content dimensions AFTER CSS injection for validation
       const contentBoxAfter = await page.evaluate(() => {
-        const body = document.body
+        const d = (globalThis as any).document
+        const body = d?.body
         return {
-          width: body.offsetWidth,
-          height: body.offsetHeight,
-          scrollWidth: body.scrollWidth,
-          scrollHeight: body.scrollHeight
+          width: body?.offsetWidth ?? 0,
+          height: body?.offsetHeight ?? 0,
+          scrollWidth: body?.scrollWidth ?? 0,
+          scrollHeight: body?.scrollHeight ?? 0
         }
       })
       console.log(`  [${htmlFile}] Content box AFTER:  ${contentBoxAfter.width}×${contentBoxAfter.height}px`)
@@ -232,9 +238,9 @@ async function generateBasePdfForProfile(
       const heightDiff = Math.abs(contentBoxAfter.height - expectedHeight)
       
       if (widthDiff > 2 || heightDiff > 2) {
-        console.warn(`  [${htmlFile}] ⚠️  Content size mismatch! Expected ${expectedWidth}×${expectedHeight}px, got ${contentBoxAfter.width}×${contentBoxAfter.height}px`)
+        console.warn(`  [${htmlFile}] Content size mismatch. Expected ${expectedWidth}×${expectedHeight}px, got ${contentBoxAfter.width}×${contentBoxAfter.height}px`)
       } else {
-        console.log(`  [${htmlFile}] ✅ Content size validated: ${contentBoxAfter.width}×${contentBoxAfter.height}px`)
+        console.log(`  [${htmlFile}] Content size validated: ${contentBoxAfter.width}×${contentBoxAfter.height}px`)
       }
 
       await page.emulateMediaType('print')
@@ -309,7 +315,7 @@ async function main() {
 
   // Launch browser
   console.log('\nLaunching browser...')
-  const browser = await puppeteer.default.launch({
+  const browser = await puppeteer.launch({
     headless: true,
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
   })

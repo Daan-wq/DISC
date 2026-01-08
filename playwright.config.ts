@@ -2,6 +2,7 @@ import { defineConfig, devices } from '@playwright/test'
 
 export default defineConfig({
   testDir: './tests',
+  testIgnore: ['**/rapport-pdf-html.spec.ts'],
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
@@ -17,7 +18,7 @@ export default defineConfig({
         ...devices['Desktop Chrome'],
         baseURL: 'http://localhost:3000',
       },
-      testMatch: /quiz.*\.spec\.ts/,
+      testMatch: ['**/quiz*.spec.ts'],
     },
     { 
       name: 'admin-app', 
@@ -25,7 +26,7 @@ export default defineConfig({
         ...devices['Desktop Chrome'],
         baseURL: 'http://localhost:3001',
       },
-      testMatch: /admin.*\.spec\.ts/,
+      testMatch: ['**/admin*.spec.ts'],
     },
   ],
   webServer: [

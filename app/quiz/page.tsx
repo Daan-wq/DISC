@@ -9,6 +9,7 @@ import { type PersonalData, type QuizAnswer } from '@/lib/schema'
 import { supabase } from '@/lib/supabase'
 import { submitAnswers } from '@/lib/answers'
 import { QUIZ_ID } from '@/lib/constants'
+import { Spinner } from '@/components/ui/Spinner'
 
 // DISC statements for quiz interface
 const statements: Statement[] = [
@@ -136,11 +137,20 @@ function QuizInner() {
   const [sessionTimeoutSeconds, setSessionTimeoutSeconds] = useState(0)
   const [retryKey, setRetryKey] = useState(0)
   const [maintenanceMode, setMaintenanceMode] = useState(false)
+  const [hasStartedVragenlijst, setHasStartedVragenlijst] = useState(false)
+  const [readyToFinish, setReadyToFinish] = useState(false)
 
   // Performance: Track last saved state to prevent duplicate writes
   const lastSavedAnswersRef = useRef<string>('')
   const lastSavedQuestionRef = useRef<number>(-1)
   const saveCountRef = useRef({ answers: 0, progress: 0, heartbeat: 0, skipped: 0 })
+
+  useEffect(() => {
+    // If there is progress, do not show the intro again.
+    if (currentQuestion > 0 || answers.length > 0) {
+      setHasStartedVragenlijst(true)
+    }
+  }, [currentQuestion, answers.length])
 
   // Structured logger
   function logError(event: string, payload: Record<string, unknown>) {
@@ -148,7 +158,7 @@ function QuizInner() {
       const time = new Date().toISOString()
       // Hash userId lightly to avoid leaking PII in logs (client-side non-cryptographic)
       const userId = payload.userId || 'unknown'
-      const userHash = typeof userId === 'string' ? (userId.slice(0, 8) + '…') : 'unknown'
+      const userHash = typeof userId === 'string' ? (userId.slice(0, 8) + '...') : 'unknown'
       console.error('[quiz]', event, JSON.stringify({ ...payload, time, userHash }))
     } catch {}
   }
@@ -278,8 +288,9 @@ function QuizInner() {
 
         // Derive full name from URL params if present
         const fn = (search?.get('fn') || '').trim()
+        const tv = (search?.get('tv') || '').trim()
         const ln = (search?.get('ln') || '').trim()
-        const combinedName = [fn, ln].filter(Boolean).join(' ').trim()
+        const combinedName = [fn, tv, ln].filter(Boolean).join(' ').trim()
         const nameFromEmail = email.split('@')[0]
         const preferredName = combinedName || nameFromEmail
 
@@ -556,7 +567,7 @@ function QuizInner() {
                     selection
                   })
                   seenAnswers.add(uniqueKey)
-                  console.log(`[progress] Answer ${i}: letter=${answer}, pair=${questionPairIndex}, letterIndex=${letterIndex}, statementId=${statementId}, selection=${selection} ✓`)
+                  console.log(`[progress] Answer ${i}: letter=${answer}, pair=${questionPairIndex}, letterIndex=${letterIndex}, statementId=${statementId}, selection=${selection}`)
                 } else {
                   console.log(`[progress] Answer ${i}: DUPLICATE for ${uniqueKey} - SKIPPED`)
                 }
@@ -943,12 +954,12 @@ function QuizInner() {
     // Move to next question
     if (currentQuestion < 47) {
       console.log('[handleAnswer] Moving to next question:', currentQuestion + 1)
+      setReadyToFinish(false)
       setCurrentQuestion(currentQuestion + 1)
     } else {
-      // Show thank-you immediately and submit in background
-      console.log('[handleAnswer] Quiz complete - submitting')
-      setShowThankYou(true)
-      void submitQuiz(newAnswers)
+      // Last question answered: require explicit finish click (so user can still go back)
+      console.log('[handleAnswer] Last question answered - waiting for explicit finish')
+      setReadyToFinish(true)
     }
   }
 
@@ -996,6 +1007,23 @@ function QuizInner() {
       
       const computeResult = await response.json()
       console.log('Got compute result:', computeResult)
+
+      // Cache the computed result for the preview page (used by /rapport/preview)
+      const attemptIdForPreview = typeof window !== 'undefined' ? localStorage.getItem('quizAttemptId') : null
+      if (attemptIdForPreview) {
+        try {
+          localStorage.setItem(
+            `quiz_result_${attemptIdForPreview}`,
+            JSON.stringify({
+              profileCode: computeResult.profileCode,
+              percentages: computeResult.percentages,
+              candidateName: personalData?.fullName || 'Deelnemer',
+            })
+          )
+        } catch (e) {
+          console.warn('[quiz] Failed to cache quiz result for preview:', e)
+        }
+      }
       
       // Persist the 48 A–D answers to public.answers via /api/answers
       // Send ALL 48 entries (both MOST and LEAST) to satisfy API schema
@@ -1076,10 +1104,10 @@ function QuizInner() {
         console.error('Finish flow failed:', finishErr)
       }
       
-      // Redirect to results page using attempt id
+      // Redirect to report preview page using attempt id
       const attemptIdForRedirect = typeof window !== 'undefined' ? localStorage.getItem('quizAttemptId') : null
       if (attemptIdForRedirect) {
-        router.push(`/result/${attemptIdForRedirect}`)
+        router.push(`/rapport/preview?attempt_id=${encodeURIComponent(attemptIdForRedirect)}`)
       } else {
         router.push(`/result/unknown`)
       }
@@ -1087,18 +1115,6 @@ function QuizInner() {
       setError(err instanceof Error ? err.message : 'Failed to submit quiz')
       setIsSubmitting(false)
     }
-  }
-
-  // Only show loading during initial auth and allowlist check
-  // Quiz will show immediately after, even if candidate is still being created
-  if (checkingAuth || (allowCheck === null && !noAccess)) {
-    return (
-      <div className="min-h-screen bg-gray-50 py-6 px-3 sm:py-8 sm:px-4 md:py-12">
-        <div className="max-w-md mx-auto bg-white rounded-lg shadow p-4 sm:p-6 md:p-8 text-center">
-          <h1 className="text-xl sm:text-2xl font-bold mb-4">Laden…</h1>
-        </div>
-      </div>
-    )
   }
 
   if (maintenanceMode) {
@@ -1144,8 +1160,39 @@ function QuizInner() {
     return (
       <div className="min-h-screen bg-gray-50 py-6 px-3 sm:py-8 sm:px-4 md:py-12">
         <div className="max-w-md mx-auto bg-white rounded-lg shadow p-4 sm:p-6 md:p-8 text-center">
+          <div className="flex items-center justify-center mb-4">
+            <Spinner className="h-10 w-10 text-[#46915f]" />
+          </div>
           <h1 className="text-xl sm:text-2xl font-bold mb-4">Bedankt voor het invullen</h1>
           <p className="text-sm sm:text-base text-gray-600">We verwerken je resultaten en sturen je een mail met je eindrapport.</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!hasStartedVragenlijst) {
+    const canStart = candidateStatus === 'ready' && allowCheck === true && !isSubmitting
+    return (
+      <div className="min-h-screen bg-gray-50 py-6 px-3 sm:py-8 sm:px-4 md:py-12">
+        <div className="max-w-md mx-auto bg-white rounded-lg shadow p-4 sm:p-6 md:p-8">
+          <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
+            Welkom bij de DISC-vragenlijst. Deze vragenlijst helpt inzicht te krijgen in jouw voorkeursgedrag en manier van werken. Het is geen test van kennis, intelligentie of prestaties. Er bestaan geen goede of foute antwoorden. Het invullen duurt ongeveer 15 minuten. We raden aan om de vragenlijst in één keer en in een rustige omgeving te maken, zonder afleiding. Beantwoord de vragen zo intuïtief mogelijk en denk niet te lang na over je keuze. Je eerste gevoel geeft meestal het meest betrouwbare resultaat. Antwoord vanuit hoe je je meestal gedraagt in het dagelijks leven, niet vanuit hoe je zou willen zijn of hoe je denkt dat er van je verwacht wordt. De resultaten zijn persoonlijk en worden vertrouwelijk verwerkt. Wanneer je klaar bent, kun je direct door naar de eerste vraag.
+          </p>
+
+          <div className="mt-6">
+            <button
+              onClick={() => setHasStartedVragenlijst(true)}
+              disabled={!canStart}
+              className="w-full px-6 py-2.5 text-white bg-[#46915f] rounded-lg hover:bg-[#3a7a4f] transition disabled:opacity-60 disabled:cursor-not-allowed min-h-[44px] text-sm sm:text-base font-semibold flex items-center justify-center"
+            >
+              {canStart ? 'Start vragenlijst' : (
+                <>
+                  <Spinner className="mr-2 h-5 w-5" />
+                  Laden...
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     )
@@ -1154,6 +1201,12 @@ function QuizInner() {
   const questionPairIndex = Math.floor(currentQuestion / 2)
   const isMostQuestion = currentQuestion % 2 === 0
   const questionStatements = statements.slice(questionPairIndex * 4, questionPairIndex * 4 + 4)
+  const isLastQuestion = currentQuestion === 47
+  const hasAnswerForCurrentQuestion = answers.some(a =>
+    a.selection === (isMostQuestion ? 'most' : 'least') &&
+    a.statementId >= questionPairIndex * 4 + 1 &&
+    a.statementId <= questionPairIndex * 4 + 4
+  )
   
   // Debug logging
   console.log('[render] currentQuestion:', currentQuestion, 'isMostQuestion:', isMostQuestion)
@@ -1261,6 +1314,24 @@ function QuizInner() {
             })}
           </div>
 
+          {isLastQuestion && readyToFinish && hasAnswerForCurrentQuestion ? (
+            <button
+              onClick={() => {
+                setShowThankYou(true)
+                void submitQuiz(answers)
+              }}
+              className="mt-4 sm:mt-6 w-full px-6 py-2.5 sm:py-2 text-white bg-[#46915f] rounded-lg hover:bg-[#3a7a4f] transition disabled:opacity-60 disabled:cursor-not-allowed min-h-[44px] text-sm sm:text-base font-semibold flex items-center justify-center"
+              disabled={isSubmitting || candidateStatus !== 'ready'}
+            >
+              {isSubmitting ? (
+                <>
+                  <Spinner className="mr-2 h-5 w-5" />
+                  Vragenlijst afronden...
+                </>
+              ) : 'Vragenlijst afronden'}
+            </button>
+          ) : null}
+
           {currentQuestion > 0 && (
             <button
               onClick={handleBack}
@@ -1297,7 +1368,10 @@ export default function QuizPage() {
         fallback={
           <div className="min-h-screen bg-gray-50 py-6 px-3 sm:py-8 sm:px-4 md:py-12">
             <div className="max-w-md mx-auto bg-white rounded-lg shadow p-4 sm:p-6 md:p-8 text-center">
-              <h1 className="text-xl sm:text-2xl font-bold mb-4">Laden…</h1>
+              <div className="flex items-center justify-center mb-4">
+                <Spinner className="h-10 w-10 text-blue-600" />
+              </div>
+              <h1 className="text-xl sm:text-2xl font-bold mb-4">Laden...</h1>
             </div>
           </div>
         }

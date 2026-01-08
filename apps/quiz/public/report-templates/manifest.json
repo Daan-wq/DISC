@@ -1,0 +1,85 @@
+{
+  "generatedAt": "2025-12-29T12:03:52.088Z",
+  "templates": [
+    {
+      "profileCode": "C",
+      "sourceFolderName": "1 C Basis profiel plus The Lean Communication",
+      "publicBasePath": "/report-templates/C"
+    },
+    {
+      "profileCode": "CD",
+      "sourceFolderName": "1 CD Basis profiel plus The Lean Communication",
+      "publicBasePath": "/report-templates/CD"
+    },
+    {
+      "profileCode": "CI",
+      "sourceFolderName": "1 CI Basis profiel plus The Lean Communication",
+      "publicBasePath": "/report-templates/CI"
+    },
+    {
+      "profileCode": "CS",
+      "sourceFolderName": "1 CS Basis profiel plus The Lean Communication",
+      "publicBasePath": "/report-templates/CS"
+    },
+    {
+      "profileCode": "D",
+      "sourceFolderName": "1 D Basis profiel plus The Lean Communication-1",
+      "publicBasePath": "/report-templates/D"
+    },
+    {
+      "profileCode": "DC",
+      "sourceFolderName": "1 DC Basis profiel plus The Lean Communication",
+      "publicBasePath": "/report-templates/DC"
+    },
+    {
+      "profileCode": "DI",
+      "sourceFolderName": "1 DI Basis profiel plus The Lean Communication",
+      "publicBasePath": "/report-templates/DI"
+    },
+    {
+      "profileCode": "DS",
+      "sourceFolderName": "1 DS Basis profiel plus The Lean Communication-1",
+      "publicBasePath": "/report-templates/DS"
+    },
+    {
+      "profileCode": "I",
+      "sourceFolderName": "1 I Basis profiel plus The Lean Communication",
+      "publicBasePath": "/report-templates/I"
+    },
+    {
+      "profileCode": "IC",
+      "sourceFolderName": "1 IC Basis profiel plus The Lean Communication",
+      "publicBasePath": "/report-templates/IC"
+    },
+    {
+      "profileCode": "ID",
+      "sourceFolderName": "1 ID Basis profiel plusThe Lean Communication",
+      "publicBasePath": "/report-templates/ID"
+    },
+    {
+      "profileCode": "IS",
+      "sourceFolderName": "1 IS Basis profiel plus The Lean Communication",
+      "publicBasePath": "/report-templates/IS"
+    },
+    {
+      "profileCode": "S",
+      "sourceFolderName": "1 S Basis profiel plus The Lean Communication",
+      "publicBasePath": "/report-templates/S"
+    },
+    {
+      "profileCode": "SC",
+      "sourceFolderName": "1 SC Basis profiel plus The Lean Communication",
+      "publicBasePath": "/report-templates/SC"
+    },
+    {
+      "profileCode": "SD",
+      "sourceFolderName": "1 SD Basis profiel plus The Lean Communication",
+      "publicBasePath": "/report-templates/SD"
+    },
+    {
+      "profileCode": "SI",
+      "sourceFolderName": "1 SI Basis profiel plus The Lean Communication",
+      "publicBasePath": "/report-templates/SI"
+    }
+  ]
+}

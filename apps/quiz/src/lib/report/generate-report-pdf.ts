@@ -12,10 +12,16 @@
 
 import fs from 'fs'
 import path from 'path'
-import { PDFDocument, StandardFonts, rgb, PDFFont, PDFPage } from 'pdf-lib'
 import { svgToPng, getWasmPath } from './svg-to-png'
 import { fileURLToPath } from 'url'
 import { dirname } from 'path'
+
+type PDFDocument = any
+type PDFFont = any
+type PDFPage = any
+const PDFDocument: any = { load: async (_bytes: any) => ({}) }
+const StandardFonts: any = {}
+const rgb: any = (..._args: any[]) => ({})
 
 // Types
 export interface DISCData {
@@ -452,226 +458,9 @@ function drawTextAutoFit(
  * @returns Buffer containing the PDF
  */
 export async function generateReportPdf(options: GenerateReportOptions): Promise<Buffer> {
-  const startTime = Date.now()
-  const { profileCode, fullName, date, styleLabel, discData } = options
-
-  console.log(`[report-pdf] Generating PDF for profile: ${profileCode}`)
-
-  // Load assets
-  const { pdf, positions } = await loadAssets(profileCode)
-  const loadTime = Date.now() - startTime
-
-  // Format data
-  const dateText = formatDate(date)
-  const firstName = getFirstName(fullName)
-
-  // Overlay text fields - use extracted styles when available
-  const defaultTextColor = rgb(0, 0, 0)
-
-  // Name on cover (page 0) - use extracted styles and custom fonts
-  if (positions.fields.name) {
-    const pos = positions.fields.name
-    const page = pdf.getPage(pos.pageIndex)
-    
-    // Embed custom font based on extracted styles
-    const fontFamily = pos.styles?.fontFamily || 'PT Sans'
-    const fontWeight = pos.styles?.fontWeight || 'bold'
-    const fontStyle = 'normal'
-    const useFont = await embedCustomFont(pdf, fontFamily, fontWeight, fontStyle)
-    
-    drawTextAutoFit(page, fullName, useFont, pos.rect, { 
-      maxSize: 18, 
-      color: defaultTextColor,
-      styles: pos.styles 
-    })
-    console.log(`  [page ${pos.pageIndex}] Drew name: "${fullName}" (font: ${fontFamily}, ${fontWeight})`)
-  }
-
-  // Date (usually page 1) - use extracted styles and custom fonts
-  if (positions.fields.date) {
-    const pos = positions.fields.date
-    const page = pdf.getPage(pos.pageIndex)
-    
-    const fontFamily = pos.styles?.fontFamily || 'PT Sans'
-    const fontWeight = pos.styles?.fontWeight || 'normal'
-    const fontStyle = 'normal'
-    const useFont = await embedCustomFont(pdf, fontFamily, fontWeight, fontStyle)
-    
-    drawTextAutoFit(page, dateText, useFont, pos.rect, { 
-      maxSize: 10, 
-      color: defaultTextColor,
-      styles: pos.styles 
-    })
-    console.log(`  [page ${pos.pageIndex}] Drew date: "${dateText}" (font: ${fontFamily}, ${fontWeight})`)
-  }
-
-  // Style label (usually page 1) - use extracted styles and custom fonts
-  if (positions.fields.style) {
-    const pos = positions.fields.style
-    const page = pdf.getPage(pos.pageIndex)
-    
-    const fontFamily = pos.styles?.fontFamily || 'PT Sans'
-    const fontWeight = pos.styles?.fontWeight || 'normal'
-    const fontStyle = 'normal'
-    const useFont = await embedCustomFont(pdf, fontFamily, fontWeight, fontStyle)
-    
-    drawTextAutoFit(page, styleLabel, useFont, pos.rect, { 
-      maxSize: 10, 
-      color: defaultTextColor,
-      styles: pos.styles 
-    })
-    console.log(`  [page ${pos.pageIndex}] Drew style: "${styleLabel}" (font: ${fontFamily}, ${fontWeight})`)
-  }
-
-  // First name (if present) - use extracted styles and custom fonts
-  if (positions.fields.firstName) {
-    const pos = positions.fields.firstName
-    const page = pdf.getPage(pos.pageIndex)
-    
-    const fontFamily = pos.styles?.fontFamily || 'PT Sans'
-    const fontWeight = pos.styles?.fontWeight || 'normal'
-    const fontStyle = 'normal'
-    const useFont = await embedCustomFont(pdf, fontFamily, fontWeight, fontStyle)
-    
-    drawTextAutoFit(page, firstName, useFont, pos.rect, { 
-      maxSize: 12, 
-      color: defaultTextColor,
-      styles: pos.styles 
-    })
-    console.log(`  [page ${pos.pageIndex}] Drew firstName: "${firstName}" (font: ${fontFamily}, ${fontWeight})`)
-  }
-
-  // Chart (page 2)
-  if (positions.fields.chart) {
-    const pos = positions.fields.chart
-    const page = pdf.getPage(pos.pageIndex)
-
-    // Generate chart SVG - fixed size 400x320 with legend included
-    const chartSvg = generateChartSVG(discData)
-    
-    // Convert to PNG at 2x resolution for sharpness
-    // Use fixed SVG dimensions (400x320) to ensure legend is included
-    const svgWidth = 400
-    const svgHeight = 320
-    const chartPng = await svgToPng(chartSvg, { 
-      width: svgWidth * 2,  // 800px for sharpness
-      height: svgHeight * 2  // 640px for sharpness
-    })
-    
-    // Embed PNG in PDF
-    const chartImage = await pdf.embedPng(chartPng)
-    
-    // Calculate scaling to fit in bbox while preserving aspect ratio
-    const svgAspect = svgWidth / svgHeight  // 400/320 = 1.25
-    const rectAspect = pos.rect.w / pos.rect.h
-    
-    let drawWidth = pos.rect.w
-    let drawHeight = pos.rect.h
-    let drawX = pos.rect.x
-    let drawY = pos.rect.y
-    
-    if (svgAspect > rectAspect) {
-      // SVG is wider than bbox - fit to width, center vertically
-      drawHeight = pos.rect.w / svgAspect
-      drawY = pos.rect.y + (pos.rect.h - drawHeight) / 2
-    } else {
-      // SVG is taller than bbox - fit to height, center horizontally
-      drawWidth = pos.rect.h * svgAspect
-      drawX = pos.rect.x + (pos.rect.w - drawWidth) / 2
-    }
-    
-    page.drawImage(chartImage, {
-      x: drawX,
-      y: drawY,
-      width: drawWidth,
-      height: drawHeight,
-    })
-    
-    console.log(`  [page ${pos.pageIndex}] Drew chart at (${drawX.toFixed(1)}, ${drawY.toFixed(1)}) ${drawWidth.toFixed(1)}x${drawHeight.toFixed(1)}pt (SVG: ${svgWidth}x${svgHeight}, bbox: ${pos.rect.w.toFixed(1)}x${pos.rect.h.toFixed(1)})`)
-  }
-
-  // Overlay percentage values on page 2
-  const percentageFields = [
-    { key: 'naturalD', value: discData.natural.D },
-    { key: 'naturalI', value: discData.natural.I },
-    { key: 'naturalS', value: discData.natural.S },
-    { key: 'naturalC', value: discData.natural.C },
-    { key: 'responseD', value: discData.response.D },
-    { key: 'responseI', value: discData.response.I },
-    { key: 'responseS', value: discData.response.S },
-    { key: 'responseC', value: discData.response.C },
-  ] as const
-
-  for (const { key, value } of percentageFields) {
-    const pos = positions.fields[key as keyof typeof positions.fields]
-    if (pos) {
-      const page = pdf.getPage(pos.pageIndex)
-      const percentText = `${Math.round(value)}%`
-      
-      // Use styles from extraction if available, otherwise defaults
-      const fontSize = pos.styles?.fontSize || 8
-      const fontFamily = pos.styles?.fontFamily || 'PT Sans'
-      const fontWeight = pos.styles?.fontWeight || 'normal'
-      const fontStyle = 'normal'
-      const useFont = await embedCustomFont(pdf, fontFamily, fontWeight, fontStyle)
-      
-      // Parse text color from rgb(r,g,b) format if available
-      const color = pos.styles?.color 
-        ? parseRgbColor(pos.styles.color, defaultTextColor) 
-        : defaultTextColor
-      
-      // STEP 1: Cover old "0%" text with background rectangle
-      // This ensures the old placeholder text is not visible
-      const bgColor = pos.styles?.backgroundColor 
-        ? parseRgbColor(pos.styles.backgroundColor, rgb(1, 1, 1)) 
-        : rgb(1, 1, 1) // White fallback
-      
-      // Draw cover rectangle with 2pt padding to fully cover old text
-      const padding = 2
-      page.drawRectangle({
-        x: pos.rect.x - padding,
-        y: pos.rect.y - padding,
-        width: pos.rect.w + padding * 2,
-        height: pos.rect.h + padding * 2,
-        color: bgColor,
-      })
-      
-      // STEP 2: Draw new percentage text centered in the rect
-      const textWidth = useFont.widthOfTextAtSize(percentText, fontSize)
-      const textX = pos.rect.x + (pos.rect.w - textWidth) / 2
-      const textY = pos.rect.y + (pos.rect.h / 2) - (fontSize * 0.3)
-      
-      page.drawText(percentText, {
-        x: textX,
-        y: textY,
-        size: fontSize,
-        font: useFont,
-        color,
-      })
-      
-      if (DEBUG_PDF) {
-        console.log(`  [page ${pos.pageIndex}] Drew ${key}: "${percentText}" at (${textX.toFixed(1)}, ${textY.toFixed(1)}) with bg cover`)
-      }
-    }
-  }
-  
-  if (DEBUG_PDF) {
-    console.log(`  [debug] Percentage fields overlaid: ${percentageFields.filter(f => positions.fields[f.key as keyof typeof positions.fields]).length}/8`)
-  }
-
-  // Debug mode: dump positions JSON
-  if (DEBUG_PDF) {
-    console.log(`\n[debug] Positions dump for profile ${profileCode}:`)
-    console.log(JSON.stringify(positions, null, 2))
-  }
-
-  // Save PDF
-  const pdfBytes = await pdf.save()
-  const totalTime = Date.now() - startTime
-
-  console.log(`[report-pdf] PDF generated in ${totalTime}ms (load: ${loadTime}ms), size: ${pdfBytes.byteLength} bytes`)
-
-  return Buffer.from(pdfBytes)
+  throw new Error(
+    '[report-pdf] Legacy pdf-lib overlay generator has been removed. Use /api/rapport/download-pdf (API2PDF HTML → PDF).'
+  )
 }
 
 /**

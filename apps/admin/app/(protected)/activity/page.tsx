@@ -1,12 +1,13 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { Activity, Loader2, Users } from "lucide-react"
+import { Activity, Users } from "lucide-react"
 import { Card, CardContent } from '@/components/admin/ui/Card'
 import { Badge } from '@/components/admin/ui/Badge'
 import { PageHeader } from '@/components/admin/ui/PageHeader'
 import { EmptyState } from '@/components/admin/ui/EmptyState'
 import { StatCard } from '@/components/admin/ui/StatCard'
+import { Spinner } from '@/components/ui/Spinner'
 
 interface ActivityItem {
   user_id: string
@@ -81,7 +82,7 @@ export default function LiveActivityPage() {
       {loading ? (
         <Card>
           <CardContent className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+            <Spinner className="h-8 w-8 text-slate-400" />
           </CardContent>
         </Card>
       ) : activities.length === 0 ? (
@@ -110,7 +111,7 @@ export default function LiveActivityPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge variant="success">Live</Badge>
-                    <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse" />
+                    <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full" />
                   </div>
                 </div>
 

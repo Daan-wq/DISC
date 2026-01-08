@@ -31,35 +31,35 @@ async function main() {
     console.log('│ STEP 1: Template Discovery                                 │')
     console.log('└────────────────────────────────────────────────────────────┘')
     const profiles = discoverTemplates()
-    console.log(`\n✓ Discovered ${profiles.length} profiles\n`)
+    console.log(`\nDiscovered ${profiles.length} profiles\n`)
 
     // Step 2: Generate base PDFs
     console.log('┌────────────────────────────────────────────────────────────┐')
     console.log('│ STEP 2: Generate Base PDFs                                 │')
     console.log('└────────────────────────────────────────────────────────────┘')
     const basePdfs = await generateAllBasePdfs()
-    console.log(`\n✓ Generated ${basePdfs.length} base PDFs\n`)
+    console.log(`\nGenerated ${basePdfs.length} base PDFs\n`)
 
     // Step 3: Extract positions
     console.log('┌────────────────────────────────────────────────────────────┐')
     console.log('│ STEP 3: Extract Positions                                  │')
     console.log('└────────────────────────────────────────────────────────────┘')
     const positions = await extractAllPositions()
-    console.log(`\n✓ Extracted positions for ${positions.length} profiles\n`)
+    console.log(`\nExtracted positions for ${positions.length} profiles\n`)
 
     // Step 4: Create debug overlays
     console.log('┌────────────────────────────────────────────────────────────┐')
     console.log('│ STEP 4: Create Debug Overlays                              │')
     console.log('└────────────────────────────────────────────────────────────┘')
     await createAllDebugOverlays()
-    console.log(`\n✓ Debug overlays created\n`)
+    console.log(`\nDebug overlays created\n`)
 
     // Step 5: Generate manifest
     console.log('┌────────────────────────────────────────────────────────────┐')
     console.log('│ STEP 5: Generate Manifest                                  │')
     console.log('└────────────────────────────────────────────────────────────┘')
     const manifest = await generateManifest()
-    console.log(`\n✓ Manifest generated\n`)
+    console.log(`\nManifest generated\n`)
 
     const elapsed = ((Date.now() - startTime) / 1000).toFixed(1)
 

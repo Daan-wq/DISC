@@ -1,10 +1,11 @@
 "use client"
 
 import { useEffect, useMemo, useState } from 'react'
-import { Plus, Search, Upload, RefreshCw, RotateCcw, XCircle, AlertTriangle } from 'lucide-react'
+import { Plus, Search, Upload, RefreshCw, RotateCcw, Trash2, AlertTriangle } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/admin/ui/Card'
 import { Badge } from '@/components/admin/ui/Badge'
 import { Button } from '@/components/admin/ui/Button'
+import { ConfirmDialog } from '@/components/admin/ui/ConfirmDialog'
 import { Input, Select } from '@/components/admin/ui/Input'
 import { PageHeader } from '@/components/admin/ui/PageHeader'
 import {
@@ -48,6 +49,9 @@ export default function AdminAllowlistPage() {
   const [theme, setTheme] = useState('')
   const [items, setItems] = useState<Item[]>([])
   const [loading, setLoading] = useState(true)
+
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [confirmEmail, setConfirmEmail] = useState<string | null>(null)
 
   // Bulk import state
   const [bulkTrainerEmail, setBulkTrainerEmail] = useState('')
@@ -156,6 +160,11 @@ export default function AdminAllowlistPage() {
     }
   }
 
+  function requestRevoke(email: string) {
+    setConfirmEmail(email)
+    setConfirmOpen(true)
+  }
+
   async function doAction(kind: 'reset' | 'revoke', email: string) {
     setBusy(true)
     setMsg(null)
@@ -170,7 +179,20 @@ export default function AdminAllowlistPage() {
         setMsg('Sessie verlopen. Ververs de pagina om opnieuw in te loggen.')
         return
       }
-      if (!res.ok) throw new Error('Actie mislukt')
+
+      const data = await res.json().catch(() => ({} as any))
+
+      if (!res.ok) {
+        const serverMsg = (data as any)?.error
+        throw new Error(typeof serverMsg === 'string' && serverMsg ? serverMsg : 'Actie mislukt')
+      }
+
+      if (kind === 'revoke') {
+        const deleted = Number((data as any)?.deleted)
+        if (Number.isFinite(deleted) && deleted === 0) {
+          setMsg('Er zijn geen records gevonden om te verwijderen.')
+        }
+      }
       await load()
     } catch (e: any) {
       setMsg(e?.message || 'Fout')
@@ -193,14 +215,38 @@ export default function AdminAllowlistPage() {
 
   return (
     <div className="space-y-6">
+      <ConfirmDialog
+        open={confirmOpen}
+        title="Toegang verwijderen"
+        description={
+          confirmEmail
+            ? `Weet je zeker dat je "${confirmEmail}" wilt verwijderen uit de toegangslijst? Dit kan niet ongedaan gemaakt worden.`
+            : undefined
+        }
+        confirmText="Verwijderen"
+        cancelText="Annuleren"
+        variant="danger"
+        loading={busy}
+        onCancel={() => {
+          if (busy) return
+          setConfirmOpen(false)
+          setConfirmEmail(null)
+        }}
+        onConfirm={async () => {
+          if (!confirmEmail) return
+          await doAction('revoke', confirmEmail)
+          setConfirmOpen(false)
+          setConfirmEmail(null)
+        }}
+      />
       <PageHeader
         title="Toegangslijst"
-        description="Beheer wie toegang heeft tot de DISC Quiz"
+        description="Beheer wie toegang heeft tot de DISC-vragenlijst"
         action={
           <Button
             variant="outline"
             onClick={load}
-            loading={loading}
+            disabled={loading}
             leftIcon={<RefreshCw className="h-4 w-4" />}
           >
             Vernieuwen
@@ -468,11 +514,11 @@ export default function AdminAllowlistPage() {
                       <RotateCcw className="h-4 w-4" />
                     </button>
                     <button
-                      onClick={() => doAction('revoke', it.email)}
+                      onClick={() => requestRevoke(it.email)}
                       className="p-1.5 rounded-lg text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors"
-                      title="Intrekken"
+                      title="Verwijderen"
                     >
-                      <XCircle className="h-4 w-4" />
+                      <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
                 </TableCell>

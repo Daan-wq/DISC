@@ -1,12 +1,13 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import { Shield, Wrench, CheckCircle, XCircle, Loader2 } from 'lucide-react'
+import { Shield, Wrench, CheckCircle, XCircle } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/admin/ui/Card'
 import { Button } from '@/components/admin/ui/Button'
 import { Badge } from '@/components/admin/ui/Badge'
 import { Input } from '@/components/admin/ui/Input'
 import { PageHeader } from '@/components/admin/ui/PageHeader'
+import { Spinner } from '@/components/ui/Spinner'
 
 export default function AdminSettingsPage() {
   const [maintenanceMode, setMaintenanceMode] = useState(false)
@@ -157,7 +158,7 @@ export default function AdminSettingsPage() {
       <div className="space-y-6">
         <PageHeader title="Instellingen" description="Beheer je applicatie configuratie" />
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+          <Spinner className="h-8 w-8 text-slate-400" />
         </div>
       </div>
     )
@@ -186,7 +187,7 @@ export default function AdminSettingsPage() {
             <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
               <div className="flex items-center gap-3">
                 {maintenanceMode ? (
-                  <div className="h-3 w-3 rounded-full bg-red-500 animate-pulse" />
+                  <div className="h-3 w-3 rounded-full bg-red-500" />
                 ) : (
                   <div className="h-3 w-3 rounded-full bg-emerald-500" />
                 )}

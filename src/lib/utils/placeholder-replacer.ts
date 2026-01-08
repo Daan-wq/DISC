@@ -100,7 +100,7 @@ export function replacePlaceholders(content: string, data?: PlaceholderData): st
       // Use ONLY original class and style WITH max-width - CSS handles font, inline style handles positioning
       const replacement = `<a target="_blank" href="http://DBF_Datum"><span class="${originalClass}" style="${finalStyle}">${combinedText}</span></a>`
       processed = processed.replace(pattern1, replacement)
-      console.log(`✓ Replaced ${matches.length} Datum+Stijl pattern(s) (type 1) with combined span: "${combinedText}" using class="${originalClass}"`)
+      console.log(`Replaced ${matches.length} Datum+Stijl pattern(s) (type 1) with combined span: "${combinedText}" using class="${originalClass}"`)
       replacementCount += matches.length
     }
     
@@ -124,7 +124,7 @@ export function replacePlaceholders(content: string, data?: PlaceholderData): st
       // Use ONLY original class and style WITH max-width - CSS handles font, inline style handles positioning
       const replacement = `<a target="_blank" href="http://DBF_Datum"><span class="${originalClass}" style="${finalStyle}">${combinedText}</span></a>`
       processed = processed.replace(pattern2, replacement)
-      console.log(`✓ Replaced ${matches.length} Datum+Stijl pattern(s) (type 2) with combined span: "${combinedText}" using class="${originalClass}"`)
+      console.log(`Replaced ${matches.length} Datum+Stijl pattern(s) (type 2) with combined span: "${combinedText}" using class="${originalClass}"`)
       replacementCount += matches.length
     }
     
@@ -151,7 +151,7 @@ export function replacePlaceholders(content: string, data?: PlaceholderData): st
       const regex = new RegExp(placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')
       const matches = processed.match(regex)
       if (matches) {
-        console.log(`✓ Replacing "${placeholder}" → "${value}" (${matches.length} occurrences)`) 
+        console.log(`Replacing "${placeholder}" → "${value}" (${matches.length} occurrences)`) 
         processed = processed.replace(regex, value)
         replacementCount += matches.length
       }
@@ -182,7 +182,7 @@ export function replacePlaceholders(content: string, data?: PlaceholderData): st
       const regex = new RegExp(placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')
       const matches = processed.match(regex)
       if (matches) {
-        console.log(`✓ Replacing "${placeholder}" → "${value}" (${matches.length} occurrences)`) 
+        console.log(`Replacing "${placeholder}" → "${value}" (${matches.length} occurrences)`) 
         processed = processed.replace(regex, value)
         replacementCount += matches.length
       }
@@ -241,10 +241,10 @@ export function replacePlaceholders(content: string, data?: PlaceholderData): st
     // Find remaining placeholders - STRICT MODE: Do NOT replace with TEST
     const remainingPlaceholders = processed.match(/<<[^>]+>>/g) || []
     if (remainingPlaceholders.length > 0) {
-      console.error('⚠️ UNHANDLED PLACEHOLDERS DETECTED:')
+      console.error('UNHANDLED PLACEHOLDERS DETECTED:')
       const uniquePlaceholders = [...new Set(remainingPlaceholders)]
       uniquePlaceholders.forEach(placeholder => {
-        console.error(`  ✗ ${placeholder} - NOT REPLACED (add to placeholder map)`)
+        console.error(`  ${placeholder} - NOT REPLACED (add to placeholder map)`)
       })
       // IMPORTANT: Do NOT replace with TEST - keep placeholders visible for debugging
     }
@@ -252,7 +252,7 @@ export function replacePlaceholders(content: string, data?: PlaceholderData): st
     console.log(`=== REPLACEMENT COMPLETE: ${replacementCount} replacements made ===`)
   } else {
     // No data provided - decode entities but do NOT replace with TEST
-    console.warn('⚠️ No data provided for placeholder replacement')
+    console.warn('No data provided for placeholder replacement')
     processed = processed.replace(/&lt;&lt;/g, '<<').replace(/&gt;&gt;/g, '>>')
     // Leave placeholders as-is for visibility
   }

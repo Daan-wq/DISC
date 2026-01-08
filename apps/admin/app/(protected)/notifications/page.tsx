@@ -1,12 +1,13 @@
 "use client"
 
 import { useEffect, useMemo, useState } from 'react'
-import { Bell, Loader2 } from 'lucide-react'
+import { Bell } from 'lucide-react'
 import { Card, CardContent } from '@/components/admin/ui/Card'
 import { Badge } from '@/components/admin/ui/Badge'
 import { Select } from '@/components/admin/ui/Input'
 import { PageHeader } from '@/components/admin/ui/PageHeader'
 import { EmptyState } from '@/components/admin/ui/EmptyState'
+import { Spinner } from '@/components/ui/Spinner'
 
 type Noti = { id: string; created_at: string; severity: 'info'|'warning'|'error'|'success'; source: string; message: string; meta?: any }
 
@@ -90,7 +91,7 @@ export default function AdminNotificationsPage() {
         <CardContent className="p-0">
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+              <Spinner className="h-8 w-8 text-slate-400" />
             </div>
           ) : filtered.length === 0 ? (
             <EmptyState

@@ -20,7 +20,8 @@ const BodySchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
-    if (!getAdminSession()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const session = await getAdminSession()
+    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     if (!supabaseAdmin) return NextResponse.json({ error: 'Server not configured' }, { status: 500 })
 
     const json = await req.json().catch(() => null)
@@ -60,6 +61,32 @@ export async function POST(req: NextRequest) {
 
     await audit('allowlist_bulk_import', { count: rows.length })
 
+    // Ensure auth users exist so login can always use the inloglink email (no signup confirmation)
+    for (const row of rows) {
+      try {
+        const { error: createErr } = await supabaseAdmin.auth.admin.createUser({
+          email: row.email,
+          email_confirm: true,
+        })
+
+        if (createErr) {
+          const status = (createErr as any)?.status
+          if (status !== 422) {
+            console.warn('[bulk-import] Failed to ensure auth user exists', {
+              email: row.email,
+              message: (createErr as any)?.message || String(createErr),
+              status,
+            })
+          }
+        }
+      } catch (e) {
+        console.warn('[bulk-import] Failed to ensure auth user exists (exception)', {
+          email: row.email,
+          error: (e as any)?.message || String(e),
+        })
+      }
+    }
+
     // Send invitation emails to all imported users
     // IMPORTANT: Always use QUIZ_SITE_URL env var for quiz invitations
     // Never use request origin (that's the admin URL, not quiz URL)
@@ -77,14 +104,14 @@ export async function POST(req: NextRequest) {
           quizUrl: `${quizSiteUrl}/login`
         })
         emailsSent++
-        console.log(`✅ Invitation email sent to ${row.email}`)
+        console.log(`Invitation email sent to ${row.email}`)
       } catch (emailError) {
         emailsFailed++
-        console.error(`⚠️ Failed to send email to ${row.email}:`, emailError)
+        console.error(`Failed to send email to ${row.email}:`, emailError)
       }
     }
 
-    console.log(`📧 Email summary: ${emailsSent} sent, ${emailsFailed} failed`)
+    console.log(`Email summary: ${emailsSent} sent, ${emailsFailed} failed`)
 
     return NextResponse.json({ 
       ok: true, 

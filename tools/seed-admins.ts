@@ -13,16 +13,16 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
 async function seedAdmins() {
-  console.log('🔐 Seeding admin users...\n')
+  console.log('Seeding admin users...\n')
 
   const admins = [
     {
       email: 'info@echooo.nl',
-      password: process.env.ADMIN_PASSWORD || 'changeme'
+      password: process.env.ADMIN_PASSWORD_INFO || process.env.ADMIN_PASSWORD || 'changeme'
     },
     {
       email: 'daan0529@icloud.com',
-      password: 'PfawDwetbpankgnz0fsu'
+      password: process.env.ADMIN_PASSWORD_DAAN || process.env.ADMIN_PASSWORD || 'changeme'
     }
   ]
 
@@ -46,13 +46,13 @@ async function seedAdmins() {
       .single()
 
     if (error) {
-      console.error(`❌ Error for ${admin.email}:`, error)
+      console.error(`Error for ${admin.email}:`, error)
     } else {
-      console.log(`✅ ${admin.email} added/updated`)
+      console.log(`${admin.email} added/updated`)
     }
   }
 
-  console.log('\n✨ Done!')
+  console.log('\nDone')
 }
 
 seedAdmins().catch(console.error)

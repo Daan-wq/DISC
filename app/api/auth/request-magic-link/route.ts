@@ -15,6 +15,12 @@ const BodySchema = z.object({
     'Redirect URL must be on same domain'
   ).optional(),
   first_name: z.string().trim().min(1).optional(),
+  tussenvoegsel: z
+    .string()
+    .trim()
+    .min(1)
+    .regex(/^[a-z][a-z\s'\-\/.]*$/, 'tussenvoegsel must be lowercase')
+    .optional(),
   last_name: z.string().trim().min(1).optional()
 })
 
@@ -69,6 +75,7 @@ export async function POST(req: NextRequest) {
     const email = parsed.data.email.trim().toLowerCase()
     let redirectTo = parsed.data.redirectTo
     const firstName = toProperCase((parsed.data.first_name || '').trim())
+    const tussenvoegsel = (parsed.data.tussenvoegsel || '').trim().toLowerCase().replace(/\s+/g, ' ')
     const lastName = toProperCase((parsed.data.last_name || '').trim())
 
     // Check allowlist: prefer email_normalized, fallback to email
@@ -116,6 +123,7 @@ export async function POST(req: NextRequest) {
     if (!redirectTo) {
       const finalTarget = new URL('/quiz', baseUrl)
       if (firstName) finalTarget.searchParams.set('fn', firstName)
+      if (tussenvoegsel) finalTarget.searchParams.set('tv', tussenvoegsel)
       if (lastName) finalTarget.searchParams.set('ln', lastName)
       const callbackUrl = new URL('/auth/callback', baseUrl)
       callbackUrl.searchParams.set('redirect', finalTarget.pathname + finalTarget.search)
@@ -127,6 +135,7 @@ export async function POST(req: NextRequest) {
         const inner = u.searchParams.get('redirect') || '/quiz'
         const innerUrl = new URL(inner, baseUrl)
         if (firstName) innerUrl.searchParams.set('fn', firstName)
+        if (tussenvoegsel) innerUrl.searchParams.set('tv', tussenvoegsel)
         if (lastName) innerUrl.searchParams.set('ln', lastName)
         u.searchParams.set('redirect', innerUrl.pathname + innerUrl.search)
         redirectTo = u.toString()
@@ -135,13 +144,63 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const { error: sendErr } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: redirectTo,
-        shouldCreateUser: true,
-      },
-    })
+    let sendErr: any = null
+    {
+      const res = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: redirectTo,
+          shouldCreateUser: false,
+        },
+      })
+      sendErr = (res as any)?.error
+    }
+
+    // If the allowlist is valid but the auth user doesn't exist yet, create it via admin API
+    // and retry sending the inloglink. This avoids Supabase "confirm signup" emails.
+    if (sendErr) {
+      const msg = String(sendErr?.message || '').toLowerCase()
+      const status = (sendErr as any)?.status
+
+      const isMissingUser =
+        status === 404 ||
+        msg.includes('user not found') ||
+        msg.includes('not found')
+
+      if (isMissingUser && supabaseAdmin) {
+        try {
+          const { error: createErr } = await supabaseAdmin.auth.admin.createUser({
+            email,
+            email_confirm: true,
+          })
+
+          if (createErr) {
+            const createStatus = (createErr as any)?.status
+            if (createStatus !== 422) {
+              console.warn('[magic-link] Failed to create missing auth user', {
+                email,
+                message: (createErr as any)?.message || String(createErr),
+                status: createStatus,
+              })
+            }
+          }
+
+          const retry = await supabase.auth.signInWithOtp({
+            email,
+            options: {
+              emailRedirectTo: redirectTo,
+              shouldCreateUser: false,
+            },
+          })
+          sendErr = (retry as any)?.error
+        } catch (e: any) {
+          console.warn('[magic-link] Failed to create missing auth user (exception)', {
+            email,
+            error: e?.message || String(e),
+          })
+        }
+      }
+    }
 
     if (sendErr) {
       console.error('request-magic-link send error:', sendErr.message)
@@ -165,7 +224,7 @@ export async function POST(req: NextRequest) {
     // After successful OTP send, create candidate if it doesn't exist
     // We need to get the user from Supabase auth using admin client
     // since signInWithOtp just sends the link, doesn't create session yet
-    const fullName = `${firstName} ${lastName}`.trim() || email.split('@')[0]
+    const fullName = [firstName, tussenvoegsel, lastName].filter(Boolean).join(' ').trim() || email.split('@')[0]
     const QUIZ_ID = '00000000-0000-0000-0000-000000000001'
     
     try {

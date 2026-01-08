@@ -29,17 +29,13 @@ export default function ResultActions({ candidateName }: ResultActionsProps) {
       const { signed_url, pdf_filename } = await res.json()
       if (!signed_url) throw new Error('Geen ondertekende URL ontvangen')
 
-      // Start download using the friendly filename from the server
-      const a = document.createElement('a')
-      a.style.display = 'none'
-      a.href = signed_url
-      a.download = pdf_filename || `DISC-Profiel-${candidateName.replace(/\s+/g, '-')}.pdf`
-      a.click()
+      window.open(signed_url, '_blank', 'noopener,noreferrer')
       
-      setMessage({ type: 'success', text: 'PDF succesvol gedownload' })
+      void pdf_filename
+      setMessage({ type: 'success', text: 'Rapport geopend' })
     } catch {
       console.error('Download failed')
-      alert('Download mislukt. Probeer het opnieuw.')
+      setMessage({ type: 'error', text: 'Openen mislukt. Probeer het opnieuw.' })
     } finally {
       setPdfLoading(false)
       setTimeout(() => setMessage(null), 5000)
@@ -63,7 +59,7 @@ export default function ResultActions({ candidateName }: ResultActionsProps) {
           disabled={pdfLoading}
           className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50"
         >
-          {pdfLoading ? 'Genereren...' : 'Download PDF'}
+          {pdfLoading ? 'Openen...' : 'Open je rapport'}
         </button>
       </div>
     </>
