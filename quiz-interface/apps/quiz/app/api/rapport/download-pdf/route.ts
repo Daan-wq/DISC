@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { randomUUID } from 'crypto'
+import { createRequire } from 'module'
 
 import { supabase, supabaseAdmin } from '@/lib/supabase'
 import { computeDisc, type AnswerInput } from '@/lib/disc'
@@ -250,7 +251,18 @@ async function generatePdfWithPuppeteer(args: {
   html: string
   timeoutMs: number
 }): Promise<Uint8Array> {
-  const puppeteerMod = await import('puppeteer')
+  const require = createRequire(import.meta.url)
+
+  let puppeteerMod: any
+  try {
+    const moduleName = 'pup' + 'peteer'
+    puppeteerMod = require(moduleName)
+  } catch (e: any) {
+    throw new Error(
+      `[rapport/download-pdf] Local renderer requires puppeteer. Install it or set PDF_RENDERER=api2pdf. (${e?.message || String(e)})`
+    )
+  }
+
   const puppeteer = (puppeteerMod as any).default || puppeteerMod
 
   const browser = await puppeteer.launch({

@@ -39,6 +39,8 @@ yarn-error.log*
 lerna-debug.log*
 .pnpm-debug.log*
 
+.npmrc
+
 
 # Cache
 .turbo/
@@ -51,6 +53,11 @@ coverage/
 .nyc_output/
 test-results/
 playwright-report/
+
+output/
+test-data/generated-reports/
+test-data/pdf-html/
+apps/quiz/assets/report/debug/*.runtime.overlay.pdf
 
 # Platforms / Hosting
 .vercel
