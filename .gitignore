@@ -89,6 +89,9 @@ out
 /quiz-interface/output/
 /quiz-interface/test-data/pdf-html/
 
+# Local workspace copies
+/quiz-interface-port/
+
 # Nuxt.js build / generate output
 .nuxt
 dist

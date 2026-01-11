@@ -121,6 +121,7 @@ function QuizInner() {
   const search = useSearchParams()
   const [checkingAuth, setCheckingAuth] = useState(true)
   const [allowCheck, setAllowCheck] = useState<null | boolean>(null)
+  const [isTestgroup, setIsTestgroup] = useState(false)
   const [candidateId, setCandidateId] = useState<string | null>(null)
   const [personalData, setPersonalData] = useState<PersonalData | null>(null)
   const [currentQuestion, setCurrentQuestion] = useState(0)
@@ -218,8 +219,10 @@ function QuizInner() {
         if (!mounted) return
         if (j?.eligible) {
           setAllowCheck(true)
+          setIsTestgroup(j?.testgroup === true)
         } else {
           setAllowCheck(false)
+          setIsTestgroup(false)
           setNoAccess(true)
           // Redirect to no-access page with reason
           const reason = j?.reason === 'ALREADY_USED' ? 'used' : 'not-listed'
@@ -229,6 +232,7 @@ function QuizInner() {
         // On error, be conservative: do not allow
         if (!mounted) return
         setAllowCheck(false)
+        setIsTestgroup(false)
         setNoAccess(true)
       }
     })()
@@ -1096,7 +1100,11 @@ function QuizInner() {
       // Redirect to report preview page using attempt id
       const attemptIdForRedirect = typeof window !== 'undefined' ? localStorage.getItem('quizAttemptId') : null
       if (attemptIdForRedirect) {
-        router.push(`/rapport/preview?attempt_id=${encodeURIComponent(attemptIdForRedirect)}`)
+        if (isTestgroup) {
+          router.push(`/feedback?attempt_id=${encodeURIComponent(attemptIdForRedirect)}`)
+        } else {
+          router.push(`/rapport/preview?attempt_id=${encodeURIComponent(attemptIdForRedirect)}`)
+        }
       } else {
         router.push(`/result/unknown`)
       }

@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
     const theme = searchParams.get('theme') || undefined
     
     // Query allowlist items
-    let query = supabaseAdmin.from('allowlist').select('id, email, email_normalized, full_name, status, trainer_email, send_pdf_user, send_pdf_trainer, theme, created_at').order('created_at', { ascending: false }).limit(200)
+    let query = supabaseAdmin.from('allowlist').select('id, email, email_normalized, full_name, status, trainer_email, send_pdf_user, send_pdf_trainer, testgroup, theme, created_at').order('created_at', { ascending: false }).limit(200)
 
     if (status) {
       query = query.eq('status', status)

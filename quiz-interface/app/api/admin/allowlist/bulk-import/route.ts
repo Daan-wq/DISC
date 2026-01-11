@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { getAdminSession } from '@/server/admin/session'
 import { supabaseAdmin } from '@/lib/supabase'
 import { sendAllowlistEmail } from '@/server/email/mailer'
+import { validateCsrf } from '@/server/admin/csrf'
 
 const RowSchema = z.object({
   email: z.string().email(),
@@ -11,6 +12,7 @@ const RowSchema = z.object({
   trainer_email: z.string().email().nullable().optional(),
   send_pdf_user: z.boolean().default(true),
   send_pdf_trainer: z.boolean().default(false),
+  testgroup: z.boolean().default(false),
   theme: z.enum(['tlc','imk']).default('tlc'),
 })
 
@@ -20,7 +22,15 @@ const BodySchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
-    if (!getAdminSession()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const session = await getAdminSession()
+    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+    // CSRF validation for state-changing request
+    const csrfError = validateCsrf(req)
+    if (csrfError) {
+      console.warn('[allowlist/bulk-import] CSRF validation failed:', csrfError)
+      return NextResponse.json({ error: 'Invalid request origin' }, { status: 403 })
+    }
     if (!supabaseAdmin) return NextResponse.json({ error: 'Server not configured' }, { status: 500 })
 
     const json = await req.json().catch(() => null)
@@ -43,6 +53,7 @@ export async function POST(req: NextRequest) {
       trainer_email: r.trainer_email ?? null,
       send_pdf_user: r.send_pdf_user,
       send_pdf_trainer: r.send_pdf_trainer,
+      testgroup: r.testgroup,
       theme: r.theme,
     }))
 
@@ -58,7 +69,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'DB error', details: error.message }, { status: 500 })
     }
 
-    await audit('allowlist_bulk_import', { count: rows.length })
+    const testgroupCount = rows.filter(r => r.testgroup).length
+    await audit('allowlist_bulk_import', { count: rows.length, testgroup_count: testgroupCount })
 
     // Send invitation emails to all imported users
     // IMPORTANT: Always use QUIZ_SITE_URL env var for quiz invitations

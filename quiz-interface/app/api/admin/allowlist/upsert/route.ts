@@ -12,6 +12,7 @@ const BodySchema = z.object({
   trainer_email: z.string().email().nullable().optional(),
   send_pdf_user: z.boolean().default(true),
   send_pdf_trainer: z.boolean().default(false),
+  testgroup: z.boolean().default(false),
   theme: z.enum(['tlc','imk']).default('tlc'),
 })
 
@@ -45,6 +46,7 @@ export async function POST(req: NextRequest) {
         trainer_email: data.trainer_email ?? null,
         send_pdf_user: data.send_pdf_user,
         send_pdf_trainer: data.send_pdf_trainer,
+        testgroup: data.testgroup,
         theme: data.theme,
       }, { onConflict: 'email_normalized,quiz_id' })
       .select('id, email, status')
@@ -52,7 +54,7 @@ export async function POST(req: NextRequest) {
 
     if (error) return NextResponse.json({ error: 'DB error' }, { status: 500 })
 
-    await audit('allowlist_upsert', { email_normalized, quiz_id: data.quiz_id ?? null })
+    await audit('allowlist_upsert', { email_normalized, quiz_id: data.quiz_id ?? null, testgroup: data.testgroup })
 
     // Send invitation email automatically
     try {

@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
     // First check if email exists with 'used' status
     const { data: usedCheck, error: usedError } = await supabaseAdmin
       .from('allowlist')
-      .select('id, status')
+      .select('id, status, testgroup')
       .eq('email_normalized', email)
       .eq('status', 'used')
       .limit(1)
@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
     // Accept global allowlist rows (quiz_id IS NULL) or any quiz-specific row
     const { data, error } = await supabaseAdmin
       .from('allowlist')
-      .select('id, status, expires_at')
+      .select('id, status, expires_at, testgroup')
       .eq('email_normalized', email)
       .in('status', ['pending', 'claimed'])
       .limit(1)
@@ -81,11 +81,11 @@ export async function POST(req: NextRequest) {
     }
 
     // Fallback: some old rows might only have `email` populated
-    let found = data as { id: string; status: string; expires_at: string | null } | null
+    let found = data as { id: string; status: string; expires_at: string | null; testgroup?: boolean | null } | null
     if (!found) {
       const { data: byEmail, error: emailErr } = await supabaseAdmin
         .from('allowlist')
-        .select('id, status, expires_at')
+        .select('id, status, expires_at, testgroup')
         .eq('email', email)
         .in('status', ['pending', 'claimed'])
         .limit(1)
@@ -106,7 +106,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ eligible: false }, { status: 200 })
     }
 
-    return NextResponse.json({ eligible: true })
+    return NextResponse.json({ eligible: true, testgroup: found?.testgroup === true })
   } catch (e) {
     console.error('Allowlist check error:', e)
     return NextResponse.json({ eligible: false }, { status: 200 })

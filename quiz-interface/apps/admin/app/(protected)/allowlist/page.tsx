@@ -27,6 +27,7 @@ type Item = {
   trainer_email: string | null
   send_pdf_user: boolean
   send_pdf_trainer: boolean
+  testgroup: boolean
   theme: string
   created_at: string
   has_alert?: boolean
@@ -39,6 +40,7 @@ export default function AdminAllowlistPage() {
     trainer_email: '',
     send_pdf_user: true,
     send_pdf_trainer: false,
+    testgroup: false,
     theme: 'tlc',
   })
   const [busy, setBusy] = useState(false)
@@ -58,6 +60,7 @@ export default function AdminAllowlistPage() {
   const [bulkUserEmails, setBulkUserEmails] = useState('')
   const [bulkSendUser, setBulkSendUser] = useState(true)
   const [bulkSendTrainer, setBulkSendTrainer] = useState(false)
+  const [bulkTestgroup, setBulkTestgroup] = useState(false)
   const [bulkTheme, setBulkTheme] = useState('tlc')
 
   async function load() {
@@ -96,6 +99,7 @@ export default function AdminAllowlistPage() {
           trainer_email: form.trainer_email.trim() || null,
           send_pdf_user: !!form.send_pdf_user,
           send_pdf_trainer: !!form.send_pdf_trainer,
+          testgroup: !!form.testgroup,
           theme: form.theme,
         })
       })
@@ -105,7 +109,7 @@ export default function AdminAllowlistPage() {
       }
       if (!res.ok) throw new Error('Upsert failed')
       setMsg('Opgeslagen')
-      setForm({ email: '', full_name: '', trainer_email: '', send_pdf_user: true, send_pdf_trainer: false, theme: 'tlc' })
+      setForm({ email: '', full_name: '', trainer_email: '', send_pdf_user: true, send_pdf_trainer: false, testgroup: false, theme: 'tlc' })
       await load()
     } catch (e: any) {
       setMsg(e?.message || 'Fout')
@@ -128,6 +132,7 @@ export default function AdminAllowlistPage() {
       trainer_email: trainerEmail || null,
       send_pdf_user: bulkSendUser,
       send_pdf_trainer: bulkSendTrainer,
+      testgroup: bulkTestgroup,
       theme: bulkTheme,
     }))
     
@@ -152,6 +157,7 @@ export default function AdminAllowlistPage() {
       setMsg(`Import voltooid: ${emails.length} gebruiker(s) toegevoegd`)
       setBulkUserEmails('')
       setBulkTrainerEmail('')
+      setBulkTestgroup(false)
       await load()
     } catch (e: any) {
       setMsg(e?.message || 'Fout')
@@ -319,6 +325,15 @@ export default function AdminAllowlistPage() {
                   />
                   <span className="text-slate-700">PDF naar trainer</span>
                 </label>
+                <label className="inline-flex items-center gap-2 text-sm cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={form.testgroup}
+                    onChange={e => setForm(f => ({ ...f, testgroup: e.target.checked }))}
+                    className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-slate-700">Testgroep</span>
+                </label>
               </div>
               {msg && (
                 <div className="p-3 rounded-lg bg-slate-100 text-sm text-slate-700">
@@ -352,6 +367,15 @@ export default function AdminAllowlistPage() {
               onChange={e => setBulkTrainerEmail(e.target.value)}
               placeholder="trainer@example.com"
             />
+            <label className="inline-flex items-center gap-2 text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                checked={bulkTestgroup}
+                onChange={e => setBulkTestgroup(e.target.checked)}
+                className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+              />
+              <span className="text-slate-700">Testgroep</span>
+            </label>
             <div className="space-y-1.5">
               <label className="block text-sm font-medium text-slate-700">
                 Gebruikers e-mails (een per regel)
@@ -455,15 +479,16 @@ export default function AdminAllowlistPage() {
             <TableHead>Alert</TableHead>
             <TableHead>Trainer</TableHead>
             <TableHead>PDF</TableHead>
+            <TableHead>Testgroep</TableHead>
             <TableHead>Thema</TableHead>
             <TableHead>Acties</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {loading ? (
-            <TableLoading colSpan={7} />
+            <TableLoading colSpan={8} />
           ) : filtered.length === 0 ? (
-            <TableEmpty colSpan={7} message="Geen gebruikers gevonden" />
+            <TableEmpty colSpan={8} message="Geen gebruikers gevonden" />
           ) : (
             filtered.map(it => (
               <TableRow key={it.id} highlight={it.has_alert}>
@@ -500,6 +525,9 @@ export default function AdminAllowlistPage() {
                     {it.send_pdf_trainer && <Badge variant="default">Trainer</Badge>}
                     {!it.send_pdf_user && !it.send_pdf_trainer && <span className="text-slate-400">-</span>}
                   </div>
+                </TableCell>
+                <TableCell>
+                  {it.testgroup ? <Badge variant="warning">Ja</Badge> : <span className="text-slate-400">-</span>}
                 </TableCell>
                 <TableCell>
                   <Badge variant="outline">{it.theme.toUpperCase()}</Badge>
