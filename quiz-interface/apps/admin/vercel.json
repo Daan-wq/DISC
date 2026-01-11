@@ -1,7 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "installCommand": "cd ../.. && pnpm install --no-frozen-lockfile && cd quiz-interface/apps/admin",
-  "buildCommand": "rm -rf .next && cd ../.. && pnpm --filter admin run build",
+  "installCommand": "pnpm install --no-frozen-lockfile",
+  "buildCommand": "rm -rf .next && pnpm --filter admin run build",
   "outputDirectory": ".next",
   "framework": "nextjs"
 }
