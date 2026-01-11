@@ -1,7 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "installCommand": "npm install --legacy-peer-deps",
-  "buildCommand": "rm -rf .next && npm run build",
+  "installCommand": "if [ -f next.config.ts ] && [ -d app ]; then npm install --legacy-peer-deps --include=dev; else cd quiz-interface/apps/admin && npm install --legacy-peer-deps --include=dev; fi",
+  "buildCommand": "if [ -f next.config.ts ] && [ -d app ]; then rm -rf .next && npm run build; else cd quiz-interface/apps/admin && rm -rf .next && npm run build; fi",
   "outputDirectory": ".next",
   "framework": "nextjs"
 }

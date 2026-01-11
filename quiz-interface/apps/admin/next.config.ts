@@ -16,7 +16,6 @@ const nextConfig: NextConfig = {
   },
   serverExternalPackages: ['@react-pdf/renderer'],
   allowedDevOrigins: ['localhost', '127.0.0.1'],
-  turbopack: {},
   webpack: (config) => {
     config.resolve.alias.canvas = false
     config.resolve.alias.encoding = false
