@@ -23,7 +23,9 @@ const nextConfig: NextConfig = {
     config.resolve.alias.encoding = false
     // Ensure monorepo aliases resolve on Vercel (and locally) for admin app
     config.resolve.alias['@'] = path.resolve(__dirname, '../../src')
+    // Map component aliases to shared src so @/components/admin/ui/... resolves
     config.resolve.alias['@/components'] = path.resolve(__dirname, '../../src/components')
+    config.resolve.alias['@/components/admin/ui'] = path.resolve(__dirname, '../../src/components/admin/ui')
     config.resolve.alias['@/lib'] = path.resolve(__dirname, '../../src/lib')
     config.resolve.alias['@/server'] = path.resolve(__dirname, '../../src/server')
     // Also allow bare imports to resolve from shared src directory
