@@ -3,6 +3,7 @@ import path from 'path'
 import { config as dotenvConfig } from 'dotenv'
 
 const isDev = process.env.NODE_ENV === 'development'
+const repoRoot = path.resolve(__dirname, '../..')
 
 dotenvConfig({ path: path.resolve(__dirname, '../../.env.local') })
 
@@ -14,6 +15,7 @@ const nextConfig: NextConfig = {
   experimental: {
     externalDir: true,
   },
+  outputFileTracingRoot: repoRoot,
   serverExternalPackages: ['@react-pdf/renderer'],
   allowedDevOrigins: ['localhost', '127.0.0.1'],
   webpack: (config) => {
@@ -24,6 +26,8 @@ const nextConfig: NextConfig = {
     config.resolve.alias['@/components'] = path.resolve(__dirname, '../../src/components')
     config.resolve.alias['@/lib'] = path.resolve(__dirname, '../../src/lib')
     config.resolve.alias['@/server'] = path.resolve(__dirname, '../../src/server')
+    // Also allow bare imports to resolve from shared src directory
+    config.resolve.modules = [...config.resolve.modules, path.resolve(__dirname, '../../src')]
 
     config.infrastructureLogging = {
       level: 'error',
