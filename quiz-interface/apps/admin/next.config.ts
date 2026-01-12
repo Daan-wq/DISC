@@ -19,6 +19,11 @@ const nextConfig: NextConfig = {
   webpack: (config) => {
     config.resolve.alias.canvas = false
     config.resolve.alias.encoding = false
+    // Ensure monorepo aliases resolve on Vercel (and locally) for admin app
+    config.resolve.alias['@'] = path.resolve(__dirname, '../../src')
+    config.resolve.alias['@/components'] = path.resolve(__dirname, '../../src/components')
+    config.resolve.alias['@/lib'] = path.resolve(__dirname, '../../src/lib')
+    config.resolve.alias['@/server'] = path.resolve(__dirname, '../../src/server')
 
     config.infrastructureLogging = {
       level: 'error',
