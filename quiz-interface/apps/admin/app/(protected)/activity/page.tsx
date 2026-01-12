@@ -2,11 +2,11 @@
 
 import { useEffect, useRef, useState } from "react"
 import { Activity, Loader2, Users } from "lucide-react"
-import { Card, CardContent } from '@/components/admin/ui/Card'
-import { Badge } from '@/components/admin/ui/Badge'
-import { PageHeader } from '@/components/admin/ui/PageHeader'
-import { EmptyState } from '@/components/admin/ui/EmptyState'
-import { StatCard } from '@/components/admin/ui/StatCard'
+import { Card, CardContent } from '../../components/admin/ui/Card'
+import { Badge } from '../../components/admin/ui/Badge'
+import { PageHeader } from '../../components/admin/ui/PageHeader'
+import { EmptyState } from '../../components/admin/ui/EmptyState'
+import { StatCard } from '../../components/admin/ui/StatCard'
 
 interface ActivityItem {
   user_id: string

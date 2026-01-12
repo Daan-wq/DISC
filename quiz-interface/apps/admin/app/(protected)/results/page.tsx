@@ -3,11 +3,11 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Download, FileText, RefreshCw, Search, AlertTriangle, CheckCircle } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/admin/ui/Card'
-import { Badge } from '@/components/admin/ui/Badge'
-import { Button } from '@/components/admin/ui/Button'
-import { Input, Select } from '@/components/admin/ui/Input'
-import { PageHeader } from '@/components/admin/ui/PageHeader'
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/admin/ui/Card'
+import { Badge } from '../../components/admin/ui/Badge'
+import { Button } from '../../components/admin/ui/Button'
+import { Input, Select } from '../../components/admin/ui/Input'
+import { PageHeader } from '../../components/admin/ui/PageHeader'
 import {
   Table,
   TableHeader,
@@ -17,7 +17,7 @@ import {
   TableCell,
   TableEmpty,
   TableLoading,
-} from '@/components/admin/ui/Table'
+} from '../../components/admin/ui/Table'
 
 interface PDFDownloadLinkProps {
   attemptId: string

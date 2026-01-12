@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import { Shield, Wrench, CheckCircle, XCircle, Loader2 } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/admin/ui/Card'
-import { Button } from '@/components/admin/ui/Button'
-import { Badge } from '@/components/admin/ui/Badge'
-import { Input } from '@/components/admin/ui/Input'
-import { PageHeader } from '@/components/admin/ui/PageHeader'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/admin/ui/Card'
+import { Button } from '../../components/admin/ui/Button'
+import { Badge } from '../../components/admin/ui/Badge'
+import { Input } from '../../components/admin/ui/Input'
+import { PageHeader } from '../../components/admin/ui/PageHeader'
 
 export default function AdminSettingsPage() {
   const [maintenanceMode, setMaintenanceMode] = useState(false)

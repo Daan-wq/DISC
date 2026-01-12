@@ -3,12 +3,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { Activity, AlertCircle, ArrowRight, Mail, Shield, Users } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/admin/ui/Card'
-import { StatCard, StatCardSkeleton } from '@/components/admin/ui/StatCard'
-import { Badge } from '@/components/admin/ui/Badge'
-import { Button } from '@/components/admin/ui/Button'
-import { PageHeader } from '@/components/admin/ui/PageHeader'
-import { EmptyState } from '@/components/admin/ui/EmptyState'
+import { Card, CardContent, CardHeader, CardTitle } from '../components/admin/ui/Card'
+import { StatCard, StatCardSkeleton } from '../components/admin/ui/StatCard'
+import { Badge } from '../components/admin/ui/Badge'
+import { Button } from '../components/admin/ui/Button'
+import { PageHeader } from '../components/admin/ui/PageHeader'
+import { EmptyState } from '../components/admin/ui/EmptyState'
 
 export default function AdminOverviewPage() {
   const [live, setLive] = useState<number>(0)
