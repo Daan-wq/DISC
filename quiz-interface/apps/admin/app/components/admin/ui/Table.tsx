@@ -1,6 +1,6 @@
 'use client'
 
-import { cn } from '@/lib/utils'
+import { cn } from '../../../lib/utils'
 import type { ReactNode, ThHTMLAttributes, TdHTMLAttributes } from 'react'
 
 interface TableProps {

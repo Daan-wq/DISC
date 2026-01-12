@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import bcrypt from 'bcryptjs'
-import { createSessionCookie } from '@/server/admin/session'
-import { checkRateLimit, getClientIp, getResetTime, getRemainingAttempts } from '@/lib/rate-limiter'
+import { createSessionCookie } from '../../../server/admin/session'
+import { checkRateLimit, getClientIp, getResetTime, getRemainingAttempts } from '../../../lib/rate-limiter'
 import { authenticator } from 'otplib'
 
 export const runtime = 'nodejs'
@@ -113,7 +113,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Fetch admin from database
-    const { supabaseAdmin } = await import('@/lib/supabase')
+    const { supabaseAdmin } = await import('../../../lib/supabase')
     if (!supabaseAdmin) {
       return NextResponse.json({ error: 'Database connection failed' }, { status: 500 })
     }
@@ -193,7 +193,7 @@ export async function POST(req: NextRequest) {
 
 async function logEvent(type: string, actor: string, payload: Record<string, unknown>) {
   try {
-    const { supabaseAdmin } = await import('@/lib/supabase')
+    const { supabaseAdmin } = await import('../../../lib/supabase')
     if (!supabaseAdmin) return
     await supabaseAdmin.from('admin_events').insert({ type, actor, payload })
   } catch {}

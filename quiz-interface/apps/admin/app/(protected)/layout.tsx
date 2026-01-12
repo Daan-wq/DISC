@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
-import { getAdminSession } from '@/server/admin/session'
-import AdminShell from '@/components/admin/AdminShell'
+import { getAdminSession } from '../server/admin/session'
+import AdminShell from '../components/admin/AdminShell'
 
 // Force dynamic rendering - prevents caching of auth state
 export const dynamic = 'force-dynamic'

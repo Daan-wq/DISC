@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { clearAdminSession } from '@/server/admin/session'
+import { clearAdminSession } from '../../../server/admin/session'
 
 // IMPORTANT: GET must NOT have side-effects!
 // Next.js prefetches links, and a GET that clears cookies will log users out unexpectedly.

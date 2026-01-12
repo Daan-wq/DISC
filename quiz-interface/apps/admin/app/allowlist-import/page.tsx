@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '../lib/supabase'
 
 interface Entry { email: string; full_name?: string; quiz_id: string; expires_at?: string | null }
 
