@@ -18,22 +18,9 @@ const nextConfig: NextConfig = {
   outputFileTracingRoot: repoRoot,
   serverExternalPackages: ['@react-pdf/renderer'],
   allowedDevOrigins: ['localhost', '127.0.0.1'],
-  webpack: (config) => {
+  webpack: (config, { isServer }) => {
     config.resolve.alias.canvas = false
     config.resolve.alias.encoding = false
-    // Ensure monorepo aliases resolve on Vercel (and locally) for admin app
-    config.resolve.alias['@'] = path.resolve(__dirname, '../../src')
-    // Map component aliases to shared src so @/components/admin/ui/... resolves
-    config.resolve.alias['@/components'] = path.resolve(__dirname, '../../src/components')
-    config.resolve.alias['@/components/admin/ui'] = path.resolve(__dirname, '../../src/components/admin/ui')
-    config.resolve.alias['@/lib'] = path.resolve(__dirname, '../../src/lib')
-    config.resolve.alias['@/server'] = path.resolve(__dirname, '../../src/server')
-    // Also allow bare imports to resolve from shared src directory
-    config.resolve.modules = [...config.resolve.modules, path.resolve(__dirname, '../../src')]
-
-    config.infrastructureLogging = {
-      level: 'error',
-    }
 
     return config
   },
