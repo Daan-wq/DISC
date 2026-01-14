@@ -3,7 +3,6 @@ import path from 'path'
 import { config as dotenvConfig } from 'dotenv'
 
 const isDev = process.env.NODE_ENV === 'development'
-const repoRoot = path.resolve(__dirname, '../..')
 
 dotenvConfig({ path: path.resolve(__dirname, '../../.env.local') })
 
@@ -15,12 +14,16 @@ const nextConfig: NextConfig = {
   experimental: {
     externalDir: true,
   },
-  outputFileTracingRoot: repoRoot,
+  outputFileTracingRoot: path.resolve(__dirname, '../..'),
   serverExternalPackages: ['@react-pdf/renderer'],
   allowedDevOrigins: ['localhost', '127.0.0.1'],
-  webpack: (config, { isServer }) => {
+  webpack: (config) => {
     config.resolve.alias.canvas = false
     config.resolve.alias.encoding = false
+
+    config.infrastructureLogging = {
+      level: 'error',
+    }
 
     return config
   },
