@@ -1,9 +1,9 @@
 /**
- * Report PDF Generation Module
+ * Report PDF Generation Module (API2PDF Only)
  * 
- * Node-only PDF generation for DISC reports.
- * No Chromium/Puppeteer dependencies - runs on Vercel serverless.
+ * Legacy overlay system removed.
+ * PDF generation is now handled exclusively by API2PDF in download-pdf/route.ts
  */
 
-export { generateReportPdf, hasAssetsForProfile, clearAssetCache, getPositionsDebug } from './generate-report-pdf'
-export type { DISCData, GenerateReportOptions } from './generate-report-pdf'
+// No exports - all generation is in the route handler
+export { }

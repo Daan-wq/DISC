@@ -64,16 +64,13 @@ importers:
         version: 0.543.0(react@19.2.3)
       next:
         specifier: ^16.0.10
-        version: 16.0.10(@babel/core@7.28.5)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+        version: 16.0.10(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       nodemailer:
         specifier: ^7.0.6
         version: 7.0.12
       otplib:
         specifier: ^12.0.1
         version: 12.0.1
-      pdf-lib:
-        specifier: ^1.17.1
-        version: 1.17.1
       qrcode:
         specifier: ^1.5.4
         version: 1.5.4
@@ -92,9 +89,6 @@ importers:
       recharts:
         specifier: ^3.2.0
         version: 3.6.0(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react-is@16.13.1)(react@19.2.3)(redux@5.0.1)
-      svg2png-wasm:
-        specifier: ^1.4.1
-        version: 1.4.1
       tailwind-merge:
         specifier: ^3.3.1
         version: 3.4.0
@@ -138,6 +132,9 @@ importers:
       postcss:
         specifier: ^8.5.6
         version: 8.5.6
+      puppeteer:
+        specifier: ^24.36.0
+        version: 24.36.0(typescript@5.9.3)
       tailwindcss:
         specifier: ^3.4.14
         version: 3.4.19(tsx@4.21.0)
@@ -212,7 +209,7 @@ importers:
         version: 0.543.0(react@19.2.3)
       next:
         specifier: 16.0.10
-        version: 16.0.10(@babel/core@7.28.5)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+        version: 16.0.10(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       nodemailer:
         specifier: ^7.0.6
         version: 7.0.12
@@ -298,72 +295,6 @@ importers:
 
   apps/quiz:
     dependencies:
-      '@hookform/resolvers':
-        specifier: ^5.2.1
-        version: 5.2.2(react-hook-form@7.69.0(react@19.2.3))
-      '@radix-ui/react-label':
-        specifier: ^2.1.7
-        version: 2.1.8(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
-      '@radix-ui/react-slot':
-        specifier: ^1.2.3
-        version: 1.2.4(@types/react@19.2.7)(react@19.2.3)
-      '@radix-ui/react-toast':
-        specifier: ^1.2.15
-        version: 1.2.15(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
-      '@react-pdf/renderer':
-        specifier: ^4.3.0
-        version: 4.3.1(react@19.2.3)
-      '@supabase/supabase-js':
-        specifier: ^2.57.4
-        version: 2.89.0
-      '@types/archiver':
-        specifier: ^6.0.3
-        version: 6.0.4
-      archiver:
-        specifier: ^7.0.1
-        version: 7.0.1
-      bcryptjs:
-        specifier: ^2.4.3
-        version: 2.4.3
-      canvas:
-        specifier: ^3.2.0
-        version: 3.2.0
-      chart.js:
-        specifier: ^4.5.0
-        version: 4.5.1
-      chartjs-node-canvas:
-        specifier: ^5.0.0
-        version: 5.0.0(chart.js@4.5.1)
-      class-variance-authority:
-        specifier: ^0.7.1
-        version: 0.7.1
-      clsx:
-        specifier: ^2.1.1
-        version: 2.1.1
-      dotenv:
-        specifier: ^17.2.2
-        version: 17.2.3
-      exceljs:
-        specifier: ^4.4.0
-        version: 4.4.0
-      framer-motion:
-        specifier: ^12.23.12
-        version: 12.23.26(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
-      lucide-react:
-        specifier: ^0.543.0
-        version: 0.543.0(react@19.2.3)
-      next:
-        specifier: 16.0.10
-        version: 16.0.10(@babel/core@7.28.5)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
-      nodemailer:
-        specifier: ^7.0.6
-        version: 7.0.12
-      otplib:
-        specifier: ^12.0.1
-        version: 12.0.1
-      pdf-lib:
-        specifier: ^1.17.1
-        version: 1.17.1
       qrcode:
         specifier: ^1.5.4
         version: 1.5.4
@@ -382,9 +313,6 @@ importers:
       recharts:
         specifier: ^3.2.0
         version: 3.6.0(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react-is@16.13.1)(react@19.2.3)(redux@5.0.1)
-      svg2png-wasm:
-        specifier: ^1.4.1
-        version: 1.4.1
       tailwind-merge:
         specifier: ^3.3.1
         version: 3.4.0
@@ -398,6 +326,9 @@ importers:
       '@playwright/test':
         specifier: ^1.55.0
         version: 1.57.0
+      '@types/archiver':
+        specifier: ^6.0.3
+        version: 6.0.4
       '@types/bcryptjs':
         specifier: ^2.4.6
         version: 2.4.6
@@ -405,7 +336,7 @@ importers:
         specifier: ^22.5.0
         version: 22.19.3
       '@types/qrcode':
-        specifier: ^1.5.5
+        specifier: ^1.5.6
         version: 1.5.6
       '@types/react':
         specifier: ^19
@@ -1154,6 +1085,11 @@ packages:
 
   '@puppeteer/browsers@2.11.0':
     resolution: {integrity: sha512-n6oQX6mYkG8TRPuPXmbPidkUbsSRalhmaaVAQxvH1IkQy63cwsH+kOjB3e4cpCDHg0aSvsiX9bQ4s2VB6mGWUQ==}
+    engines: {node: '>=18'}
+    hasBin: true
+
+  '@puppeteer/browsers@2.11.1':
+    resolution: {integrity: sha512-YmhAxs7XPuxN0j7LJloHpfD1ylhDuFmmwMvfy/+6nBSrETT2ycL53LrhgPtR+f+GcPSybQVuQ5inWWu5MrWCpA==}
     engines: {node: '>=18'}
     hasBin: true
 
@@ -2209,6 +2145,11 @@ packages:
     peerDependencies:
       devtools-protocol: '*'
 
+  chromium-bidi@13.0.1:
+    resolution: {integrity: sha512-c+RLxH0Vg2x2syS9wPw378oJgiJNXtYXUvnVAldUlt5uaHekn0CCU7gPksNgHjrH1qFhmjVXQj4esvuthuC7OQ==}
+    peerDependencies:
+      devtools-protocol: '*'
+
   class-variance-authority@0.7.1:
     resolution: {integrity: sha512-Ka+9Trutv7G8M6WT6SeiRWz792K5qEqIGEGzXKhAE6xOWAY6pPH8U+9IY3oCMv6kqTmLsv7Xh/2w2RigkePMsg==}
 
@@ -2421,6 +2362,9 @@ packages:
 
   devtools-protocol@0.0.1534754:
     resolution: {integrity: sha512-26T91cV5dbOYnXdJi5qQHoTtUoNEqwkHcAyu/IKtjIAxiEqPMrDiRkDOPWVsGfNZGmlQVHQbZRSjD8sxagWVsQ==}
+
+  devtools-protocol@0.0.1551306:
+    resolution: {integrity: sha512-CFx8QdSim8iIv+2ZcEOclBKTQY6BI1IEDa7Tm9YkwAXzEWFndTEzpTo5jAUhSnq24IC7xaDw0wvGcm96+Y3PEg==}
 
   dfa@1.2.0:
     resolution: {integrity: sha512-ED3jP8saaweFTjeGX8HQPjeC1YYyZs98jGNZx6IiBvxW7JG5v492kamAQB3m2wop07CvU/RQmzcKr6bgcC5D/Q==}
@@ -3683,8 +3627,17 @@ packages:
     resolution: {integrity: sha512-24evawO+mUGW4mvS2a2ivwLdX3gk8zRLZr9HP+7+VT2vBQnm0oh9jJEZmUE3ePJhRkYlZ93i7OMpdcoi2qNCLg==}
     engines: {node: '>=18'}
 
+  puppeteer-core@24.36.0:
+    resolution: {integrity: sha512-P3Ou0MAFDCQ0dK1d9F9+8jTrg6JvXjUacgG0YkJQP4kbEnUOGokSDEMmMId5ZhXD5HwsHM202E9VwEpEjWfwxg==}
+    engines: {node: '>=18'}
+
   puppeteer@24.34.0:
     resolution: {integrity: sha512-Sdpl/zsYOsagZ4ICoZJPGZw8d9gZmK5DcxVal11dXi/1/t2eIXHjCf5NfmhDg5XnG9Nye+yo/LqMzIxie2rHTw==}
+    engines: {node: '>=18'}
+    hasBin: true
+
+  puppeteer@24.36.0:
+    resolution: {integrity: sha512-BD/VCyV/Uezvd6o7Fd1DmEJSxTzofAKplzDy6T9d4WbLTQ5A+06zY7VwO91ZlNU22vYE8sidVEsTpTrKc+EEnQ==}
     engines: {node: '>=18'}
     hasBin: true
 
@@ -4055,10 +4008,6 @@ packages:
   svg-arc-to-cubic-bezier@3.2.0:
     resolution: {integrity: sha512-djbJ/vZKZO+gPoSDThGNpKDO+o+bAeA4XQKovvkNCqnIS2t+S4qnLAGQhyyrulhCFRl1WWzAp0wUDV8PpTVU3g==}
 
-  svg2png-wasm@1.4.1:
-    resolution: {integrity: sha512-ZFy1NtwZVAsslaTQoI+/QqX2sg0vjmgJ/jGAuLZZvYcRlndI54hLPiwLC9JzXlFBerfxN5JiS7kpEUG0mrXS3Q==}
-    deprecated: svg2png-wasm is no longer supported. Please use the resvg-js package instead.
-
   tailwind-merge@3.4.0:
     resolution: {integrity: sha512-uSaO4gnW+b3Y2aWoWfFpX62vn2sR3skfhbjsEnaBI81WD1wBLlHZe5sWf0AqjksNdYTbGBEd0UasQMT3SNV15g==}
 
@@ -4387,6 +4336,9 @@ packages:
   webdriver-bidi-protocol@0.3.10:
     resolution: {integrity: sha512-5LAE43jAVLOhB/QqX4bwSiv0Hg1HBfMmOuwBSXHdvg4GMGu9Y0lIq7p4R/yySu6w74WmaR4GM4H9t2IwLW7hgw==}
 
+  webdriver-bidi-protocol@0.4.0:
+    resolution: {integrity: sha512-U9VIlNRrq94d1xxR9JrCEAx5Gv/2W7ERSv8oWRoNe/QYbfccS0V3h/H6qeNeCRJxXGMhhnkqvwNrvPAYeuP9VA==}
+
   which-boxed-primitive@1.1.1:
     resolution: {integrity: sha512-TbX3mj8n0odCBFVlY8AxkqcHASw3L60jIuF8jFP78az3C2YhmGvqbHBpAjTRH2/xqYunrJ9g1jSyjCjpoWzIAA==}
     engines: {node: '>= 0.4'}
@@ -4437,6 +4389,18 @@ packages:
 
   ws@8.18.3:
     resolution: {integrity: sha512-PEIGCY5tSlUt50cqyMXfCzX+oOPqN0vuGqWzbcJ2xvnkzkq46oOpz7dQaTDBdfICb4N14+GARUDw2XV2N4tvzg==}
+    engines: {node: '>=10.0.0'}
+    peerDependencies:
+      bufferutil: ^4.0.1
+      utf-8-validate: '>=5.0.2'
+    peerDependenciesMeta:
+      bufferutil:
+        optional: true
+      utf-8-validate:
+        optional: true
+
+  ws@8.19.0:
+    resolution: {integrity: sha512-blAT2mjOEIi0ZzruJfIhb3nps74PRWTCz1IjglWEEpQl5XS/UNama6u2/rjFkDDouqr4L67ry+1aGIALViWjDg==}
     engines: {node: '>=10.0.0'}
     peerDependencies:
       bufferutil: ^4.0.1
@@ -5077,6 +5041,21 @@ snapshots:
       playwright: 1.57.0
 
   '@puppeteer/browsers@2.11.0':
+    dependencies:
+      debug: 4.4.3
+      extract-zip: 2.0.1
+      progress: 2.0.3
+      proxy-agent: 6.5.0
+      semver: 7.7.3
+      tar-fs: 3.1.1
+      yargs: 17.7.2
+    transitivePeerDependencies:
+      - bare-abort-controller
+      - bare-buffer
+      - react-native-b4a
+      - supports-color
+
+  '@puppeteer/browsers@2.11.1':
     dependencies:
       debug: 4.4.3
       extract-zip: 2.0.1
@@ -6200,6 +6179,12 @@ snapshots:
       mitt: 3.0.1
       zod: 3.25.76
 
+  chromium-bidi@13.0.1(devtools-protocol@0.0.1551306):
+    dependencies:
+      devtools-protocol: 0.0.1551306
+      mitt: 3.0.1
+      zod: 3.25.76
+
   class-variance-authority@0.7.1:
     dependencies:
       clsx: 2.1.1
@@ -6394,6 +6379,8 @@ snapshots:
   detect-libc@2.1.2: {}
 
   devtools-protocol@0.0.1534754: {}
+
+  devtools-protocol@0.0.1551306: {}
 
   dfa@1.2.0: {}
 
@@ -7527,7 +7514,7 @@ snapshots:
 
   netmask@2.0.2: {}
 
-  next@16.0.10(@babel/core@7.28.5)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
+  next@16.0.10(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
     dependencies:
       '@next/env': 16.0.10
       '@swc/helpers': 0.5.15
@@ -7535,7 +7522,7 @@ snapshots:
       postcss: 8.4.31
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
-      styled-jsx: 5.1.6(@babel/core@7.28.5)(react@19.2.3)
+      styled-jsx: 5.1.6(react@19.2.3)
     optionalDependencies:
       '@next/swc-darwin-arm64': 16.0.10
       '@next/swc-darwin-x64': 16.0.10
@@ -7855,6 +7842,23 @@ snapshots:
       - supports-color
       - utf-8-validate
 
+  puppeteer-core@24.36.0:
+    dependencies:
+      '@puppeteer/browsers': 2.11.1
+      chromium-bidi: 13.0.1(devtools-protocol@0.0.1551306)
+      debug: 4.4.3
+      devtools-protocol: 0.0.1551306
+      typed-query-selector: 2.12.0
+      webdriver-bidi-protocol: 0.4.0
+      ws: 8.19.0
+    transitivePeerDependencies:
+      - bare-abort-controller
+      - bare-buffer
+      - bufferutil
+      - react-native-b4a
+      - supports-color
+      - utf-8-validate
+
   puppeteer@24.34.0(typescript@5.9.3):
     dependencies:
       '@puppeteer/browsers': 2.11.0
@@ -7862,6 +7866,23 @@ snapshots:
       cosmiconfig: 9.0.0(typescript@5.9.3)
       devtools-protocol: 0.0.1534754
       puppeteer-core: 24.34.0
+      typed-query-selector: 2.12.0
+    transitivePeerDependencies:
+      - bare-abort-controller
+      - bare-buffer
+      - bufferutil
+      - react-native-b4a
+      - supports-color
+      - typescript
+      - utf-8-validate
+
+  puppeteer@24.36.0(typescript@5.9.3):
+    dependencies:
+      '@puppeteer/browsers': 2.11.1
+      chromium-bidi: 13.0.1(devtools-protocol@0.0.1551306)
+      cosmiconfig: 9.0.0(typescript@5.9.3)
+      devtools-protocol: 0.0.1551306
+      puppeteer-core: 24.36.0
       typed-query-selector: 2.12.0
     transitivePeerDependencies:
       - bare-abort-controller
@@ -8331,12 +8352,10 @@ snapshots:
 
   strip-json-comments@3.1.1: {}
 
-  styled-jsx@5.1.6(@babel/core@7.28.5)(react@19.2.3):
+  styled-jsx@5.1.6(react@19.2.3):
     dependencies:
       client-only: 0.0.1
       react: 19.2.3
-    optionalDependencies:
-      '@babel/core': 7.28.5
 
   sucrase@3.35.1:
     dependencies:
@@ -8355,8 +8374,6 @@ snapshots:
   supports-preserve-symlinks-flag@1.0.0: {}
 
   svg-arc-to-cubic-bezier@3.2.0: {}
-
-  svg2png-wasm@1.4.1: {}
 
   tailwind-merge@3.4.0: {}
 
@@ -8763,6 +8780,8 @@ snapshots:
 
   webdriver-bidi-protocol@0.3.10: {}
 
+  webdriver-bidi-protocol@0.4.0: {}
+
   which-boxed-primitive@1.1.1:
     dependencies:
       is-bigint: 1.1.0
@@ -8838,6 +8857,8 @@ snapshots:
   wrappy@1.0.2: {}
 
   ws@8.18.3: {}
+
+  ws@8.19.0: {}
 
   xmlchars@2.2.0: {}
 

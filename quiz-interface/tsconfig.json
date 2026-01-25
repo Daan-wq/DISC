@@ -55,7 +55,6 @@
     "supabase/sql/**",
     "analysis/**",
     "scripts/**",
-    "legacy/**",
     "apps/**/scripts/**"
   ]
 }
