@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 
+export const dynamic = 'force-dynamic'
+
 type Step = 'intro' | 'form' | 'thanks' | 'error'
 
 type FormState = {
