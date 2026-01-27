@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "installCommand": "cd ../.. && pnpm install --filter=admin",
+  "installCommand": "cd ../.. && pnpm install --filter=admin --filter=quiz-interface",
   "buildCommand": "rm -rf .next && pnpm run build",
   "outputDirectory": ".next",
   "framework": "nextjs"
