@@ -25,18 +25,23 @@
     ],
     "paths": {
       "@/*": [
+        "src/*",
         "../../quiz-interface/src/*"
       ],
       "@/components/*": [
+        "src/components/*",
         "../../quiz-interface/src/components/*"
       ],
       "@/lib/*": [
+        "src/lib/*",
         "../../quiz-interface/src/lib/*"
       ],
       "@/server/*": [
+        "src/server/*",
         "../../quiz-interface/src/server/*"
       ],
       "@/generated/*": [
+        "src/generated/*",
         "../../quiz-interface/src/generated/*"
       ]
     },
