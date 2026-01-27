@@ -1,4 +1,4 @@
 packages:
   - 'quiz-interface'
-  - 'quiz-interface/apps/*'
+  - 'apps/*'
   - 'packages/*'
