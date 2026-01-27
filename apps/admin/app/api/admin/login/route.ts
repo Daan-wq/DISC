@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import bcrypt from 'bcryptjs'
-import { createSessionCookie } from '../../../server/admin/session'
-import { checkRateLimit, getClientIp, getResetTime, getRemainingAttempts } from '../../../lib/rate-limiter'
+import { createSessionCookie } from '@/server/admin/session'
+import { checkRateLimit, getClientIp, getResetTime } from '@/lib/rate-limiter'
 import { authenticator } from 'otplib'
 
 export const runtime = 'nodejs'
@@ -12,7 +12,7 @@ const BodySchema = z.object({
   username: z.string().email(),
   password: z.string().min(1),
   turnstileToken: z.preprocess((v) => (v === null ? undefined : v), z.string().optional().default('')),
-  totpCode: z.preprocess((v) => (v === null ? undefined : v), z.string().optional().default('')),
+  totpCode: z.preprocess((v) => (v === null ? undefined : v), z.string().optional().default('')), // 6-digit 2FA code
 })
 
 export async function POST(req: NextRequest) {
@@ -42,14 +42,21 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Rate limit keys
+    // Rate limit keys (checked AFTER login attempt, only incremented on failure)
     const ipLimitKey = `login:ip:${clientIp}`
     const usernameLimitKey = `login:user:${submittedUser}`
 
-    // Check if already rate limited
-    const isIpRateLimited = () => !isWhitelisted && getRemainingAttempts(ipLimitKey, 5, 15 * 60 * 1000) <= 0
-    const isUserRateLimited = () => getRemainingAttempts(usernameLimitKey, 5, 15 * 60 * 1000) <= 0
+    // Helper to check rate limits (read-only, doesn't increment)
+    const isIpRateLimited = () => {
+      const { getRemainingAttempts } = require('@/lib/rate-limiter')
+      return !isWhitelisted && getRemainingAttempts(ipLimitKey, 5, 15 * 60 * 1000) <= 0
+    }
+    const isUserRateLimited = () => {
+      const { getRemainingAttempts } = require('@/lib/rate-limiter')
+      return getRemainingAttempts(usernameLimitKey, 5, 15 * 60 * 1000) <= 0
+    }
 
+    // Check if already rate limited (without incrementing)
     if (isIpRateLimited()) {
       const resetTime = getResetTime(ipLimitKey)
       console.warn(`[login] Rate limit exceeded for IP: ${clientIp}`)
@@ -70,16 +77,19 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    // Helper to increment rate limits on failure
     const incrementRateLimits = () => {
       if (!isWhitelisted) checkRateLimit(ipLimitKey, 5, 15 * 60 * 1000)
       checkRateLimit(usernameLimitKey, 5, 15 * 60 * 1000)
     }
 
-    // Verify Turnstile (only on initial credentials step)
+    // Verify Turnstile (only on initial credentials step, not on 2FA step)
     const is2FAStep = totpCode && totpCode.length > 0
     const secret = process.env.TURNSTILE_SECRET_KEY || ''
     const isLocalhost = clientIp === '::1' || clientIp === '127.0.0.1' || clientIp === 'localhost'
     const isDevelopment = process.env.NODE_ENV === 'development'
+    
+    // Skip Turnstile verification on localhost in development OR during 2FA step
     const skipTurnstile = is2FAStep || (isDevelopment && (isLocalhost || clientIp === 'unknown'))
     
     if (!skipTurnstile && !secret) {
@@ -107,13 +117,20 @@ export async function POST(req: NextRequest) {
       const verify = await resp.json().catch(() => ({} as any))
       if (!verify?.success) {
         const codes = (verify && (verify['error-codes'] || verify['error_codes'])) || []
+        // Log minimal details for debugging (no secrets)
         console.error('[turnstile-verify-failed]', { codes, hostname: verify?.hostname })
         return NextResponse.json({ error: 'Captcha verification failed', code: 'turnstile_failed', details: { codes, hostname: verify?.hostname || null } }, { status: 403 })
+      }
+    } else {
+      if (is2FAStep) {
+        console.log('[turnstile] Skipped during 2FA step')
+      } else {
+        console.log('[turnstile] Skipped on localhost in development')
       }
     }
 
     // Fetch admin from database
-    const { supabaseAdmin } = await import('../../../lib/supabase')
+    const { supabaseAdmin } = await import('@/lib/supabase')
     if (!supabaseAdmin) {
       return NextResponse.json({ error: 'Database connection failed' }, { status: 500 })
     }
@@ -141,6 +158,7 @@ export async function POST(req: NextRequest) {
     // Verify 2FA if enabled
     if (admin.totp_enabled) {
       if (!totpCode || totpCode.length !== 6) {
+        // Don't increment rate limit for missing 2FA - user needs to enter code
         return NextResponse.json({ error: '2FA code required', code: 'totp_required' }, { status: 401 })
       }
 
@@ -152,48 +170,30 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Update last_login_at
+    // Update last_login_at (fire and forget)
     void supabaseAdmin
       .from('admin_users')
       .update({ last_login_at: new Date().toISOString() })
       .eq('id', admin.id)
 
     const ttl = parseInt(process.env.ADMIN_SESSION_TTL_MINUTES || '480', 10)
-    console.log('[login] Creating session cookie for user:', submittedUser, 'TTL:', ttl, 'minutes')
-    console.log('[login] Environment:', {
-      NODE_ENV: process.env.NODE_ENV,
-      VERCEL: process.env.VERCEL,
-      VERCEL_ENV: process.env.VERCEL_ENV,
-    })
-    
-    // Use Set-Cookie header only - more reliable than cookies() API
-    // Note: Do NOT use both methods as they create different tokens (different timestamps)
+    console.log('[login] Creating session cookie for user:', submittedUser)
     const sessionCookie = createSessionCookie(submittedUser, ttl)
-    console.log('[login] Full Set-Cookie header:', sessionCookie)
+    console.log('[login] Session cookie created, returning success response with Set-Cookie header')
     await logEvent('admin_login_success', submittedUser, {})
 
-    // Create response with Set-Cookie header
-    const response = new NextResponse(
-      JSON.stringify({ ok: true }),
-      {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json',
-          'Set-Cookie': sessionCookie,
-        },
-      }
-    )
-    console.log('[login] Response created, Set-Cookie header in response:', response.headers.get('Set-Cookie'))
+    // Return response with Set-Cookie header - this is more reliable than cookies().set() on Vercel
+    const response = NextResponse.json({ ok: true })
+    response.headers.set('Set-Cookie', sessionCookie)
     return response
   } catch (e) {
-    console.error('[login] Unhandled error:', e)
     return NextResponse.json({ error: 'Unhandled' }, { status: 500 })
   }
 }
 
 async function logEvent(type: string, actor: string, payload: Record<string, unknown>) {
   try {
-    const { supabaseAdmin } = await import('../../../lib/supabase')
+    const { supabaseAdmin } = await import('@/lib/supabase')
     if (!supabaseAdmin) return
     await supabaseAdmin.from('admin_events').insert({ type, actor, payload })
   } catch {}

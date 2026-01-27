@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAdminSession } from '../../../../server/admin/session'
-import { supabaseAdmin } from '../../../../lib/supabase'
+import { getAdminSession } from '@/server/admin/session'
+import { supabaseAdmin } from '@/lib/supabase'
 
 export async function POST(req: NextRequest) {
   try {
@@ -8,6 +8,7 @@ export async function POST(req: NextRequest) {
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     if (!supabaseAdmin) return NextResponse.json({ error: 'Server not configured' }, { status: 500 })
 
+    // Mark all unread notifications as read
     const { error } = await supabaseAdmin
       .from('notifications')
       .update({ is_read: true })
