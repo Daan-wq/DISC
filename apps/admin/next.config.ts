@@ -22,6 +22,9 @@ const nextConfig: NextConfig = {
     config.resolve.alias.canvas = false
     config.resolve.alias.encoding = false
 
+    // Align webpack aliases with tsconfig paths
+    config.resolve.alias['@'] = path.resolve(__dirname, '../../quiz-interface/src')
+
     return config
   },
   images: {
