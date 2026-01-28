@@ -1,33 +1,18 @@
 "use client"
 
 import { useState, Suspense, useEffect } from "react"
-import { useSearchParams } from "next/navigation"
-
-function toProperCase(str: string): string {
-  if (!str) return str
-  // Split on spaces, hyphens, and apostrophes while preserving delimiters
-  return str
-    .split(/(\s|-|')/g)
-    .map((part, idx) => {
-      // Keep delimiters as-is (odd indices are delimiters after split)
-      if (idx % 2 === 1) return part
-      // Capitalize first letter, lowercase the rest
-      return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
-    })
-    .join('')
-}
+import { useRouter } from "next/navigation"
 
 function LoginInner() {
-  const [email, setEmail] = useState("")
-  const [firstName, setFirstName] = useState("")
-  const [lastName, setLastName] = useState("")
-  const [sent, setSent] = useState(false)
-  const [sentEmail, setSentEmail] = useState("")
+  const router = useRouter()
+  const [username, setUsername] = useState("")
+  const [password, setPassword] = useState("")
+  const [totpCode, setTotpCode] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [maintenanceMode, setMaintenanceMode] = useState(false)
+  const [needs2FA, setNeeds2FA] = useState(false)
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
   const [cooldownSeconds, setCooldownSeconds] = useState(0)
-  const search = useSearchParams()
 
   // Countdown timer for rate limit
   useEffect(() => {
@@ -36,32 +21,37 @@ function LoginInner() {
     return () => clearTimeout(timer)
   }, [cooldownSeconds])
 
-  // Check maintenance mode on mount
+  // Load Turnstile widget
   useEffect(() => {
-    let mounted = true
-    ;(async () => {
-      try {
-        const res = await fetch('/api/public/maintenance-status')
-        const data = await res.json()
-        if (mounted) {
-          setMaintenanceMode(data.enabled === true)
-        }
-      } catch (e) {
-        console.error('Failed to check maintenance mode:', e)
+    const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
+    if (!siteKey) return
+
+    const script = document.createElement('script')
+    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js'
+    script.async = true
+    script.defer = true
+    document.body.appendChild(script)
+
+    script.onload = () => {
+      if (typeof window !== 'undefined' && (window as any).turnstile) {
+        (window as any).turnstile.render('#turnstile-widget', {
+          sitekey: siteKey,
+          callback: (token: string) => setTurnstileToken(token),
+        })
       }
-    })()
-    return () => { mounted = false }
+    }
+
+    return () => {
+      document.body.removeChild(script)
+    }
   }, [])
 
-  async function requestMagicLink(e: React.FormEvent) {
+  async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
-    
-    // Prevent double submission
-    
     setError(null)
     setIsSubmitting(true)
 
-    const normalized = email.trim().toLowerCase()
+    const normalized = username.trim().toLowerCase()
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) {
       setError("Vul een geldig e-mailadres in.")
       setIsSubmitting(false)
@@ -69,135 +59,110 @@ function LoginInner() {
     }
 
     try {
-      // Request server to verify allowlist and send magic link atomically
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
-      const redirectParam = search.get('redirect') || '/quiz'
-      const redirectTo = `${baseUrl}/auth/callback?redirect=${encodeURIComponent(redirectParam)}`
-
-      const res = await fetch('/api/auth/request-magic-link', {
+      const res = await fetch('/api/admin/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          email: normalized, 
-          redirectTo,
-          first_name: firstName.trim(),
-          last_name: lastName.trim()
+          username: normalized, 
+          password,
+          totpCode: totpCode || null,
+          turnstileToken: turnstileToken || null
         })
       })
-      const j = await res.json().catch(() => ({ sent: false }))
-      if (!j?.sent) {
-        if (j?.reason === 'NO_ACCESS') {
-          setError('NO_ACCESS')
-        } else if (j?.reason === 'SUPABASE_RATE_LIMIT') {
-          const seconds = j?.retryAfterSeconds || 60
-          setCooldownSeconds(seconds)
-          setError(`Te veel inlogpogingen. Wacht ${seconds} seconde${seconds !== 1 ? 'n' : ''} voordat je het opnieuw probeert.`)
-        } else if (res.status === 429 || j?.reason === 'RATE_LIMITED') {
-          setCooldownSeconds(60)
-          setError('Te veel pogingen. Probeer het over een minuut opnieuw.')
+
+      const data = await res.json().catch(() => ({}))
+
+      if (res.status === 429) {
+        const retryAfter = data.retryAfter || 900
+        setCooldownSeconds(retryAfter)
+        setError(`Te veel inlogpogingen. Probeer het over ${Math.ceil(retryAfter / 60)} minuten opnieuw.`)
+        setIsSubmitting(false)
+        return
+      }
+
+      if (data.code === 'totp_required') {
+        setNeeds2FA(true)
+        setError(null)
+        setIsSubmitting(false)
+        return
+      }
+
+      if (!res.ok || !data.ok) {
+        if (data.code === 'invalid_totp') {
+          setError('Ongeldige 2FA code. Probeer het opnieuw.')
+        } else if (data.code === 'captcha_token_missing' || data.code === 'turnstile_failed') {
+          setError('Captcha verificatie mislukt. Ververs de pagina en probeer opnieuw.')
         } else {
-          setError('Er ging iets mis bij het versturen van de inloglink. Probeer het later opnieuw.')
+          setError('Ongeldige inloggegevens.')
         }
         setIsSubmitting(false)
         return
       }
-      setSentEmail(normalized)
-      setSent(true)
-      setCooldownSeconds(0)
+
+      // Success - redirect to admin dashboard
+      router.push('/')
     } catch {
-      // Neutral response regardless of existence
-      setError('Er ging iets mis bij het versturen van de inloglink. Probeer het later opnieuw.')
+      setError('Er ging iets mis. Probeer het later opnieuw.')
       setIsSubmitting(false)
     }
-  }
-
-  if (maintenanceMode) {
-    return (
-      <div className="min-h-screen bg-gray-50 py-12 px-4">
-        <div className="max-w-md mx-auto bg-white rounded-lg shadow p-8 text-center">
-          <h1 className="text-2xl font-bold mb-4 text-yellow-600">Quiz in onderhoud</h1>
-          <p className="text-gray-700">Deze quiz is momenteel tijdelijk in onderhoud. Kom later terug.</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (sent) {
-    return (
-      <div className="min-h-screen bg-gray-50 py-12 px-4">
-        <div className="max-w-md mx-auto bg-white rounded-lg shadow p-8 text-center">
-          <h1 className="text-2xl font-bold mb-4">Controleer je e-mail</h1>
-          <p className="text-gray-600 mb-2">U ontvangt een email van TLC Profielen met een inloglink:</p>
-          <p className="text-lg font-semibold text-gray-900">{sentEmail}</p>
-        </div>
-      </div>
-    )
   }
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-md mx-auto bg-white rounded-lg shadow p-8">
-        <h1 className="text-2xl font-bold mb-6">Inloggen</h1>
-        <form onSubmit={requestMagicLink} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Voornaam</label>
-              <input
-                id="firstName"
-                type="text"
-                name="firstName"
-                autoComplete="given-name"
-                value={firstName}
-                onChange={(e) => setFirstName(toProperCase(e.target.value))}
-                className="w-full px-3 py-2 border rounded-md"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Achternaam</label>
-              <input
-                id="lastName"
-                type="text"
-                name="lastName"
-                autoComplete="family-name"
-                value={lastName}
-                onChange={(e) => setLastName(toProperCase(e.target.value))}
-                className="w-full px-3 py-2 border rounded-md"
-                required
-              />
-            </div>
-          </div>
+        <h1 className="text-2xl font-bold mb-6">Admin Login</h1>
+        <form onSubmit={handleLogin} className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-2">E-mailadres</label>
             <input
-              id="email"
+              id="username"
               type="email"
-              name="email"
+              name="username"
               autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               className="w-full px-3 py-2 border rounded-md"
               required
+              disabled={needs2FA}
             />
           </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">Wachtwoord</label>
+            <input
+              id="password"
+              type="password"
+              name="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-3 py-2 border rounded-md"
+              required
+              disabled={needs2FA}
+            />
+          </div>
+          {needs2FA && (
+            <div>
+              <label className="block text-sm font-medium mb-2">2FA Code (6 cijfers)</label>
+              <input
+                id="totpCode"
+                type="text"
+                name="totpCode"
+                autoComplete="one-time-code"
+                value={totpCode}
+                onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                className="w-full px-3 py-2 border rounded-md"
+                maxLength={6}
+                pattern="[0-9]{6}"
+                required
+              />
+            </div>
+          )}
+          {!needs2FA && (
+            <div id="turnstile-widget"></div>
+          )}
           {error && (
             <div className="p-2 bg-red-100 text-red-700 rounded text-sm">
-              {error === 'NO_ACCESS' ? (
-                <span>
-                  Je e-mailadres staat (nog) niet op de toegangslijst voor deze quiz. Neem{' '}
-                  <a
-                    href="https://tlcprofielen.nl/contact/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 underline hover:text-blue-800"
-                  >
-                    contact
-                  </a>
-                  {' '}op met de organisator of probeer het later opnieuw.
-                </span>
-              ) : (
-                error
-              )}
+              {error}
             </div>
           )}
           <button 
@@ -205,8 +170,21 @@ function LoginInner() {
             disabled={isSubmitting || cooldownSeconds > 0}
             className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
-            {isSubmitting ? 'Bezig...' : cooldownSeconds > 0 ? `Wacht ${cooldownSeconds}s` : 'Stuur inloglink'}
+            {isSubmitting ? 'Bezig...' : cooldownSeconds > 0 ? `Wacht ${Math.ceil(cooldownSeconds / 60)}m` : needs2FA ? 'Verifieer 2FA' : 'Inloggen'}
           </button>
+          {needs2FA && (
+            <button
+              type="button"
+              onClick={() => {
+                setNeeds2FA(false)
+                setTotpCode('')
+                setError(null)
+              }}
+              className="w-full text-sm text-gray-600 hover:text-gray-800"
+            >
+              Terug naar login
+            </button>
+          )}
         </form>
       </div>
     </div>
