@@ -90,6 +90,10 @@ function LoginInner() {
       if (!res.ok || !data.ok) {
         if (data.code === 'invalid_totp') {
           setError('Ongeldige 2FA code. Probeer het opnieuw.')
+        } else if (data.code === 'user_not_found') {
+          setError('Onbekend admin account. Controleer je e-mailadres.')
+        } else if (data.code === 'wrong_password') {
+          setError('Onjuist wachtwoord. Probeer het opnieuw.')
         } else if (data.code === 'captcha_token_missing' || data.code === 'turnstile_failed') {
           setError('Captcha verificatie mislukt. Ververs de pagina en probeer opnieuw.')
         } else {

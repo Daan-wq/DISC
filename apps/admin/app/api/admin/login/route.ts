@@ -129,6 +129,27 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const envAdminUsername = (process.env.ADMIN_USERNAME || '').trim().toLowerCase()
+    const envAdminPasswordBcrypt = process.env.ADMIN_PASSWORD_BCRYPT || ''
+    if (envAdminUsername && envAdminPasswordBcrypt && submittedUser === envAdminUsername) {
+      const passwordOk = await bcrypt.compare(password, envAdminPasswordBcrypt)
+      if (!passwordOk) {
+        incrementRateLimits()
+        await logEvent('admin_login_failed', username, { reason: 'wrong_password' })
+        return NextResponse.json({ error: 'Unauthorized', code: 'wrong_password' }, { status: 401 })
+      }
+
+      const ttl = parseInt(process.env.ADMIN_SESSION_TTL_MINUTES || '480', 10)
+      console.log('[login] Creating session cookie for user:', submittedUser)
+      const sessionCookie = createSessionCookie(submittedUser, ttl)
+      console.log('[login] Session cookie created, returning success response with Set-Cookie header')
+      await logEvent('admin_login_success', submittedUser, { auth: 'env' })
+
+      const response = NextResponse.json({ ok: true })
+      response.headers.set('Set-Cookie', sessionCookie)
+      return response
+    }
+
     // Fetch admin from database
     const { supabaseAdmin } = await import('@/lib/supabase')
     if (!supabaseAdmin) {
@@ -141,7 +162,17 @@ export async function POST(req: NextRequest) {
       .eq('email', submittedUser)
       .maybeSingle()
 
-    if (fetchError || !admin) {
+    if (fetchError) {
+      console.error('[login] Failed to fetch admin user', { code: (fetchError as any).code, message: (fetchError as any).message })
+      const code = (fetchError as any).code
+      const message = ((fetchError as any).message || '').toString().toLowerCase()
+      if (code === '42P01' || message.includes('admin_users') && message.includes('does not exist')) {
+        return NextResponse.json({ error: 'Admin table missing', code: 'admin_users_missing' }, { status: 500 })
+      }
+      return NextResponse.json({ error: 'Database error', code: 'db_error' }, { status: 500 })
+    }
+
+    if (!admin) {
       incrementRateLimits()
       await logEvent('admin_login_failed', username, { reason: 'user_not_found' })
       return NextResponse.json({ error: 'Unauthorized', code: 'user_not_found' }, { status: 401 })
