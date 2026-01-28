@@ -2,12 +2,12 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { Plus, Search, Upload, RefreshCw, RotateCcw, Trash2, AlertTriangle } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/admin/ui/Card'
-import { Badge } from '../../components/admin/ui/Badge'
-import { Button } from '../../components/admin/ui/Button'
-import { ConfirmDialog } from '../../components/admin/ui/ConfirmDialog'
-import { Input, Select } from '../../components/admin/ui/Input'
-import { PageHeader } from '../../components/admin/ui/PageHeader'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/admin/ui/Card'
+import { Badge } from '@/components/admin/ui/Badge'
+import { Button } from '@/components/admin/ui/Button'
+import { ConfirmDialog } from '@/components/admin/ui/ConfirmDialog'
+import { Input, Select } from '@/components/admin/ui/Input'
+import { PageHeader } from '@/components/admin/ui/PageHeader'
 import {
   Table,
   TableHeader,
@@ -17,7 +17,7 @@ import {
   TableCell,
   TableEmpty,
   TableLoading,
-} from '../../components/admin/ui/Table'
+} from '@/components/admin/ui/Table'
 
 type Item = {
   id: string

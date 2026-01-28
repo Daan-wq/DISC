@@ -2,11 +2,11 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { Bell, Loader2 } from 'lucide-react'
-import { Card, CardContent } from '../../components/admin/ui/Card'
-import { Badge } from '../../components/admin/ui/Badge'
-import { Select } from '../../components/admin/ui/Input'
-import { PageHeader } from '../../components/admin/ui/PageHeader'
-import { EmptyState } from '../../components/admin/ui/EmptyState'
+import { Card, CardContent } from '@/components/admin/ui/Card'
+import { Badge } from '@/components/admin/ui/Badge'
+import { Select } from '@/components/admin/ui/Input'
+import { PageHeader } from '@/components/admin/ui/PageHeader'
+import { EmptyState } from '@/components/admin/ui/EmptyState'
 
 type Noti = { id: string; created_at: string; severity: 'info'|'warning'|'error'|'success'; source: string; message: string; meta?: any }
 
