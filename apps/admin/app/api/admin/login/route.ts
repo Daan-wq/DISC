@@ -130,13 +130,23 @@ export async function POST(req: NextRequest) {
     }
 
     const envAdminUsername = (process.env.ADMIN_USERNAME || '').trim().toLowerCase()
-    const envAdminPasswordBcrypt = process.env.ADMIN_PASSWORD_BCRYPT || ''
+    const envAdminPasswordBcrypt = (process.env.ADMIN_PASSWORD_BCRYPT || '').trim()
     if (envAdminUsername && envAdminPasswordBcrypt && submittedUser === envAdminUsername) {
-      const passwordOk = await bcrypt.compare(password, envAdminPasswordBcrypt)
+      let passwordOk = false
+      try {
+        passwordOk = await bcrypt.compare(password, envAdminPasswordBcrypt)
+      } catch (e) {
+        console.error('[login] Invalid ADMIN_PASSWORD_BCRYPT format', {
+          message: (e as any)?.message || String(e),
+        })
+        return NextResponse.json({ error: 'Server misconfigured', code: 'invalid_admin_password_hash' }, { status: 500 })
+      }
+
       if (!passwordOk) {
+        console.warn('[login] Wrong password (env)', { username: submittedUser })
         incrementRateLimits()
-        await logEvent('admin_login_failed', username, { reason: 'wrong_password' })
-        return NextResponse.json({ error: 'Unauthorized', code: 'wrong_password' }, { status: 401 })
+        await logEvent('admin_login_failed', username, { reason: 'wrong_password', auth: 'env' })
+        return NextResponse.json({ error: 'Unauthorized', code: 'wrong_password', auth: 'env' }, { status: 401 })
       }
 
       const ttl = parseInt(process.env.ADMIN_SESSION_TTL_MINUTES || '480', 10)
@@ -173,17 +183,27 @@ export async function POST(req: NextRequest) {
     }
 
     if (!admin) {
+      console.warn('[login] User not found (db)', { username: submittedUser })
       incrementRateLimits()
-      await logEvent('admin_login_failed', username, { reason: 'user_not_found' })
-      return NextResponse.json({ error: 'Unauthorized', code: 'user_not_found' }, { status: 401 })
+      await logEvent('admin_login_failed', username, { reason: 'user_not_found', auth: 'db' })
+      return NextResponse.json({ error: 'Unauthorized', code: 'user_not_found', auth: 'db' }, { status: 401 })
     }
 
     // Verify password
-    const passwordOk = await bcrypt.compare(password, admin.password_hash)
+    let passwordOk = false
+    try {
+      passwordOk = await bcrypt.compare(password, admin.password_hash)
+    } catch (e) {
+      console.error('[login] Invalid password hash in admin_users', {
+        message: (e as any)?.message || String(e),
+      })
+      return NextResponse.json({ error: 'Server misconfigured', code: 'invalid_db_password_hash' }, { status: 500 })
+    }
     if (!passwordOk) {
+      console.warn('[login] Wrong password (db)', { username: submittedUser })
       incrementRateLimits()
-      await logEvent('admin_login_failed', username, { reason: 'wrong_password' })
-      return NextResponse.json({ error: 'Unauthorized', code: 'wrong_password' }, { status: 401 })
+      await logEvent('admin_login_failed', username, { reason: 'wrong_password', auth: 'db' })
+      return NextResponse.json({ error: 'Unauthorized', code: 'wrong_password', auth: 'db' }, { status: 401 })
     }
 
     // Verify 2FA if enabled
