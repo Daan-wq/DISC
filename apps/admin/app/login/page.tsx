@@ -12,6 +12,7 @@ function LoginInner() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [needs2FA, setNeeds2FA] = useState(false)
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
+  const [turnstileWidgetId, setTurnstileWidgetId] = useState<number | null>(null)
   const [cooldownSeconds, setCooldownSeconds] = useState(0)
 
   // Countdown timer for rate limit
@@ -34,10 +35,11 @@ function LoginInner() {
 
     script.onload = () => {
       if (typeof window !== 'undefined' && (window as any).turnstile) {
-        (window as any).turnstile.render('#turnstile-widget', {
+        const widgetId = (window as any).turnstile.render('#turnstile-widget', {
           sitekey: siteKey,
           callback: (token: string) => setTurnstileToken(token),
         })
+        if (typeof widgetId === 'number') setTurnstileWidgetId(widgetId)
       }
     }
 
@@ -59,6 +61,12 @@ function LoginInner() {
     }
 
     try {
+      if (!needs2FA && (!turnstileToken || turnstileToken.length < 10)) {
+        setError('Captcha verificatie ontbreekt. Rond de captcha af en probeer opnieuw.')
+        setIsSubmitting(false)
+        return
+      }
+
       const res = await fetch('/api/admin/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -96,6 +104,12 @@ function LoginInner() {
           setError('Onjuist wachtwoord. Probeer het opnieuw.')
         } else if (data.code === 'captcha_token_missing' || data.code === 'turnstile_failed') {
           setError('Captcha verificatie mislukt. Ververs de pagina en probeer opnieuw.')
+          try {
+            if (typeof window !== 'undefined' && (window as any).turnstile && turnstileWidgetId) {
+              ;(window as any).turnstile.reset(turnstileWidgetId)
+            }
+          } catch {}
+          setTurnstileToken(null)
         } else {
           setError('Ongeldige inloggegevens.')
         }
@@ -171,7 +185,7 @@ function LoginInner() {
           )}
           <button 
             type="submit" 
-            disabled={isSubmitting || cooldownSeconds > 0}
+            disabled={isSubmitting || cooldownSeconds > 0 || (!needs2FA && !turnstileToken)}
             className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
             {isSubmitting ? 'Bezig...' : cooldownSeconds > 0 ? `Wacht ${Math.ceil(cooldownSeconds / 60)}m` : needs2FA ? 'Verifieer 2FA' : 'Inloggen'}

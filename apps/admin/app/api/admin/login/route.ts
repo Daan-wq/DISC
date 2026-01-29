@@ -98,6 +98,7 @@ export async function POST(req: NextRequest) {
 
     if (!skipTurnstile) {
       if (!turnstileToken || turnstileToken.length < 10) {
+        console.warn('[login] Captcha token missing', { username: submittedUser, ip: clientIp })
         return NextResponse.json({ error: 'Captcha token missing', code: 'captcha_token_missing' }, { status: 400 })
       }
       
@@ -132,6 +133,11 @@ export async function POST(req: NextRequest) {
     const envAdminUsername = (process.env.ADMIN_USERNAME || '').trim().toLowerCase()
     const envAdminPasswordBcrypt = (process.env.ADMIN_PASSWORD_BCRYPT || '').trim()
     if (envAdminUsername && envAdminPasswordBcrypt && submittedUser === envAdminUsername) {
+      console.log('[login] Env auth candidate', {
+        username: submittedUser,
+        bcryptPrefix: envAdminPasswordBcrypt.slice(0, 4),
+        bcryptLength: envAdminPasswordBcrypt.length,
+      })
       let passwordOk = false
       try {
         passwordOk = await bcrypt.compare(password, envAdminPasswordBcrypt)
@@ -143,7 +149,11 @@ export async function POST(req: NextRequest) {
       }
 
       if (!passwordOk) {
-        console.warn('[login] Wrong password (env)', { username: submittedUser })
+        console.warn('[login] Wrong password (env)', {
+          username: submittedUser,
+          bcryptPrefix: envAdminPasswordBcrypt.slice(0, 4),
+          bcryptLength: envAdminPasswordBcrypt.length,
+        })
         incrementRateLimits()
         await logEvent('admin_login_failed', username, { reason: 'wrong_password', auth: 'env' })
         return NextResponse.json({ error: 'Unauthorized', code: 'wrong_password', auth: 'env' }, { status: 401 })
