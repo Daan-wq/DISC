@@ -12,8 +12,22 @@ function LoginInner() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [needs2FA, setNeeds2FA] = useState(false)
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
-  const [turnstileWidgetId, setTurnstileWidgetId] = useState<number | null>(null)
+  const [turnstileWidgetId, setTurnstileWidgetId] = useState<string | null>(null)
   const [cooldownSeconds, setCooldownSeconds] = useState(0)
+
+  const resetTurnstile = () => {
+    if (needs2FA) return
+    try {
+      if (typeof window !== 'undefined' && (window as any).turnstile) {
+        if (turnstileWidgetId) {
+          ;(window as any).turnstile.reset(turnstileWidgetId)
+        } else {
+          ;(window as any).turnstile.reset()
+        }
+      }
+    } catch {}
+    setTurnstileToken(null)
+  }
 
   // Countdown timer for rate limit
   useEffect(() => {
@@ -38,8 +52,10 @@ function LoginInner() {
         const widgetId = (window as any).turnstile.render('#turnstile-widget', {
           sitekey: siteKey,
           callback: (token: string) => setTurnstileToken(token),
+          'expired-callback': () => setTurnstileToken(null),
+          'error-callback': () => setTurnstileToken(null),
         })
-        if (typeof widgetId === 'number') setTurnstileWidgetId(widgetId)
+        if (widgetId !== undefined && widgetId !== null) setTurnstileWidgetId(String(widgetId))
       }
     }
 
@@ -84,12 +100,14 @@ function LoginInner() {
         const retryAfter = data.retryAfter || 900
         setCooldownSeconds(retryAfter)
         setError(`Te veel inlogpogingen. Probeer het over ${Math.ceil(retryAfter / 60)} minuten opnieuw.`)
+        resetTurnstile()
         setIsSubmitting(false)
         return
       }
 
       if (data.code === 'totp_required') {
         setNeeds2FA(true)
+        setTurnstileToken(null)
         setError(null)
         setIsSubmitting(false)
         return
@@ -104,15 +122,12 @@ function LoginInner() {
           setError('Onjuist wachtwoord. Probeer het opnieuw.')
         } else if (data.code === 'captcha_token_missing' || data.code === 'turnstile_failed') {
           setError('Captcha verificatie mislukt. Ververs de pagina en probeer opnieuw.')
-          try {
-            if (typeof window !== 'undefined' && (window as any).turnstile && turnstileWidgetId) {
-              ;(window as any).turnstile.reset(turnstileWidgetId)
-            }
-          } catch {}
-          setTurnstileToken(null)
         } else {
           setError('Ongeldige inloggegevens.')
         }
+
+        resetTurnstile()
+
         setIsSubmitting(false)
         return
       }
@@ -121,6 +136,7 @@ function LoginInner() {
       router.push('/')
     } catch {
       setError('Er ging iets mis. Probeer het later opnieuw.')
+      resetTurnstile()
       setIsSubmitting(false)
     }
   }
