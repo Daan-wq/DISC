@@ -15,6 +15,42 @@ function LoginInner() {
   const [turnstileWidgetId, setTurnstileWidgetId] = useState<string | null>(null)
   const [cooldownSeconds, setCooldownSeconds] = useState(0)
 
+  const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
+
+  const renderTurnstile = () => {
+    if (!siteKey) return
+    if (typeof window === 'undefined' || !(window as any).turnstile) return
+    const container = document.getElementById('turnstile-widget')
+    if (container) container.innerHTML = ''
+    const widgetId = (window as any).turnstile.render('#turnstile-widget', {
+      sitekey: siteKey,
+      callback: (token: string) => setTurnstileToken(token),
+      'expired-callback': () => setTurnstileToken(null),
+      'error-callback': () => setTurnstileToken(null),
+    })
+    if (widgetId !== undefined && widgetId !== null) setTurnstileWidgetId(String(widgetId))
+  }
+
+  const hardResetTurnstile = () => {
+    if (needs2FA) return
+    try {
+      if (typeof window !== 'undefined' && (window as any).turnstile) {
+        if (turnstileWidgetId) {
+          ;(window as any).turnstile.remove(turnstileWidgetId)
+        }
+      }
+    } catch {}
+    const container = document.getElementById('turnstile-widget')
+    if (container) container.innerHTML = ''
+    setTurnstileToken(null)
+    setTurnstileWidgetId(null)
+    setTimeout(() => {
+      try {
+        renderTurnstile()
+      } catch {}
+    }, 0)
+  }
+
   const resetTurnstile = () => {
     if (needs2FA) return
     try {
@@ -38,7 +74,6 @@ function LoginInner() {
 
   // Load Turnstile widget
   useEffect(() => {
-    const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
     if (!siteKey) return
 
     const script = document.createElement('script')
@@ -48,15 +83,7 @@ function LoginInner() {
     document.body.appendChild(script)
 
     script.onload = () => {
-      if (typeof window !== 'undefined' && (window as any).turnstile) {
-        const widgetId = (window as any).turnstile.render('#turnstile-widget', {
-          sitekey: siteKey,
-          callback: (token: string) => setTurnstileToken(token),
-          'expired-callback': () => setTurnstileToken(null),
-          'error-callback': () => setTurnstileToken(null),
-        })
-        if (widgetId !== undefined && widgetId !== null) setTurnstileWidgetId(String(widgetId))
-      }
+      renderTurnstile()
     }
 
     return () => {
@@ -126,7 +153,7 @@ function LoginInner() {
           setError('Ongeldige inloggegevens.')
         }
 
-        resetTurnstile()
+        hardResetTurnstile()
 
         setIsSubmitting(false)
         return
@@ -136,7 +163,7 @@ function LoginInner() {
       router.push('/')
     } catch {
       setError('Er ging iets mis. Probeer het later opnieuw.')
-      resetTurnstile()
+      hardResetTurnstile()
       setIsSubmitting(false)
     }
   }
