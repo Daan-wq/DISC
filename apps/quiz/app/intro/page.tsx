@@ -1,13 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { LoadingSpinner } from '@/components/LoadingSpinner'
 
 export default function IntroPage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<any>(null)
   const [candidateName, setCandidateName] = useState<string>('')
