@@ -18,9 +18,8 @@ export async function GET(req: NextRequest) {
 
     if (status) {
       query = query.eq('status', status)
-    } else {
-      query = query.in('status', ['pending', 'claimed', 'used'])
     }
+    // If no status param, return ALL records (including revoked)
     if (theme) query = query.eq('theme', theme)
     if (q) {
       // Use ilike on email and full_name
@@ -28,7 +27,14 @@ export async function GET(req: NextRequest) {
     }
 
     const { data, error } = await query
-    if (error) return NextResponse.json({ error: 'DB error' }, { status: 500 })
+    if (error) {
+      console.error('[allowlist/search] DB error:', error)
+      return NextResponse.json({ 
+        error: 'DB error', 
+        details: error.message,
+        hint: error.hint 
+      }, { status: 500 })
+    }
     
     const items = data || []
     

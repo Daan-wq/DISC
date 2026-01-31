@@ -51,6 +51,7 @@ export default function AdminAllowlistPage() {
   const [theme, setTheme] = useState('')
   const [items, setItems] = useState<Item[]>([])
   const [loading, setLoading] = useState(true)
+  const [showAllRecords, setShowAllRecords] = useState(true)
 
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [confirmEmail, setConfirmEmail] = useState<string | null>(null)
@@ -70,6 +71,10 @@ export default function AdminAllowlistPage() {
       if (q) url.searchParams.set('q', q)
       if (status) url.searchParams.set('status', status)
       if (theme) url.searchParams.set('theme', theme)
+      
+      // Track if we're filtering
+      setShowAllRecords(!q && !status && !theme)
+      
       const res = await fetch(url.toString(), { credentials: 'include' })
       if (res.status === 401) {
         setMsg('Sessie verlopen. Ververs de pagina om opnieuw in te loggen.')
@@ -107,7 +112,17 @@ export default function AdminAllowlistPage() {
         setMsg('Sessie verlopen. Ververs de pagina om opnieuw in te loggen.')
         return
       }
-      if (!res.ok) throw new Error('Upsert failed')
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        const errorMsg = data.error || 'Upsert failed'
+        
+        // Show user-friendly message for conflicts
+        if (res.status === 409 && data.conflict) {
+          throw new Error(errorMsg + ' Tip: Zoek de gebruiker en gebruik "Reset".')
+        }
+        
+        throw new Error(errorMsg)
+      }
       setMsg('Opgeslagen')
       setForm({ email: '', full_name: '', trainer_email: '', send_pdf_user: true, send_pdf_trainer: false, testgroup: false, theme: 'tlc' })
       await load()
@@ -260,6 +275,26 @@ export default function AdminAllowlistPage() {
           </Button>
         }
       />
+
+      {!showAllRecords && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+          <div className="flex items-center gap-2 text-amber-800">
+            <AlertTriangle className="h-5 w-5" />
+            <span className="font-medium">Filters actief - niet alle records worden getoond</span>
+          </div>
+          <button
+            onClick={() => {
+              setQ('')
+              setStatus('')
+              setTheme('')
+              load()
+            }}
+            className="mt-2 text-sm text-amber-700 hover:text-amber-900 underline"
+          >
+            Toon alle records
+          </button>
+        </div>
+      )}
 
       <div className="grid lg:grid-cols-2 gap-6">
         <Card>

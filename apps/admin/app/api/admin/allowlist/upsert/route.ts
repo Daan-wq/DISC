@@ -32,7 +32,13 @@ export async function POST(req: NextRequest) {
 
     const json = await req.json().catch(() => null)
     const parsed = BodySchema.safeParse(json)
-    if (!parsed.success) return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
+    if (!parsed.success) {
+      const issues = parsed.error.issues.map(i => `${i.path.join('.')}: ${i.message}`).join(', ')
+      return NextResponse.json({ 
+        error: `Ongeldige invoer: ${issues}`,
+        validation_errors: parsed.error.issues
+      }, { status: 400 })
+    }
     const data = parsed.data
 
     const email_normalized = data.email.trim().toLowerCase()
@@ -52,7 +58,23 @@ export async function POST(req: NextRequest) {
       .select('id, email, status')
       .limit(1)
 
-    if (error) return NextResponse.json({ error: 'DB error' }, { status: 500 })
+    if (error) {
+      console.error('[allowlist/upsert] DB error:', error)
+      
+      // Check for unique constraint violation (conflict)
+      if (error.code === '23505') {
+        return NextResponse.json({ 
+          error: 'Record bestaat al. Gebruik "Reset" om de status te wijzigen.',
+          conflict: true,
+          details: error.message
+        }, { status: 409 })
+      }
+      
+      return NextResponse.json({ 
+        error: `DB error: ${error.message}`,
+        details: error.hint || error.details
+      }, { status: 500 })
+    }
 
     await audit('allowlist_upsert', { email_normalized, quiz_id: data.quiz_id ?? null, testgroup: data.testgroup })
 
