@@ -179,7 +179,7 @@ function RapportPageContent() {
       
       {/* Print Footer (only visible in print) */}
       <div className="hidden print:block fixed bottom-0 left-0 w-full text-center text-xs text-slate-400 p-4">
-        Rapport gegenereerd op {new Date().toLocaleDateString('nl-NL')} • Vertrouwelijk
+        Rapport berekend op {new Date().toLocaleDateString('nl-NL')} • Vertrouwelijk
       </div>
     </div>
   );

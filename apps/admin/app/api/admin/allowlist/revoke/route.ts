@@ -32,22 +32,21 @@ export async function POST(req: NextRequest) {
 
     let query = supabaseAdmin
       .from('allowlist')
-      .update({ status: 'revoked' }, { count: 'exact' })
+      .delete({ count: 'exact' })
       .eq('email_normalized', email)
-      .in('status', ['pending', 'claimed', 'used'])
 
-    // If quiz_id is provided, revoke only for that quiz. If omitted/null, revoke all rows for this email.
+    // If quiz_id is provided, delete only for that quiz. If omitted/null, delete all rows for this email.
     if (quizId) {
       query = query.eq('quiz_id', quizId)
     }
 
-    const { data: updatedRows, error: upErr, count } = await query.select('id')
-    if (upErr) return NextResponse.json({ error: 'DB error' }, { status: 500 })
+    const { data: deletedRows, error: delErr, count } = await query.select('id')
+    if (delErr) return NextResponse.json({ error: 'DB error' }, { status: 500 })
 
-    const updated = (updatedRows?.length ?? count ?? 0) as number
+    const deleted = (deletedRows?.length ?? count ?? 0) as number
 
-    await audit('allowlist_revoke', { email, quiz_id: quizId, updated })
-    return NextResponse.json({ ok: true, updated })
+    await audit('allowlist_delete', { email, quiz_id: quizId, deleted })
+    return NextResponse.json({ ok: true, deleted })
   } catch (e) {
     return NextResponse.json({ error: 'Unhandled' }, { status: 500 })
   }

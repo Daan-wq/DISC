@@ -175,7 +175,16 @@ export async function POST(req: NextRequest) {
             // Convert Blob to Buffer
             const pdfBuffer = Buffer.from(await pdfData.arrayBuffer())
             const pdfFilename = attempt.pdf_filename || 'DISC-rapport.pdf'
-            const displayName = user.email?.split('@')[0] || 'user'
+            
+            // Fetch candidate name from database
+            const { data: candidate } = await supabaseAdmin
+                .from('candidates')
+                .select('full_name')
+                .eq('user_id', user.id)
+                .eq('quiz_id', quiz_id)
+                .single()
+            
+            const displayName = candidate?.full_name || user.email?.split('@')[0] || 'user'
 
             // Send email for cached PDF
             const toEmail = user.email || ''
@@ -208,7 +217,7 @@ export async function POST(req: NextRequest) {
                 for (const rcpt of recipients) {
                     await sendRapportEmail({
                         to: rcpt,
-                        subject: 'Uw DISC rapport is gereed',
+                        subject: 'Je persoonlijke TLC Profiel',
                         html: generateEmailHtml({ name: displayName, year, company }),
                         text: generateEmailText({ name: displayName, year, company }),
                         attachments: [{ filename: pdfFilename, content: pdfBuffer }]

@@ -839,7 +839,7 @@ export async function POST(req: NextRequest) {
         {
           error: 'PDF_GENERATION_FAILED',
           user_message:
-            'Het rapport kon op dit moment niet gedownload worden. Neem contact op met support; die heeft uw rapport.',
+            'Het rapport kon op dit moment niet gedownload worden. Neem contact op met support; die heeft je rapport.',
           status: apiResp.status,
           request_id: requestId,
           mode: api2pdfMode,
@@ -868,7 +868,7 @@ export async function POST(req: NextRequest) {
         {
           error: 'PDF_GENERATION_FAILED',
           user_message:
-            'Het rapport kon op dit moment niet gedownload worden. Neem contact op met support; die heeft uw rapport.',
+            'Het rapport kon op dit moment niet gedownload worden. Neem contact op met support; die heeft je rapport.',
           request_id: requestId,
           mode: api2pdfMode,
           html_chars: htmlChars,
@@ -894,7 +894,7 @@ export async function POST(req: NextRequest) {
         {
           error: 'PDF_DOWNLOAD_FAILED',
           user_message:
-            'Het rapport kon op dit moment niet gedownload worden. Neem contact op met support; die heeft uw rapport.',
+            'Het rapport kon op dit moment niet gedownload worden. Neem contact op met support; die heeft je rapport.',
           request_id: requestId,
         },
         { status: 500, headers: { 'x-request-id': requestId, 'x-pdf-renderer': 'api2pdf' } }
@@ -1008,7 +1008,7 @@ export async function POST(req: NextRequest) {
       {
         error: 'Internal server error',
         user_message:
-          'Het rapport kon op dit moment niet gedownload worden. Neem contact op met support; die heeft uw rapport.',
+          'Het rapport kon op dit moment niet gedownload worden. Neem contact op met support; die heeft je rapport.',
         request_id: requestId,
         elapsed_ms: elapsedMs,
       },

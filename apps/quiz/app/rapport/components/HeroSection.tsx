@@ -43,8 +43,8 @@ export function HeroSection({ report }: HeroSectionProps) {
           transition={{ duration: 0.5 }}
         >
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-            <div>
-              <div className="flex items-center gap-2 text-sm font-medium text-slate-500 mb-2">
+            <div className="text-center md:text-left">
+              <div className="flex items-center justify-center md:justify-start gap-2 text-sm font-medium text-slate-500 mb-2">
                 <span>Rapport van {report.candidateName || 'Kandidaat'}</span>
                 <span>•</span>
                 <span>{formatDate(report.assessmentDate)}</span>

@@ -944,15 +944,10 @@ function QuizInner() {
     
     setAnswers(newAnswers)
     
-    // Move to next question
-    if (currentQuestion < 47) {
+    // Move to next question (including to 48 which will show finish button)
+    if (currentQuestion < 48) {
       console.log('[handleAnswer] Moving to next question:', currentQuestion + 1)
       setCurrentQuestion(currentQuestion + 1)
-    } else {
-      // Show thank-you immediately and submit in background
-      console.log('[handleAnswer] Quiz complete - submitting')
-      setShowThankYou(true)
-      void submitQuiz(newAnswers)
     }
   }
 
@@ -1173,8 +1168,29 @@ function QuizInner() {
     return (
       <div className="min-h-screen bg-gray-50 py-6 px-3 sm:py-8 sm:px-4 md:py-12">
         <div className="max-w-md mx-auto bg-white rounded-lg shadow p-4 sm:p-6 md:p-8 text-center">
-          <h1 className="text-xl sm:text-2xl font-bold mb-4">Bedankt voor het invullen</h1>
-          <p className="text-sm sm:text-base text-gray-600">We verwerken je resultaten en sturen je een mail met je eindrapport.</p>
+          {isSubmitting ? (
+            <>
+              <div className="flex justify-center mb-4">
+                <div className="relative w-16 h-16">
+                  <div className="absolute inset-0 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                </div>
+              </div>
+              <h1 className="text-xl sm:text-2xl font-bold mb-4">Je antwoorden worden verwerkt...</h1>
+              <p className="text-sm sm:text-base text-gray-600">Even geduld, we berekenen je DISC-profiel.</p>
+            </>
+          ) : (
+            <>
+              <div className="flex justify-center mb-4">
+                <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
+                  <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+              </div>
+              <h1 className="text-xl sm:text-2xl font-bold mb-4">Bedankt voor het invullen</h1>
+              <p className="text-sm sm:text-base text-gray-600">We hebben je resultaten verwerkt en sturen je een mail met je eindrapport.</p>
+            </>
+          )}
         </div>
       </div>
     )
@@ -1249,15 +1265,39 @@ function QuizInner() {
 
       <div className="max-w-2xl mx-auto">
         <div className="bg-white rounded-lg shadow p-4 sm:p-6 md:p-8">
-          <Progress current={currentQuestion + 1} total={48} />
+          <Progress current={Math.min(currentQuestion + 1, 48)} total={48} />
           
-          <h2 className="text-base sm:text-lg md:text-xl font-semibold mb-4 sm:mb-6">
-            {isMostQuestion 
-              ? 'Welke uitspraak past het MEEST bij jou?'
-              : 'Welke uitspraak past het MINST bij jou?'}
-          </h2>
+          {currentQuestion === 48 ? (
+            // Finish screen - all questions answered
+            <>
+              <h2 className="text-base sm:text-lg md:text-xl font-semibold mb-4 sm:mb-6 text-center">
+                Je hebt alle vragen beantwoord!
+              </h2>
+              <p className="text-sm sm:text-base text-gray-600 text-center mb-6">
+                Klik op de knop hieronder om je antwoorden in te dienen en je DISC-profiel te berekenen.
+              </p>
+              <button
+                onClick={() => {
+                  console.log('[finish] User clicked finish button')
+                  setShowThankYou(true)
+                  void submitQuiz(answers)
+                }}
+                className="w-full px-6 py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 active:bg-green-800 transition font-semibold text-base sm:text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isSubmitting || candidateStatus !== 'ready'}
+              >
+                {isSubmitting ? 'Bezig met verwerken...' : 'Quiz afronden'}
+              </button>
+            </>
+          ) : (
+            // Normal question screen
+            <>
+              <h2 className="text-base sm:text-lg md:text-xl font-semibold mb-4 sm:mb-6">
+                {isMostQuestion 
+                  ? 'Welke uitspraak past het MEEST bij jou?'
+                  : 'Welke uitspraak past het MINST bij jou?'}
+              </h2>
 
-          <div className="space-y-2 sm:space-y-3">
+              <div className="space-y-2 sm:space-y-3">
             {availableStatements.map((statement: Statement) => {
               // Check if this statement was already answered FOR THIS SPECIFIC QUESTION
               // Only mark as selected if:
@@ -1288,9 +1328,11 @@ function QuizInner() {
                 </button>
               )
             })}
-          </div>
+              </div>
+            </>
+          )}
 
-          {currentQuestion > 0 && (
+          {currentQuestion > 0 && currentQuestion < 48 && (
             <button
               onClick={handleBack}
               className="mt-4 sm:mt-6 w-full sm:w-auto px-6 py-2.5 sm:py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 active:bg-gray-300 transition disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] text-sm sm:text-base"
@@ -1307,7 +1349,7 @@ function QuizInner() {
           )}
           {noAccess && (
             <div className="mt-3 sm:mt-4 p-2.5 sm:p-3 bg-red-100 text-red-700 rounded text-xs sm:text-sm">
-              U heeft (nog) geen toegang tot de test.
+              Je hebt (nog) geen toegang tot de vragenlijst.
               <div className="text-gray-700 mt-1">
                 Neem eventueel <a href="https://tlcprofielen.nl/contact/" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline hover:text-blue-800">contact</a> op met support.
               </div>

@@ -2,12 +2,14 @@
 
 import { useEffect, useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { supabase } from "@/lib/supabase"
+import { createClient } from "@/lib/supabase/client"
+import { LoadingSpinner } from "@/components/LoadingSpinner"
 
 function AuthCallbackInner() {
     const router = useRouter()
     const params = useSearchParams()
     const [error, setError] = useState<boolean>(false)
+    const supabase = createClient()
 
     useEffect(() => {
         let redirected = false
@@ -118,11 +120,8 @@ function AuthCallbackInner() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 py-12 px-4">
-            <div className="max-w-md mx-auto bg-white rounded-lg shadow p-8 text-center">
-                <h1 className="text-2xl font-bold mb-4">Bezig met inloggen...</h1>
-                <p className="text-gray-600">Een moment geduld alstublieft.</p>
-            </div>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+            <LoadingSpinner text="Inloggen..." />
         </div>
     )
 }
@@ -130,11 +129,8 @@ function AuthCallbackInner() {
 export default function AuthCallbackPage() {
     return (
         <Suspense fallback={
-            <div className="min-h-screen bg-gray-50 py-12 px-4">
-                <div className="max-w-md mx-auto bg-white rounded-lg shadow p-8 text-center">
-                    <h1 className="text-2xl font-bold mb-4">Bezig met inloggen...</h1>
-                    <p className="text-gray-600">Een moment geduld alstublieft.</p>
-                </div>
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <LoadingSpinner text="Inloggen..." />
             </div>
         }>
             <AuthCallbackInner />

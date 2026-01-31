@@ -161,7 +161,7 @@ export function RapportContent({ initialReport, isPrintMode = false }: RapportCo
           (typeof userMessage === 'string' && userMessage)
             ? userMessage
             : (errorData as any)?.error ||
-              'Het rapport kon op dit moment niet gedownload worden. Neem contact op met support; die heeft uw rapport.'
+              'Het rapport kon op dit moment niet gedownload worden. Neem contact op met support; die heeft je rapport.'
         throw new Error(msg)
       }
 
@@ -195,7 +195,7 @@ export function RapportContent({ initialReport, isPrintMode = false }: RapportCo
         description:
           err instanceof Error
             ? err.message
-            : 'Het rapport kon op dit moment niet gedownload worden. Neem contact op met support; die heeft uw rapport.',
+            : 'Het rapport kon op dit moment niet gedownload worden. Neem contact op met support; die heeft je rapport.',
         variant: "destructive",
       })
       setTimeout(() => setDownloadState("idle"), 3000)

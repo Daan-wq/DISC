@@ -2,6 +2,7 @@
 
 import { useState, Suspense, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
+import { LoadingSpinner } from '@/components/LoadingSpinner'
 
 function toProperCase(str: string): string {
     if (!str) return str
@@ -115,8 +116,8 @@ function LoginInner() {
         return (
             <div className="min-h-screen bg-gray-50 py-12 px-4">
                 <div className="max-w-md mx-auto bg-white rounded-lg shadow p-8 text-center">
-                    <h1 className="text-2xl font-bold mb-4 text-yellow-600">Quiz in onderhoud</h1>
-                    <p className="text-gray-700">Deze quiz is momenteel tijdelijk in onderhoud. Kom later terug.</p>
+                    <h1 className="text-2xl font-bold mb-4 text-yellow-600">Vragenlijst in onderhoud</h1>
+                    <p className="text-gray-700">De vragenlijst is momenteel tijdelijk in onderhoud. Kom later terug.</p>
                 </div>
             </div>
         )
@@ -127,7 +128,7 @@ function LoginInner() {
             <div className="min-h-screen bg-gray-50 py-12 px-4">
                 <div className="max-w-md mx-auto bg-white rounded-lg shadow p-8 text-center">
                     <h1 className="text-2xl font-bold mb-4">Controleer je e-mail</h1>
-                    <p className="text-gray-600 mb-2">U ontvangt een email van TLC Profielen met een inloglink:</p>
+                    <p className="text-gray-600 mb-2">Je ontvangt een e-mail van TLC Profielen met een inloglink:</p>
                     <p className="text-lg font-semibold text-gray-900">{sentEmail}</p>
                 </div>
             </div>
@@ -184,7 +185,7 @@ function LoginInner() {
                         <div className="p-2 bg-red-100 text-red-700 rounded text-sm">
                             {error === 'NO_ACCESS' ? (
                                 <span>
-                                    Je e-mailadres staat (nog) niet op de toegangslijst voor deze quiz. Neem{' '}
+                                    Je e-mailadres staat (nog) niet op de toegangslijst voor deze vragenlijst. Neem{' '}
                                     <a
                                         href="https://tlcprofielen.nl/contact/"
                                         target="_blank"
@@ -216,10 +217,8 @@ function LoginInner() {
 export default function LoginPage() {
     return (
         <Suspense fallback={
-            <div className="min-h-screen bg-gray-50 py-12 px-4">
-                <div className="max-w-md mx-auto bg-white rounded-lg shadow p-8 text-center">
-                    <h1 className="text-2xl font-bold mb-4">Bezig met laden...</h1>
-                </div>
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <LoadingSpinner text="Pagina laden..." />
             </div>
         }>
             <LoginInner />

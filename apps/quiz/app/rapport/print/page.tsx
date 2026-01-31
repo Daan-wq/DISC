@@ -277,7 +277,7 @@ function PrintPageContent() {
       </div>
       
       <div className="mt-12 pt-8 border-t border-slate-200 text-center text-xs text-slate-400">
-        Rapport gegenereerd op {new Date().toLocaleDateString('nl-NL')} • Vertrouwelijk • The Lean Communication
+        Rapport berekend op {new Date().toLocaleDateString('nl-NL')} • Vertrouwelijk • The Lean Communication
       </div>
     </div>
   );

@@ -20,7 +20,7 @@ export default async function ResultPage({ params }: PageProps) {
                             Bedankt voor het invullen!
                         </h1>
                         <p className="text-gray-600 text-lg">
-                            Kijk in uw mail voor het resultaat!
+                            Kijk in je mail voor het resultaat!
                         </p>
                     </div>
                 </div>

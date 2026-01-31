@@ -223,13 +223,14 @@ export default function AdminAllowlistPage() {
     <div className="space-y-6">
       <ConfirmDialog
         open={confirmOpen}
-        title="Toegang intrekken"
+        onOpenChange={setConfirmOpen}
+        title="Toegang verwijderen"
         description={
           confirmEmail
-            ? `Weet je zeker dat je toegang wilt intrekken voor "${confirmEmail}"? Dit kan niet ongedaan gemaakt worden.`
+            ? `Weet je zeker dat je "${confirmEmail}" wilt verwijderen uit de allowlist? Dit kan niet ongedaan gemaakt worden.`
             : undefined
         }
-        confirmText="Intrekken"
+        confirmText="Verwijderen"
         cancelText="Annuleren"
         variant="danger"
         loading={busy}
@@ -544,7 +545,7 @@ export default function AdminAllowlistPage() {
                     <button
                       onClick={() => requestRevoke(it.email)}
                       className="p-1.5 rounded-lg text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors"
-                      title="Intrekken"
+                      title="Verwijderen"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>

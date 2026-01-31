@@ -326,7 +326,7 @@ function PreviewPageContent() {
           (typeof userMessage === 'string' && userMessage)
             ? userMessage
             : (errorData as any)?.error ||
-              'Het rapport kon op dit moment niet gedownload worden. Neem contact op met support; die heeft uw rapport.';
+              'Het rapport kon op dit moment niet gedownload worden. Neem contact op met support; die heeft je rapport.';
 
         const details: string[] = [];
         if (typeof requestId === 'string' && requestId) details.push(`request_id=${requestId}`);
@@ -357,7 +357,7 @@ function PreviewPageContent() {
       setDownloadError(
         err instanceof Error
           ? err.message
-          : 'Het rapport kon op dit moment niet gedownload worden. Neem contact op met support; die heeft uw rapport.'
+          : 'Het rapport kon op dit moment niet gedownload worden. Neem contact op met support; die heeft je rapport.'
       );
     } finally {
       setGeneratingToken(false);
@@ -414,15 +414,15 @@ function PreviewPageContent() {
               <CardContent className="text-center">
                 {isTrainerOnly ? (
                   <p className="text-slate-700 leading-relaxed max-w-2xl mx-auto">
-                    Uw trainer heeft uw volledige DISC-profiel ontvangen. Dit profiel bevat uitgebreide inzichten,
-                    communicatietips en praktische aanbevelingen. Hierin vindt u verdere toelichting en ter ondersteuning
-                    van uw persoonlijke ontwikkeling.
+                    Je trainer heeft je volledige DISC-profiel ontvangen. Dit profiel bevat uitgebreide inzichten,
+                    communicatietips en praktische aanbevelingen. Hierin vind je verdere toelichting en ter ondersteuning
+                    van je persoonlijke ontwikkeling.
                   </p>
                 ) : (
                   <>
                     <p className="text-slate-600 mb-6 leading-relaxed max-w-2xl mx-auto">
                       Je volledige DISC rapport bevat uitgebreide inzichten, tips voor communicatie,
-                      en praktische aanbevelingen. Download het om later terug te lezen. We zullen het ook in uw mail versturen.
+                      en praktische aanbevelingen. Download het om later terug te lezen. Je ontvangt het rapport ook via je mail.
                     </p>
 
                     <Button
@@ -448,7 +448,7 @@ function PreviewPageContent() {
                     ) : null}
 
                     <p className="text-xs text-slate-400 mt-4">
-                      De PDF wordt automatisch gegenereerd en gedownload.
+                      De PDF wordt automatisch berekend en gedownload.
                     </p>
                   </>
                 )}
