@@ -2,14 +2,13 @@
 
 import { useEffect, useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
+import { supabase } from "@/lib/supabase"
 import { LoadingSpinner } from "@/components/LoadingSpinner"
 
 function AuthCallbackInner() {
     const router = useRouter()
     const params = useSearchParams()
     const [error, setError] = useState<boolean>(false)
-    const supabase = createClient()
 
     useEffect(() => {
         let redirected = false
