@@ -139,47 +139,48 @@ function LoginInner() {
 
     return (
         <div className="min-h-screen bg-gray-50 py-12 px-4">
-            <div className="max-w-md mx-auto bg-white rounded-lg shadow p-8">
+            <div className="max-w-xl mx-auto bg-white rounded-lg shadow p-8">
                 <h1 className="text-2xl font-bold mb-6">Inloggen</h1>
                 <form onSubmit={requestMagicLink} className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium mb-2">Voornaam</label>
-                        <input
-                            id="firstName"
-                            type="text"
-                            name="firstName"
-                            autoComplete="given-name"
-                            value={firstName}
-                            onChange={(e) => setFirstName(toProperCase(e.target.value))}
-                            className="w-full px-3 py-2 border rounded-md"
-                            required
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium mb-2">Tussenvoegsel <span className="text-gray-500 font-normal">(optioneel)</span></label>
-                        <input
-                            id="middleName"
-                            type="text"
-                            name="middleName"
-                            autoComplete="additional-name"
-                            value={middleName}
-                            onChange={(e) => setMiddleName(e.target.value.toLowerCase())}
-                            className="w-full px-3 py-2 border rounded-md"
-                            placeholder="van, de, van der, etc."
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium mb-2">Achternaam</label>
-                        <input
-                            id="lastName"
-                            type="text"
-                            name="lastName"
-                            autoComplete="family-name"
-                            value={lastName}
-                            onChange={(e) => setLastName(toProperCase(e.target.value))}
-                            className="w-full px-3 py-2 border rounded-md"
-                            required
-                        />
+                    <div className="grid grid-cols-3 gap-3">
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Voornaam</label>
+                            <input
+                                id="firstName"
+                                type="text"
+                                name="firstName"
+                                autoComplete="given-name"
+                                value={firstName}
+                                onChange={(e) => setFirstName(toProperCase(e.target.value))}
+                                className="w-full px-3 py-2 border rounded-md"
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Tussenvoegsel</label>
+                            <input
+                                id="middleName"
+                                type="text"
+                                name="middleName"
+                                autoComplete="additional-name"
+                                value={middleName}
+                                onChange={(e) => setMiddleName(e.target.value.toLowerCase())}
+                                className="w-full px-3 py-2 border rounded-md"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Achternaam</label>
+                            <input
+                                id="lastName"
+                                type="text"
+                                name="lastName"
+                                autoComplete="family-name"
+                                value={lastName}
+                                onChange={(e) => setLastName(toProperCase(e.target.value))}
+                                className="w-full px-3 py-2 border rounded-md"
+                                required
+                            />
+                        </div>
                     </div>
                     <div>
                         <label className="block text-sm font-medium mb-2">E-mailadres</label>
