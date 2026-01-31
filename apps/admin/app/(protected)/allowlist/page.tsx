@@ -238,7 +238,6 @@ export default function AdminAllowlistPage() {
     <div className="space-y-6">
       <ConfirmDialog
         open={confirmOpen}
-        onOpenChange={setConfirmOpen}
         title="Toegang verwijderen"
         description={
           confirmEmail
