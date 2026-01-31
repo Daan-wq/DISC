@@ -37,7 +37,7 @@ export async function sendRapportEmail(options: EmailOptions) {
     to: options.to,
     subject: options.subject,
     html: options.html,
-    text: options.text || 'Your DISC profile results are ready.',
+    text: options.text || 'Je TLC Profiel is gereed.',
     attachments
   }
 
@@ -76,7 +76,7 @@ export function generateEmailHtml(data: { name: string; year: number | string; c
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>Je DISC Rapport</title>
+  <title>Je TLC Profiel</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: ${bg};">
   <table width="100%" cellpadding="0" cellspacing="0" style="background-color: ${bg}; padding: 20px;">
@@ -94,18 +94,19 @@ export function generateEmailHtml(data: { name: string; year: number | string; c
           <!-- Content -->
           <tr>
             <td style="padding: 20px 40px;">
-              <h1 style="color: ${text}; font-size: 24px; margin: 0 0 20px 0; text-align: center;">Je DISC Rapport</h1>
+              <h1 style="color: ${text}; font-size: 24px; margin: 0 0 20px 0; text-align: center;">Je TLC Profiel</h1>
               <p style="color: ${textMuted}; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
                 Beste ${data.name},
               </p>
               <p style="color: ${textMuted}; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
-                Je DISC profiel rapport is succesvol gegenereerd. Hieronder vind je de details van je analyse.
+                Hierbij sturen we je jouw persoonlijke TLC Profiel.
               </p>
               <p style="color: ${textMuted}; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
-                Je volledige rapport is bijgevoegd als PDF-bestand.
+                Je ontvangt het rapport ook via je mail.
               </p>
               <p style="color: ${textMuted}; font-size: 16px; line-height: 1.6; margin: 0;">
-                Dit rapport bevat een gedetailleerde analyse van je natuurlijke en respons communicatiestijl, samen met praktische inzichten voor effectievere communicatie.
+                Hartelijke groet,<br/>
+                Het team van TLC Profielen
               </p>
             </td>
           </tr>
@@ -136,11 +137,12 @@ export function generateEmailText(data: { name: string; year: number | string; c
   return [
     `Beste ${data.name},`,
     '',
-    'Je DISC profiel rapport is succesvol gegenereerd. Hieronder vind je de details van je analyse.',
+    'Hierbij sturen we je jouw persoonlijke TLC Profiel.',
     '',
-    'Je volledige rapport is bijgevoegd als PDF-bestand.',
+    'Je ontvangt het rapport ook via je mail.',
     '',
-    'Dit rapport bevat een gedetailleerde analyse van je natuurlijke en respons communicatiestijl, samen met praktische inzichten voor effectievere communicatie.',
+    'Hartelijke groet,',
+    'Het team van TLC Profielen',
     '',
     `© ${data.year} ${data.company}. Alle rechten voorbehouden.`
   ].join('\n')
@@ -164,7 +166,7 @@ export async function sendAllowlistEmail(options: {
   const mailOptions = {
     from: process.env.FROM_EMAIL || 'noreply@tlcprofielen.nl',
     to: options.to,
-    subject: 'Je bent uitgenodigd voor de DISC Quiz',
+    subject: 'Uitnodiging vragenlijst TLC Profiel',
     html,
     text
   }
@@ -198,7 +200,7 @@ function generateAllowlistEmailHtml(data: { name: string; quizUrl: string; compa
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>Uitnodiging DISC Quiz</title>
+  <title>Uitnodiging TLC Vragenlijst</title>
   <style type="text/css">
     body { margin: 0; padding: 0; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
     table { border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
@@ -226,10 +228,10 @@ function generateAllowlistEmailHtml(data: { name: string; quizUrl: string; compa
                 Beste ${data.name},
               </p>
               <p style="color: ${textMuted}; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
-                Je bent uitgenodigd om de DISC persoonlijkheidstest te doen. Deze test helpt je inzicht te krijgen in je communicatiestijl en gedragspatronen.
+                Je bent uitgenodigd om de TLC vragenlijst in te vullen. De uitkomsten helpen je om inzicht te krijgen in je communicatiestijl en gedragspatronen.
               </p>
               <p style="color: ${textMuted}; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
-                Klik op de knop hieronder om te beginnen met de quiz:
+                Klik op de knop om te beginnen met de vragenlijst:
               </p>
             </td>
           </tr>
@@ -237,7 +239,7 @@ function generateAllowlistEmailHtml(data: { name: string; quizUrl: string; compa
           <!-- Button -->
           <tr>
             <td align="center" style="padding: 0 40px 40px 40px;">
-              <a href="${data.quizUrl}" style="display: inline-block; padding: 14px 40px; background-color: ${buttonBg}; color: ${buttonText}; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: bold;">Start de DISC Quiz</a>
+              <a href="${data.quizUrl}" style="display: inline-block; padding: 14px 40px; background-color: ${buttonBg}; color: ${buttonText}; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: bold;">Start de vragenlijst</a>
             </td>
           </tr>
           
@@ -277,9 +279,9 @@ function generateAllowlistEmailText(data: { name: string; quizUrl: string; compa
   return [
     `Beste ${data.name},`,
     '',
-    'Je bent uitgenodigd om de DISC persoonlijkheidstest te doen. Deze test helpt je inzicht te krijgen in je communicatiestijl en gedragspatronen.',
+    'Je bent uitgenodigd om de TLC vragenlijst in te vullen. De uitkomsten helpen je om inzicht te krijgen in je communicatiestijl en gedragspatronen.',
     '',
-    'Klik op de link hieronder om te beginnen met de quiz:',
+    'Klik op de link om te beginnen met de vragenlijst:',
     data.quizUrl,
     '',
     `© ${data.year} ${data.company}. Alle rechten voorbehouden.`

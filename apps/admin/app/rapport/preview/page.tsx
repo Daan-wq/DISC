@@ -445,7 +445,7 @@ function PreviewPageContent() {
                     ) : null}
 
                     <p className="text-xs text-slate-400 mt-4">
-                      De PDF wordt automatisch gegenereerd en gedownload.
+                      De PDF wordt automatisch berekend en gedownload.
                     </p>
                   </>
                 )}

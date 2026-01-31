@@ -15,6 +15,7 @@ const BodySchema = z.object({
         'Redirect URL must be on same domain'
     ).optional(),
     first_name: z.string().trim().min(1).optional(),
+    middle_name: z.string().trim().optional(),
     last_name: z.string().trim().min(1).optional()
 })
 
@@ -69,6 +70,7 @@ export async function POST(req: NextRequest) {
         const email = parsed.data.email.trim().toLowerCase()
         let redirectTo = parsed.data.redirectTo
         const firstName = toProperCase((parsed.data.first_name || '').trim())
+        const middleName = (parsed.data.middle_name || '').trim().toLowerCase()
         const lastName = toProperCase((parsed.data.last_name || '').trim())
 
         // Check allowlist: prefer email_normalized, fallback to email
@@ -186,7 +188,8 @@ export async function POST(req: NextRequest) {
                             user_id: authUser.id,
                             quiz_id: QUIZ_ID,
                             email: email,
-                            full_name: fullName
+                            full_name: fullName,
+                            middle_name: middleName || null
                         })
                         .select('id')
                         .single()
